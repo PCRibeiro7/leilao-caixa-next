@@ -8,6 +8,8 @@ import { PROPERTIES_GEOCODED_PATH } from "@/consts/filePaths";
 
 const ENV = process.env.NODE_ENV;
 
+let failedGeocodingCount = 1;
+
 async function parseCSV(): Promise<void> {
     console.log("CSV file successfully processed");
     if (ENV === "development") {
@@ -42,7 +44,7 @@ async function geocodeProperties(properties: Property[]): Promise<GeocodedProper
             console.log(`Geocoding property ${index + 1} of ${properties.length}`);
         }
 
-        promiseArray.push(fetchGeocodeData(property));
+        promiseArray.push(fetchNominatinGeocodeData(property));
 
         if (index % 5 === 0) {
             const currentGeocodedProperties = await Promise.all(promiseArray);
@@ -64,10 +66,39 @@ async function geocodeProperties(properties: Property[]): Promise<GeocodedProper
         }
     }
 
+    console.log(`Failed Geocoding Count: ${failedGeocodingCount}. Out of ${properties.length} properties.`);
     return geocodedProperties;
 }
+async function fetchNominatinGeocodeData(property: Property): Promise<GeocodedProperty | undefined> {
+    try {
+        const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
+            params: {
+                street: property.address.split(',')[0],
+                // county: property.neighborhood,
+                city: property.city,
+                state: property.state,
+                country: "br",
+                format: "jsonv2",
+            },
+        });
 
-async function fetchGeocodeData(property: Property): Promise<GeocodedProperty | undefined> {
+        if (response.data.length > 0) {
+            const location = response.data[0];
+            return {
+                ...property,
+                latitude: parseFloat(location.lat),
+                longitude: parseFloat(location.lon),
+            };
+        } else {
+            console.warn(`Geocoding failed for address: ${property.address}`);
+            failedGeocodingCount++;
+        }
+    } catch (error) {
+        console.error(`Error geocoding address: ${property.address}`, error);
+    }
+}
+
+async function fetchGoogleGeocodeData(property: Property): Promise<GeocodedProperty | undefined> {
     const googleApiKey = process.env.GOOGLE_API_KEY; // Replace with your Google Maps API key
     const formattedAddress = formatAddress(property);
     try {
