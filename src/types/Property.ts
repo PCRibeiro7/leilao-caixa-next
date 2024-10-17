@@ -14,4 +14,5 @@ export interface Property {
 export interface GeocodedProperty extends Property {
     latitude: number;
     longitude: number;
+    geocodedPrecisely: boolean;
 }
