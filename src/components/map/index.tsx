@@ -18,8 +18,8 @@ const defaults = {
     zoom: 8,
 };
 
-const Map = (Map: MapProps) => {
-    const { properties } = Map;
+const Map = (props: MapProps) => {
+    const { properties } = props;
 
     return (
         <MapContainer

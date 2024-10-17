@@ -4,10 +4,11 @@
 
 import dynamic from "next/dynamic";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import propertiesGeocoded from "@/data/properties-geocoded.json";
+import propertiesGeocodedData from "@/data/properties-geocoded.json";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { GeocodedProperty } from "@/types/Property";
 
 type Filters = {
     minPrice: number;
@@ -33,6 +34,7 @@ export default function Page() {
         []
     );
 
+    const propertiesGeocoded = propertiesGeocodedData as GeocodedProperty[];
     const [properties, setProperties] = useState(propertiesGeocoded.slice(0, 10));
 
     const [filters, setFilters] = useState<Filters>(initialFilters);
@@ -65,7 +67,7 @@ export default function Page() {
         });
 
         setProperties(filteredProperties);
-    }, []);
+    }, [propertiesGeocoded]);
 
     useEffect(() => {
         applyFilter(filters);
