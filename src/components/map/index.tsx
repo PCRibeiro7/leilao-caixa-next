@@ -33,15 +33,17 @@ const Map = (props: MapProps) => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             {properties.map((property) => (
-                <CircleMarker key={property.caixaId} center={[property.latitude, property.longitude]} radius={4} >
+                <CircleMarker key={property.caixaId} center={[property.latitude, property.longitude]} radius={4}>
                     <Popup>
                         <b>{property.address} </b>
                         <br />
                         {property.city} , {property.state}
                         <br />
-                        Price: {property.priceAsCurrency}
+                        Preço: {property.priceAsCurrency}
                         <br />
-                        Discount: {property.discount} %{/* <br>Type: {property.sellingType}  */}
+                        Disconto: {property.discount} %
+                        <br />
+                        Tipo: {property.sellingType}
                         <br />
                         <a
                             href={`https://venda-imoveis.caixa.gov.br/sistema/detalhe-imovel.asp?hdnimovel=${property.caixaId}`}
