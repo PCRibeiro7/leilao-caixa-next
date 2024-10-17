@@ -32,6 +32,7 @@ export default function Page() {
             }),
         []
     );
+
     const [properties, setProperties] = useState(propertiesGeocoded.slice(0, 10));
 
     const [filters, setFilters] = useState<Filters>(initialFilters);
@@ -46,7 +47,6 @@ export default function Page() {
             minDiscount: Number(formData.get("min-discount") || 0),
             stateFilter: String(formData.get("state-filter") || ""),
         };
-        console.log(newFilters);
         setFilters(newFilters);
     }
 
@@ -63,8 +63,11 @@ export default function Page() {
 
             return isAboveMinPrice && isBelowMaxPrice && isAboveMinDiscount && isMatchingStateFilter;
         });
-        console.log(filters);
-        console.log(filteredProperties.length);
+
+        if(filteredProperties.length > 3000) {
+            alert(`Too many properties (${filteredProperties.length}), please refine your search`);
+            return;
+        }
         setProperties(filteredProperties);
     }, []);
 

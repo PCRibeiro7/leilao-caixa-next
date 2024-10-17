@@ -9,29 +9,35 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import "leaflet/dist/leaflet.css";
 
 import { GeocodedProperty } from "@/types/Property";
+import { Map as IMap } from "leaflet";
+import { useState } from "react";
+import useVisible from "./useVisible";
 
 interface MapProps {
     properties: GeocodedProperty[];
 }
 
 const defaults = {
-    zoom: 8,
+    zoom: 15,
 };
 
 const Map = (Map: MapProps) => {
     const { properties } = Map;
+    const [map, setMap] = useState<IMap | null>(null);
+    const visibleProperties = useVisible(map, properties);
 
     return (
         <MapContainer
             center={[properties[0].latitude, properties[0].longitude]}
             zoom={defaults.zoom}
             style={{ height: "100%", width: "100%" }}
+            ref={setMap}
         >
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {properties.map((property) => (
+            {visibleProperties.map((property) => (
                 <Marker key={property.caixaId} position={[property.latitude, property.longitude]} draggable={false}>
                     <Popup>
                         <b>{property.address} </b>
