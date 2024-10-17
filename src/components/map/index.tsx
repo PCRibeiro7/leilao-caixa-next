@@ -33,7 +33,12 @@ const Map = (props: MapProps) => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             {properties.map((property) => (
-                <CircleMarker key={property.caixaId} center={[property.latitude, property.longitude]} radius={4}>
+                <CircleMarker
+                    key={property.caixaId}
+                    center={[property.latitude, property.longitude]}
+                    radius={4}
+                    color={property.geocodedPrecisely ? "blue" : "red"}
+                >
                     <Popup>
                         <b>{property.address} </b>
                         <br />
