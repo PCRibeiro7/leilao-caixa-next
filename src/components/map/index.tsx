@@ -2,43 +2,38 @@
 
 "use client";
 
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
 
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet/dist/leaflet.css";
 
 import { GeocodedProperty } from "@/types/Property";
-import { Map as IMap } from "leaflet";
-import { useState } from "react";
-import useVisible from "./useVisible";
 
 interface MapProps {
     properties: GeocodedProperty[];
 }
 
 const defaults = {
-    zoom: 15,
+    zoom: 8,
 };
 
 const Map = (Map: MapProps) => {
     const { properties } = Map;
-    const [map, setMap] = useState<IMap | null>(null);
-    const visibleProperties = useVisible(map, properties);
 
     return (
         <MapContainer
             center={[properties[0].latitude, properties[0].longitude]}
             zoom={defaults.zoom}
             style={{ height: "100%", width: "100%" }}
-            ref={setMap}
+            preferCanvas={true}
         >
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {visibleProperties.map((property) => (
-                <Marker key={property.caixaId} position={[property.latitude, property.longitude]} draggable={false}>
+            {properties.map((property) => (
+                <CircleMarker key={property.caixaId} center={[property.latitude, property.longitude]} radius={4} >
                     <Popup>
                         <b>{property.address} </b>
                         <br />
@@ -62,7 +57,7 @@ const Map = (Map: MapProps) => {
                             Link Maps
                         </a>
                     </Popup>
-                </Marker>
+                </CircleMarker>
             ))}
         </MapContainer>
     );

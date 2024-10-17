@@ -26,11 +26,11 @@ const checkEnv = async () => {
         const ans = await askQuestion("Are you sure you want to run in PRODUCTION mode? (Y/N): ");
         if (!["y", "yes"].includes(ans.toLowerCase())) {
             console.log("Script aborted");
-            process.exit(0);
+            process.abort();
         }
     } else {
         console.error("Invalid NODE_ENV value. Use 'development' or 'production'");
-        process.exit(1);
+        process.abort();
     }
 };
 

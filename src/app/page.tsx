@@ -64,10 +64,6 @@ export default function Page() {
             return isAboveMinPrice && isBelowMaxPrice && isAboveMinDiscount && isMatchingStateFilter;
         });
 
-        if(filteredProperties.length > 3000) {
-            alert(`Too many properties (${filteredProperties.length}), please refine your search`);
-            return;
-        }
         setProperties(filteredProperties);
     }, []);
 
@@ -78,25 +74,33 @@ export default function Page() {
     return (
         <>
             <div className="bg-white-700 mx-auto w-[100%] h-[100%]">
-                <form onSubmit={onSubmit} className="flex items-center space-x-8 m-2">
-                    <div>
-                        <Label htmlFor="min-price">Min Price (R$):</Label>
-                        <Input type="number" name="min-price" defaultValue={initialFilters.minPrice} />
-                    </div>
-                    <div>
-                        <Label htmlFor="max-price">Max Price (R$):</Label>
-                        <Input type="number" name="max-price" defaultValue={initialFilters.maxPrice} />
-                    </div>
-                    <div>
-                        <Label htmlFor="min-discount">Min Discount (%):</Label>
-                        <Input type="number" name="min-discount" defaultValue={initialFilters.minDiscount} />
-                    </div>
-                    <div>
-                        <Label htmlFor="state-filter">State:</Label>
-                        <Input type="text" name="state-filter" defaultValue={initialFilters.stateFilter} />
-                    </div>
-                    <Button type="submit">Apply Filter</Button>
-                </form>
+                <div className="flex justify-between">
+                    <form onSubmit={onSubmit} className="flex items-center space-x-4 m-4">
+                        <div>
+                            <Label htmlFor="min-price">Min Price (R$):</Label>
+                            <Input type="number" name="min-price" defaultValue={initialFilters.minPrice} />
+                        </div>
+                        <div>
+                            <Label htmlFor="max-price">Max Price (R$):</Label>
+                            <Input type="number" name="max-price" defaultValue={initialFilters.maxPrice} />
+                        </div>
+                        <div>
+                            <Label htmlFor="min-discount">Min Discount (%):</Label>
+                            <Input type="number" name="min-discount" defaultValue={initialFilters.minDiscount} />
+                        </div>
+                        <div>
+                            <Label htmlFor="state-filter">State:</Label>
+                            <Input type="text" name="state-filter" defaultValue={initialFilters.stateFilter} />
+                        </div>
+                        <div>
+                            <Button className="mt-5" type="submit">
+                                Apply Filter
+                            </Button>
+                        </div>
+                    </form>
+                    <div className="m-4 content-end">{properties.length} properties found</div>
+                </div>
+
                 <Map properties={properties} />
             </div>
         </>
