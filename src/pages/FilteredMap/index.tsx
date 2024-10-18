@@ -21,6 +21,7 @@ export default function FilteredMap() {
     const propertiesGeocoded = propertiesGeocodedData as GeocodedProperty[];
     const [properties, setProperties] = useState(propertiesGeocoded);
 
+
     return (
         <>
             <div className="bg-white-700 mx-auto w-[100%] h-[100%]">

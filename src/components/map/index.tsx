@@ -8,11 +8,18 @@ import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet/dist/leaflet.css";
 
-import { GeocodedProperty } from "@/types/Property";
+import { GeocodedProperty, GeocodePrecision } from "@/types/Property";
 
 interface MapProps {
     properties: GeocodedProperty[];
 }
+
+const mapGeocodePrecisionToColor: Record<GeocodePrecision, string> = {
+    fullAddress: "rgb(49,54,149)",
+    address: "rgb(69,117,180)",
+    street: "rgb(244,109,67)",
+    city: "rgb(165,0,38)",
+};
 
 const defaults = {
     zoom: 8,
@@ -37,7 +44,7 @@ const Map = (props: MapProps) => {
                     key={property.caixaId}
                     center={[property.latitude, property.longitude]}
                     radius={4}
-                    color={property.geocodedPrecisely ? "blue" : "red"}
+                    color={mapGeocodePrecisionToColor[property.geocodePrecision]}
                 >
                     <Popup>
                         <b>{property.address} </b>
