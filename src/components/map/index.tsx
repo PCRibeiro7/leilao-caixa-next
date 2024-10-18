@@ -46,7 +46,7 @@ const Map = (props: MapProps) => {
                         <br />
                         Preço: {property.priceAsCurrency}
                         <br />
-                        Disconto: {property.discount} %
+                        Desconto: {property.discount} %
                         <br />
                         Tipo: {property.sellingType}
                         <br />

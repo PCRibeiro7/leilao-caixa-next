@@ -5,7 +5,7 @@ import { createWriteStream } from "fs";
 async function downloadFile(url: string, outputPath: string): Promise<void> {
     try {
         const response = await axios.get(url, { responseType: "stream" });
-        const writeStream = createWriteStream(outputPath);
+        const writeStream = createWriteStream(outputPath, { encoding: "latin1" });
 
         response.data.pipe(writeStream);
 

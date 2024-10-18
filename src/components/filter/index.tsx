@@ -17,9 +17,9 @@ type Filters = {
 
 const initialFilters: Filters = {
     minPrice: 0,
-    maxPrice: 100000,
-    minDiscount: 50,
-    stateFilter: "RJ",
+    maxPrice: Infinity,
+    minDiscount: 0,
+    stateFilter: "",
 };
 
 type FilterProps = {

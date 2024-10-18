@@ -1,9 +1,9 @@
 import axios from "axios";
-import * as fs from "fs";
 import "dotenv/config";
 import { GeocodedProperty, Property } from "@/types/Property";
 import { PROPERTIES_GEOCODED_PATH, PROPERTIES_PATH } from "@/consts/filePaths";
 import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
+import { appendFileSync } from "fs";
 
 const geocodedProperties = readJsonlFileAsJsonArray<GeocodedProperty>(PROPERTIES_GEOCODED_PATH);
 const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH);
@@ -40,7 +40,9 @@ async function geocodeProperties(properties: Property[]): Promise<void> {
             const currentGeocodedProperties = await Promise.all(promiseArray);
             for (const geocodedProperty of currentGeocodedProperties) {
                 if (geocodedProperty) {
-                    fs.appendFileSync(PROPERTIES_GEOCODED_PATH, JSON.stringify(geocodedProperty) + "\n");
+                    appendFileSync(PROPERTIES_GEOCODED_PATH, JSON.stringify(geocodedProperty) + "\n", {
+                        encoding: "latin1",
+                    });
                 }
             }
             promiseArray = [];
@@ -50,7 +52,9 @@ async function geocodeProperties(properties: Property[]): Promise<void> {
             const currentGeocodedProperties = await Promise.all(promiseArray);
             for (const geocodedProperty of currentGeocodedProperties) {
                 if (geocodedProperty) {
-                    fs.appendFileSync(PROPERTIES_GEOCODED_PATH, JSON.stringify(geocodedProperty) + "\n");
+                    appendFileSync(PROPERTIES_GEOCODED_PATH, JSON.stringify(geocodedProperty) + "\n", {
+                        encoding: "latin1",
+                    });
                 }
             }
         }
@@ -91,9 +95,10 @@ const formatStreet = (property: Property, retryNumber: number) => {
 async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): Promise<GeocodedProperty | undefined> {
     if (retryNumber > 2) {
         const street = formatStreet(property, retryNumber - 1);
-        fs.appendFileSync(
+        appendFileSync(
             "failed-geocoding.txt",
-            `address: ${street} // FULL: ${property.address}, ${property.city}, ${property.state}` + "\n"
+            `address: ${street} // FULL: ${property.address}, ${property.city}, ${property.state}` + "\n",
+            { encoding: "latin1" }
         );
         console.warn(`Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`);
         return;
