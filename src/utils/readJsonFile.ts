@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 
 function readJsonlFileAsJsonArray<T>(jsonlFilePath: string) {
-    const content = readFileSync(jsonlFilePath, "utf8");
+    const content = readFileSync(jsonlFilePath, { encoding: "latin1" });
 
     if (!content) {
         return [];

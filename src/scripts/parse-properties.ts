@@ -1,8 +1,8 @@
 import csv from "csv-parser";
-import * as fs from "fs";
 import "dotenv/config";
 import { Property } from "@/types/Property";
 import { PROPERTIES_PATH, PROPERTIES_RAW_PATH } from "@/consts/filePaths";
+import { appendFileSync, createReadStream } from "fs";
 
 const ENV = process.env.NODE_ENV;
 
@@ -13,7 +13,7 @@ function cleanString(input: string): string {
 function parseCSV(filePath: string): void {
     let linesProcessed = 0;
 
-    const readStream = fs.createReadStream(filePath)
+    const readStream = createReadStream(filePath, { encoding: "latin1" })
         .pipe(
             csv({
                 separator: ";",
@@ -51,9 +51,9 @@ function parseCSV(filePath: string): void {
             };
             linesProcessed++;
 
-            fs.appendFileSync(PROPERTIES_PATH, JSON.stringify(property) + "\n");
+            appendFileSync(PROPERTIES_PATH, JSON.stringify(property) + "\n", { encoding: "latin1" });
 
-            if (ENV === "development" && linesProcessed >= 100 ) {
+            if (ENV === "development" && linesProcessed >= 100) {
                 readStream.destroy();
             }
         })

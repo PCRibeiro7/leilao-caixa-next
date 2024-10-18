@@ -5,5 +5,5 @@ if (existsSync(PROPERTIES_RAW_PATH)) {
     unlinkSync(PROPERTIES_RAW_PATH);
 }
 
-writeFileSync(PROPERTIES_PATH, "");
-writeFileSync(PROPERTIES_GEOCODED_PATH, "");
+writeFileSync(PROPERTIES_PATH, "", { encoding: "latin1" });
+writeFileSync(PROPERTIES_GEOCODED_PATH, "", { encoding: "latin1" });
