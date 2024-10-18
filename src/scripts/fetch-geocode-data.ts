@@ -3,7 +3,7 @@ import "dotenv/config";
 import { GeocodedProperty, GeocodePrecision, Property } from "@/types/Property";
 import { PROPERTIES_GEOCODED_PATH, PROPERTIES_PATH } from "@/consts/filePaths";
 import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
-import { appendFileSync } from "fs";
+import { appendFileSync, writeFileSync } from "fs";
 
 const geocodedProperties = readJsonlFileAsJsonArray<GeocodedProperty>(PROPERTIES_GEOCODED_PATH);
 const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH);
@@ -16,6 +16,14 @@ const mapRetryNumberToGeocodePrecision: Record<number, GeocodePrecision> = {
 };
 
 async function parseCSV(): Promise<void> {
+    // removes geocoded properties that are not in the properties file anymore (old properties) 
+    const propertiesToKeep = geocodedProperties.filter((geocodedProperty) => {
+        return properties.find((property) => property.caixaId === geocodedProperty.caixaId);
+    });
+    console.log(`Existing geocodedProperties: ${geocodedProperties.length}. Properties to keep: ${propertiesToKeep.length}`);
+    const propertiesToKeepContent = propertiesToKeep.map((property) => JSON.stringify(property)).join("\n");
+    writeFileSync(PROPERTIES_GEOCODED_PATH, propertiesToKeepContent);
+
     const newProperties = properties.filter((property) => {
         return !geocodedProperties.some(
             (existingProperty: GeocodedProperty) => existingProperty.caixaId === property.caixaId

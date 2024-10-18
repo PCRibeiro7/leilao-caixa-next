@@ -10,10 +10,12 @@
     "lint": "next lint",
     "check-env": "tsx ./src/scripts/check-env.ts",
     "cleanup-properties": "tsx ./src/scripts/cleanup-properties.ts",
+    "cleanup-geocoded-properties": "tsx ./src/scripts/cleanup-geocoded-properties.ts",
     "fetch-raw-properties": "tsx ./src/scripts/fetch-raw-properties.ts",
     "parse-properties": "tsx ./src/scripts/parse-properties.ts",
     "fetch-geocode-data": "tsx ./src/scripts/fetch-geocode-data.ts",
-    "reset-properties": "npm run check-env && npm run cleanup-properties && npm run fetch-raw-properties && npm run parse-properties && npm run fetch-geocode-data"
+    "update-properties": "npm run check-env && npm run cleanup-properties && npm run fetch-raw-properties && npm run parse-properties && npm run fetch-geocode-data",
+    "reset-properties": "npm run check-env && npm run cleanup-properties && npm run cleanup-geocoded-properties && npm run fetch-raw-properties && npm run parse-properties && npm run fetch-geocode-data"
   },
   "dependencies": {
     "@radix-ui/react-icons": "^1.3.0",
