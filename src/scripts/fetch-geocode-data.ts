@@ -16,13 +16,19 @@ const mapRetryNumberToGeocodePrecision: Record<number, GeocodePrecision> = {
 };
 
 async function parseCSV(): Promise<void> {
-    // removes geocoded properties that are not in the properties file anymore (old properties) 
-    const propertiesToKeep = geocodedProperties.filter((geocodedProperty) => {
+    // removes geocoded properties that are not in the properties file anymore (old properties)
+    const geocodedPropertiesToKeep = geocodedProperties.filter((geocodedProperty) => {
         return properties.find((property) => property.caixaId === geocodedProperty.caixaId);
     });
-    console.log(`Existing geocodedProperties: ${geocodedProperties.length}. Properties to keep: ${propertiesToKeep.length}`);
-    const propertiesToKeepContent = propertiesToKeep.map((property) => JSON.stringify(property)).join("\n");
-    writeFileSync(PROPERTIES_GEOCODED_PATH, propertiesToKeepContent);
+    console.log(
+        `Existing geocodedProperties: ${geocodedProperties.length}. Properties to keep: ${geocodedPropertiesToKeep.length}`
+    );
+
+    if (geocodedPropertiesToKeep.length > 0) {
+        const propertiesToKeepContent =
+            geocodedPropertiesToKeep.map((property) => JSON.stringify(property)).join("\n") + "\n";
+        writeFileSync(PROPERTIES_GEOCODED_PATH, propertiesToKeepContent, { encoding: "latin1" });
+    }
 
     const newProperties = properties.filter((property) => {
         return !geocodedProperties.some(
@@ -102,7 +108,6 @@ const formatStreet = (property: Property, retryNumber: number) => {
             return address;
         case 3:
             return undefined;
-
     }
 };
 
@@ -131,12 +136,12 @@ async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): P
 
         if (response.data.length > 0) {
             const location = response.data[0];
-            const latitude = parseFloat(location.lat); 
+            const latitude = parseFloat(location.lat);
             const longitude = parseFloat(location.lon);
             return {
                 ...property,
                 latitude: street ? latitude : latitude + (Math.random() - 0.5) / 10,
-                longitude: street? longitude : longitude + (Math.random() - 0.5) / 10,
+                longitude: street ? longitude : longitude + (Math.random() - 0.5) / 10,
                 geocodePrecision: mapRetryNumberToGeocodePrecision[retryNumber],
             };
         } else {
