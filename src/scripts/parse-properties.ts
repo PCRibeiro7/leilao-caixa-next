@@ -11,9 +11,9 @@ function cleanString(input: string): string {
 }
 
 function parseCSV(filePath: string): void {
-    const properties: Property[] = [];
+    let linesProcessed = 0;
 
-    fs.createReadStream(filePath)
+    const readStream = fs.createReadStream(filePath)
         .pipe(
             csv({
                 separator: ";",
@@ -37,7 +37,7 @@ function parseCSV(filePath: string): void {
             console.log("CSV file is being processed");
         })
         .on("data", (data) => {
-            properties.push({
+            const property: Property = {
                 caixaId: data["N° do imóvel"].trim(),
                 state: data["UF"].trim(),
                 city: data["Cidade"].trim(),
@@ -48,16 +48,17 @@ function parseCSV(filePath: string): void {
                 evaluationPrice: parseLocaleNumber(data["Valor de avaliação"], "pt-BR"),
                 discount: parseFloat(data["Desconto"]),
                 sellingType: data["Modalidade de venda"].trim(),
-            });
+            };
+            linesProcessed++;
+
+            fs.appendFileSync(PROPERTIES_PATH, JSON.stringify(property) + "\n");
+
+            if (ENV === "development" && linesProcessed >= 100 ) {
+                readStream.destroy();
+            }
         })
         .on("end", async () => {
             console.log("CSV file successfully processed");
-            if (ENV === "development") {
-                properties.splice(10); // Limit the number of properties to 10 for testing
-            }
-
-            const propertiesContent = JSON.stringify(properties, null, 2);
-            fs.writeFileSync(PROPERTIES_PATH, propertiesContent);
             console.log(`Properties Generated Successfully: ${filePath}`);
         })
         .on("error", (error) => {
