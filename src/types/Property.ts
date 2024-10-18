@@ -11,8 +11,14 @@ export interface Property {
     discount: number;
 }
 
+export enum GeocodePrecision {
+    fullAddress = "fullAddress",
+    address = "address",
+    street = "street",
+    city = "city",
+}
 export interface GeocodedProperty extends Property {
     latitude: number;
     longitude: number;
-    geocodedPrecisely: boolean;
+    geocodePrecision: GeocodePrecision;
 }

@@ -1,12 +1,19 @@
 import axios from "axios";
 import "dotenv/config";
-import { GeocodedProperty, Property } from "@/types/Property";
+import { GeocodedProperty, GeocodePrecision, Property } from "@/types/Property";
 import { PROPERTIES_GEOCODED_PATH, PROPERTIES_PATH } from "@/consts/filePaths";
 import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
 import { appendFileSync } from "fs";
 
 const geocodedProperties = readJsonlFileAsJsonArray<GeocodedProperty>(PROPERTIES_GEOCODED_PATH);
 const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH);
+
+const mapRetryNumberToGeocodePrecision: Record<number, GeocodePrecision> = {
+    0: GeocodePrecision.fullAddress,
+    1: GeocodePrecision.address,
+    2: GeocodePrecision.street,
+    3: GeocodePrecision.city,
+};
 
 async function parseCSV(): Promise<void> {
     const newProperties = properties.filter((property) => {
@@ -20,10 +27,6 @@ async function parseCSV(): Promise<void> {
     await geocodeProperties(newProperties);
 
     console.log(`Geocoded Properties Generated Successfully`);
-}
-
-function formatAddress(property: Property): string {
-    return `${property.address}, ${property.city}, ${property.state}`;
 }
 
 async function geocodeProperties(properties: Property[]): Promise<void> {
@@ -89,11 +92,14 @@ const formatStreet = (property: Property, retryNumber: number) => {
                 address = address.replaceAll(".", "");
             }
             return address;
+        case 3:
+            return undefined;
+
     }
 };
 
 async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): Promise<GeocodedProperty | undefined> {
-    if (retryNumber > 2) {
+    if (retryNumber > 3) {
         const street = formatStreet(property, retryNumber - 1);
         appendFileSync(
             "failed-geocoding.txt",
@@ -107,7 +113,7 @@ async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): P
     try {
         const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
             params: {
-                street: street,
+                ...(street ? { street: street } : {}),
                 city: property.city,
                 state: property.state,
                 country: "br",
@@ -117,45 +123,19 @@ async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): P
 
         if (response.data.length > 0) {
             const location = response.data[0];
+            const latitude = parseFloat(location.lat); 
+            const longitude = parseFloat(location.lon);
             return {
                 ...property,
-                latitude: parseFloat(location.lat),
-                longitude: parseFloat(location.lon),
-                geocodedPrecisely: retryNumber === 0 || retryNumber === 1,
+                latitude: street ? latitude : latitude + (Math.random() - 0.5) / 10,
+                longitude: street? longitude : longitude + (Math.random() - 0.5) / 10,
+                geocodePrecision: mapRetryNumberToGeocodePrecision[retryNumber],
             };
         } else {
             return await fetchNominatinGeocodeData(property, retryNumber + 1);
         }
     } catch (error) {
         console.error(`Error geocoding address: ${property.address}`, error);
-    }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function fetchGoogleGeocodeData(property: Property): Promise<GeocodedProperty | undefined> {
-    const googleApiKey = process.env.GOOGLE_API_KEY; // Replace with your Google Maps API key
-    const formattedAddress = formatAddress(property);
-    try {
-        const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
-            params: {
-                address: formattedAddress,
-                key: googleApiKey,
-            },
-        });
-
-        if (response.data.status === "OK" && response.data.results.length > 0) {
-            const location = response.data.results[0].geometry.location;
-            return {
-                ...property,
-                latitude: location.lat,
-                longitude: location.lng,
-                geocodedPrecisely: true,
-            };
-        } else {
-            console.warn(`Geocoding failed for address: ${formattedAddress}`);
-        }
-    } catch (error) {
-        console.error(`Error geocoding address: ${formattedAddress}`, error);
     }
 }
 
