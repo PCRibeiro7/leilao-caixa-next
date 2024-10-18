@@ -3,8 +3,8 @@
 "use client";
 
 import MapFilter from "@/components/filter";
-import propertiesGeocodedData from "@/data/properties-geocoded.json";
 import { GeocodedProperty } from "@/types/Property";
+import propertiesGeocodedData from "@/data/properties-geocoded.jsonl";
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 
@@ -19,7 +19,7 @@ export default function FilteredMap() {
     );
 
     const propertiesGeocoded = propertiesGeocodedData as GeocodedProperty[];
-    const [properties, setProperties] = useState(propertiesGeocoded.slice(0, 10));
+    const [properties, setProperties] = useState(propertiesGeocoded);
 
     return (
         <>
