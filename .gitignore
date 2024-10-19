@@ -39,3 +39,4 @@ next-env.d.ts
 # development
 failed-geocoding.txt
 src/data/backup
+.vscode
