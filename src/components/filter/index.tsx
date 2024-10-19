@@ -5,16 +5,22 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GeocodedProperty } from "@/types/Property";
-import { useCallback, useEffect, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { Checked, DropdownMenuCheckboxes } from "../ui/dropdown-menu-checkboxes";
+import { Button } from "../ui/button";
 
-type Filters = {
+type InputFilters = {
     minPrice: number;
     maxPrice: number;
     minDiscount: number;
+};
+
+type CheckboxFilters = {
     state: string[];
     sellingType: string[];
 };
+
+type Filters = InputFilters & CheckboxFilters;
 
 type FilterProps = {
     allProperties: GeocodedProperty[];
@@ -28,39 +34,50 @@ export default function MapFilter(props: FilterProps) {
     const availableSellingTypes = Array.from(new Set(allProperties.map((property) => property.sellingType))).filter(
         (i) => i
     );
-    const availableStates = Array.from(new Set(allProperties.map((property) => property.state))).filter(
-        (i) => i
-    );
-    const maxPrice = Math.max(...allProperties.map((property) => property.price).filter(i=>i));
-
-    const [filters, setFilters] = useState<Filters>({
+    const availableStates = Array.from(new Set(allProperties.map((property) => property.state))).filter((i) => i);
+    const maxPrice = Math.max(...allProperties.map((property) => property.price).filter((i) => i));
+    const initialFilters: Filters = {
         sellingType: availableSellingTypes,
         maxPrice: maxPrice,
         minDiscount: 0,
         minPrice: 0,
-        state: availableStates
-    });
+        state: availableStates,
+    };
 
-    function handleSellingTypeChange(label: string, check: Checked) {
-        const currentSellingTypeFilter = filters.sellingType;
-        let newSellingTypeFilter: string[];
-        if (check) {
-            newSellingTypeFilter = [...currentSellingTypeFilter, label];
-        } else {
-            newSellingTypeFilter = currentSellingTypeFilter.filter((sellingType) => sellingType !== label);
-        }
-        setFilters((oldFilter) => ({ ...oldFilter, sellingType: newSellingTypeFilter }));
+    const [filters, setFilters] = useState<Filters>(initialFilters);
+
+    function resetFilters() {
+        setFilters(initialFilters);
     }
 
-    function handleStateChange(label: string, check: Checked) {
-        const currentStateFilter = filters.state;
-        let newStateFilter: string[];
-        if (check) {
-            newStateFilter = [...currentStateFilter, label];
+    function handleInputFilterChange(filterName: keyof InputFilters, event: ChangeEvent<HTMLInputElement>) {
+        const value = Number(event.target.value);
+        setFilters((oldFilter) => ({ ...oldFilter, [filterName]: value }));
+    }
+
+    function handleCheckboxFilterChange(filterName: keyof CheckboxFilters, label: string, checked: Checked) {
+        const currentFilter = filters[filterName];
+        let newFilter: string[];
+        if (checked) {
+            newFilter = [...currentFilter, label];
         } else {
-            newStateFilter = currentStateFilter.filter((state) => state !== label);
+            newFilter = currentFilter.filter((value) => value !== label);
         }
-        setFilters((oldFilter) => ({ ...oldFilter, state: newStateFilter }));
+        setFilters((oldFilter) => ({ ...oldFilter, [filterName]: newFilter }));
+    }
+
+    function handleCheckboxFilterToggle(filterName: keyof CheckboxFilters) {
+        const hasFilterEnabled = filters[filterName].length > 0;
+        let newFilter: string[];
+        if (hasFilterEnabled) {
+            newFilter = [];
+        } else {
+            newFilter = {
+                state: availableStates,
+                sellingType: availableSellingTypes,
+            }[filterName];
+        }
+        setFilters((oldFilter) => ({ ...oldFilter, [filterName]: newFilter }));
     }
 
     const applyFilter = useCallback(
@@ -104,7 +121,7 @@ export default function MapFilter(props: FilterProps) {
                         type="number"
                         name="min-price"
                         value={filters.minPrice}
-                        onChange={(event) => setFilters((old) => ({ ...old, minPrice: Number(event.target.value) }))}
+                        onChange={(event) => handleInputFilterChange("minPrice", event)}
                     />
                 </div>
                 <div>
@@ -113,7 +130,7 @@ export default function MapFilter(props: FilterProps) {
                         type="number"
                         name="max-price"
                         value={filters.maxPrice}
-                        onChange={(event) => setFilters((old) => ({ ...old, maxPrice: Number(event.target.value) }))}
+                        onChange={(event) => handleInputFilterChange("maxPrice", event)}
                     />
                 </div>
                 <div>
@@ -122,7 +139,7 @@ export default function MapFilter(props: FilterProps) {
                         type="number"
                         name="min-discount"
                         value={filters.minDiscount}
-                        onChange={(event) => setFilters((old) => ({ ...old, minDiscount: Number(event.target.value) }))}
+                        onChange={(event) => handleInputFilterChange("minDiscount", event)}
                     />
                 </div>
                 <div className="mt-5">
@@ -131,7 +148,8 @@ export default function MapFilter(props: FilterProps) {
                             label: sellingType,
                             checked: filters.sellingType.includes(sellingType),
                         }))}
-                        onCheckedChange={handleSellingTypeChange}
+                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("sellingType", label, checked)}
+                        toggleAll={() => handleCheckboxFilterToggle("sellingType")}
                         title="Tipo Venda"
                     />
                 </div>
@@ -141,9 +159,15 @@ export default function MapFilter(props: FilterProps) {
                             label: state,
                             checked: filters.state.includes(state),
                         }))}
-                        onCheckedChange={handleStateChange}
+                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("state", label, checked)}
+                        toggleAll={() => handleCheckboxFilterToggle("state")}
                         title="Estado"
                     />
+                </div>
+                <div>
+                    <Button className="mt-5 h-9" onClick={resetFilters}>
+                        Resetar filtros
+                    </Button>
                 </div>
             </div>
 
