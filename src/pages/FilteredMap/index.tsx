@@ -17,6 +17,7 @@ export default function FilteredMap() {
         []
     );
 
+    console.log({propertiesGeocoded})
     return (
         <>
             <div className="bg-white-700 mx-auto w-[100%] h-[100%] overflow-y-clip" >
