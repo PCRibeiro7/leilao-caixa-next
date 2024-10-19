@@ -8,6 +8,8 @@ import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -20,17 +22,26 @@ type DropdownMenuCheckboxesProps = {
         checked: Checked;
     }[];
     onCheckedChange: (label: string, checked: Checked) => void;
+    toggleAll?: () => void;
 };
 
 export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
-    const { title, availableOptions, onCheckedChange } = props;
+    const { title, availableOptions, onCheckedChange, toggleAll } = props;
+
+    const [isOpen, setIsOpen] = React.useState(false);
 
     return (
-        <DropdownMenu>
+        <DropdownMenu open={isOpen}>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline">{title}</Button>
+                <Button variant="outline" onClick={() => setIsOpen(true)}>
+                    {title}
+                </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
+            <DropdownMenuContent className="w-56" onInteractOutside={() => setIsOpen(false)}>
+                <DropdownMenuLabel onClick={toggleAll} className="cursor-pointer">
+                    {availableOptions.find((option) => option.checked) ? "Desabilitar Todos" : "Habilitar Todos"}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
                 {availableOptions.map((option) => (
                     <DropdownMenuCheckboxItem
                         key={option.label}
