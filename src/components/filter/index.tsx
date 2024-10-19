@@ -2,24 +2,18 @@
 
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GeocodedProperty } from "@/types/Property";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Checked, DropdownMenuCheckboxes } from "../ui/dropdown-menu-checkboxes";
 
 type Filters = {
     minPrice: number;
     maxPrice: number;
     minDiscount: number;
-    stateFilter: string;
-};
-
-const initialFilters: Filters = {
-    minPrice: 0,
-    maxPrice: Infinity,
-    minDiscount: 0,
-    stateFilter: "",
+    state: string[];
+    sellingType: string[];
 };
 
 type FilterProps = {
@@ -31,19 +25,42 @@ type FilterProps = {
 export default function MapFilter(props: FilterProps) {
     const { allProperties, properties, setProperties } = props;
 
-    const [filters, setFilters] = useState<Filters>(initialFilters);
+    const availableSellingTypes = Array.from(new Set(allProperties.map((property) => property.sellingType))).filter(
+        (i) => i
+    );
+    const availableStates = Array.from(new Set(allProperties.map((property) => property.state))).filter(
+        (i) => i
+    );
+    const maxPrice = Math.max(...allProperties.map((property) => property.price).filter(i=>i));
 
-    async function onSubmit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
+    const [filters, setFilters] = useState<Filters>({
+        sellingType: availableSellingTypes,
+        maxPrice: maxPrice,
+        minDiscount: 0,
+        minPrice: 0,
+        state: availableStates
+    });
 
-        const formData = new FormData(event.currentTarget);
-        const newFilters = {
-            minPrice: Number(formData.get("min-price") || 0),
-            maxPrice: Number(formData.get("max-price") || Infinity),
-            minDiscount: Number(formData.get("min-discount") || 0),
-            stateFilter: String(formData.get("state-filter") || ""),
-        };
-        setFilters(newFilters);
+    function handleSellingTypeChange(label: string, check: Checked) {
+        const currentSellingTypeFilter = filters.sellingType;
+        let newSellingTypeFilter: string[];
+        if (check) {
+            newSellingTypeFilter = [...currentSellingTypeFilter, label];
+        } else {
+            newSellingTypeFilter = currentSellingTypeFilter.filter((sellingType) => sellingType !== label);
+        }
+        setFilters((oldFilter) => ({ ...oldFilter, sellingType: newSellingTypeFilter }));
+    }
+
+    function handleStateChange(label: string, check: Checked) {
+        const currentStateFilter = filters.state;
+        let newStateFilter: string[];
+        if (check) {
+            newStateFilter = [...currentStateFilter, label];
+        } else {
+            newStateFilter = currentStateFilter.filter((state) => state !== label);
+        }
+        setFilters((oldFilter) => ({ ...oldFilter, state: newStateFilter }));
     }
 
     const applyFilter = useCallback(
@@ -52,13 +69,21 @@ export default function MapFilter(props: FilterProps) {
                 const price = property.price;
                 const discount = property.discount || 0;
                 const state = property.state;
+                const sellingType = property.sellingType;
 
                 const isAboveMinPrice = price >= filters.minPrice;
                 const isBelowMaxPrice = price <= filters.maxPrice;
                 const isAboveMinDiscount = discount >= filters.minDiscount;
-                const isMatchingStateFilter = filters.stateFilter === "" || state === filters.stateFilter;
+                const isMatchingStateFilter = filters.state.includes(state);
+                const isMatchingSellingTypeFilter = filters.sellingType.includes(sellingType);
 
-                return isAboveMinPrice && isBelowMaxPrice && isAboveMinDiscount && isMatchingStateFilter;
+                return (
+                    isAboveMinPrice &&
+                    isBelowMaxPrice &&
+                    isAboveMinDiscount &&
+                    isMatchingStateFilter &&
+                    isMatchingSellingTypeFilter
+                );
             });
 
             setProperties(filteredProperties);
@@ -72,29 +97,56 @@ export default function MapFilter(props: FilterProps) {
 
     return (
         <div className="flex justify-between">
-            <form onSubmit={onSubmit} className="flex items-center space-x-4 m-4">
+            <div className="flex items-center space-x-4 m-4">
                 <div>
                     <Label htmlFor="min-price">Preço Min. (R$):</Label>
-                    <Input type="number" name="min-price" defaultValue={initialFilters.minPrice} />
+                    <Input
+                        type="number"
+                        name="min-price"
+                        value={filters.minPrice}
+                        onChange={(event) => setFilters((old) => ({ ...old, minPrice: Number(event.target.value) }))}
+                    />
                 </div>
                 <div>
                     <Label htmlFor="max-price">Preço Máx. (R$):</Label>
-                    <Input type="number" name="max-price" defaultValue={initialFilters.maxPrice} />
+                    <Input
+                        type="number"
+                        name="max-price"
+                        value={filters.maxPrice}
+                        onChange={(event) => setFilters((old) => ({ ...old, maxPrice: Number(event.target.value) }))}
+                    />
                 </div>
                 <div>
                     <Label htmlFor="min-discount">Desconto Min. (%):</Label>
-                    <Input type="number" name="min-discount" defaultValue={initialFilters.minDiscount} />
+                    <Input
+                        type="number"
+                        name="min-discount"
+                        value={filters.minDiscount}
+                        onChange={(event) => setFilters((old) => ({ ...old, minDiscount: Number(event.target.value) }))}
+                    />
                 </div>
-                <div>
-                    <Label htmlFor="state-filter">Estado:</Label>
-                    <Input type="text" name="state-filter" defaultValue={initialFilters.stateFilter} />
+                <div className="mt-5">
+                    <DropdownMenuCheckboxes
+                        availableOptions={availableSellingTypes.map((sellingType) => ({
+                            label: sellingType,
+                            checked: filters.sellingType.includes(sellingType),
+                        }))}
+                        onCheckedChange={handleSellingTypeChange}
+                        title="Tipo Venda"
+                    />
                 </div>
-                <div>
-                    <Button className="mt-5" type="submit">
-                        Aplicar Filtro
-                    </Button>
+                <div className="mt-5">
+                    <DropdownMenuCheckboxes
+                        availableOptions={availableStates.map((state) => ({
+                            label: state,
+                            checked: filters.state.includes(state),
+                        }))}
+                        onCheckedChange={handleStateChange}
+                        title="Estado"
+                    />
                 </div>
-            </form>
+            </div>
+
             <div className="m-4 content-end">{properties.length} propriedades encontradas</div>
         </div>
     );
