@@ -26,6 +26,14 @@ const defaults = {
 const Map = (props: MapProps) => {
     const { properties } = props;
 
+    if (properties.length === 0) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <p className="text-2xl text-center">Nenhum imóvel encontrado para o filtro selecionado</p>
+            </div>
+        );
+    }
+
     return (
         <MapContainer
             center={[properties[0].latitude, properties[0].longitude]}
