@@ -5,8 +5,8 @@ import { PROPERTIES_GEOCODED_PATH, PROPERTIES_PATH } from "@/consts/filePaths";
 import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
 import { appendFileSync, writeFileSync } from "fs";
 
-const geocodedProperties = readJsonlFileAsJsonArray<GeocodedProperty>(PROPERTIES_GEOCODED_PATH);
-const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH);
+const geocodedProperties = readJsonlFileAsJsonArray<GeocodedProperty>(PROPERTIES_GEOCODED_PATH) || [];
+const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH) || [];
 
 const mapRetryNumberToGeocodePrecision: Record<number, GeocodePrecision> = {
     0: GeocodePrecision.fullAddress,

@@ -1,6 +1,10 @@
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 
 function readJsonlFileAsJsonArray<T>(jsonlFilePath: string) {
+    if (!existsSync(jsonlFilePath)) {
+        return;
+    }
+
     const content = readFileSync(jsonlFilePath, { encoding: "latin1" });
 
     if (!content) {
