@@ -1,5 +1,3 @@
-// src/components/map/index.tsx
-
 "use client";
 
 import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
