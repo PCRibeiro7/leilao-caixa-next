@@ -42,6 +42,7 @@ function parseCSV(filePath: string): void {
                 state: data["UF"].trim(),
                 city: data["Cidade"].trim(),
                 neighborhood: cleanString(data["Bairro"]).trim(),
+                street: cleanString(data["Endereço"].split(',')[0]).trim(),
                 address: cleanString(data["Endereço"]).trim(),
                 price: parseLocaleNumber(data["Preço"], "pt-BR"),
                 priceAsCurrency: `R$ ${data["Preço"]}`.trim(),
