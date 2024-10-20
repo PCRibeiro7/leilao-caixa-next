@@ -86,8 +86,7 @@ async function geocodeProperties(properties: Property[]): Promise<void> {
     }
 }
 
-const removeUnnecessaryInfoFromStreet = (address: string): string => {
-    let street = address.split(",")[0];
+const removeUnnecessaryInfoFromStreet = (street: string): string => {
     for (const prefix of [
         "R",
         "Rua",
@@ -117,13 +116,13 @@ const formatAddress = (property: Property, retryNumber: number): NominatinAddres
     switch (retryNumber) {
         case 0:
             return {
-                street: property.address.split(",")[0],
+                street: property.street,
                 city: property.city,
                 county: property.neighborhood,
                 state: property.state,
             };
         case 1: {
-            const street = removeUnnecessaryInfoFromStreet(property.address);
+            const street = removeUnnecessaryInfoFromStreet(property.street);
             return {
                 street: street,
                 county: property.neighborhood,
@@ -132,7 +131,7 @@ const formatAddress = (property: Property, retryNumber: number): NominatinAddres
             };
         }
         case 2: {
-            const street = removeUnnecessaryInfoFromStreet(property.address);
+            const street = removeUnnecessaryInfoFromStreet(property.street);
             return {
                 street: street,
                 city: property.city,
@@ -157,10 +156,9 @@ const formatAddress = (property: Property, retryNumber: number): NominatinAddres
 
 async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): Promise<GeocodedProperty | undefined> {
     if (retryNumber > 4) {
-        const street = formatAddress(property, retryNumber - 1);
         appendFileSync(
             "failed-geocoding.txt",
-            `address: ${street} // FULL: ${property.address}, ${property.city}, ${property.state}` + "\n",
+            `FULL: ${property.address}, ${property.city}, ${property.state}` + "\n",
             { encoding: "latin1" }
         );
         console.warn(`Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`);

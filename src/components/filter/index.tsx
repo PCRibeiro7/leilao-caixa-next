@@ -120,7 +120,7 @@ export default function MapFilter(props: FilterProps) {
                     <Input
                         type="number"
                         name="min-price"
-                        value={filters.minPrice}
+                        value={filters.minPrice.toString()}
                         onChange={(event) => handleInputFilterChange("minPrice", event)}
                     />
                 </div>
@@ -129,7 +129,7 @@ export default function MapFilter(props: FilterProps) {
                     <Input
                         type="number"
                         name="max-price"
-                        value={filters.maxPrice}
+                        value={filters.maxPrice.toString()}
                         onChange={(event) => handleInputFilterChange("maxPrice", event)}
                     />
                 </div>
@@ -138,7 +138,7 @@ export default function MapFilter(props: FilterProps) {
                     <Input
                         type="number"
                         name="min-discount"
-                        value={filters.minDiscount}
+                        value={filters.minDiscount.toString()}
                         onChange={(event) => handleInputFilterChange("minDiscount", event)}
                     />
                 </div>

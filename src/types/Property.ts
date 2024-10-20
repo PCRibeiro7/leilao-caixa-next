@@ -1,5 +1,6 @@
 export interface Property {
     caixaId: string;
+    street: string;
     address: string;
     city: string;
     neighborhood: string;

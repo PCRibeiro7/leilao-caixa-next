@@ -72,13 +72,7 @@ const Map = (props: MapProps) => {
                         </a>
                         <br />
                         <a
-                            href={
-                                [GeocodePrecision.fullAddress, GeocodePrecision.address].includes(
-                                    property.geocodePrecision
-                                )
-                                    ? `https://maps.google.com/?q=${property.latitude},${property.longitude}`
-                                    : `https://maps.google.com/?q=${property.address}, ${property.city}, ${property.state}`
-                            }
+                            href={`https://maps.google.com/?q=${property.street}, ${property.city}, ${property.state}`}
                             target="_blank"
                         >
                             Link Maps
