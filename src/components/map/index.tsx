@@ -15,7 +15,8 @@ interface MapProps {
 const mapGeocodePrecisionToColor: Record<GeocodePrecision, string> = {
     fullAddress: "rgb(49,54,149)",
     address: "rgb(69,117,180)",
-    street: "rgb(244,109,67)",
+    street: "rgb(253,174,97)",
+    neighborhood: "rgb(244,109,67)",
     city: "rgb(165,0,38)",
 };
 
