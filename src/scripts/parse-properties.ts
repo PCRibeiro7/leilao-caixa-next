@@ -47,7 +47,7 @@ function parseCSV(filePath: string): void {
                 priceAsCurrency: `R$ ${data["Preço"]}`.trim(),
                 evaluationPrice: parseLocaleNumber(data["Valor de avaliação"], "pt-BR"),
                 discount: parseFloat(data["Desconto"]),
-                sellingType: data["Modalidade de venda"].trim(),
+                sellingType: data["Modalidade de venda"].trim().normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
             };
             linesProcessed++;
 

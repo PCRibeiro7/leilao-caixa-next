@@ -12,7 +12,15 @@ const mapRetryNumberToGeocodePrecision: Record<number, GeocodePrecision> = {
     0: GeocodePrecision.fullAddress,
     1: GeocodePrecision.address,
     2: GeocodePrecision.street,
-    3: GeocodePrecision.city,
+    3: GeocodePrecision.neighborhood,
+    4: GeocodePrecision.city,
+};
+
+type NominatinAddress = {
+    street?: string;
+    county?: string;
+    city: string;
+    state: string;
 };
 
 async function parseCSV(): Promise<void> {
@@ -78,42 +86,78 @@ async function geocodeProperties(properties: Property[]): Promise<void> {
     }
 }
 
-const formatStreet = (property: Property, retryNumber: number) => {
+const removeUnnecessaryInfoFromStreet = (address: string): string => {
+    let street = address.split(",")[0];
+    for (const prefix of [
+        "R",
+        "Rua",
+        "Av",
+        "Avenida",
+        "Pca",
+        "Praca",
+        "Al",
+        "Alameda",
+        "Trav",
+        "Travessa",
+        "Rod",
+        "Rodovia",
+        "Estr",
+        "Estrada",
+        "N",
+        "Antiga",
+        "Apto",
+    ]) {
+        street = street.replaceAll(`${prefix.toUpperCase()} `, "");
+        street = street.replaceAll(".", "");
+    }
+    return street;
+};
+
+const formatAddress = (property: Property, retryNumber: number): NominatinAddress => {
     switch (retryNumber) {
         case 0:
-            return property.address;
-        case 1:
-            return property.address.split(",")[0];
-        case 2:
-            let address = property.address.split(",")[0];
-            for (const prefix of [
-                "R",
-                "Rua",
-                "Av",
-                "Avenida",
-                "Pca",
-                "Praca",
-                "Al",
-                "Alameda",
-                "Trav",
-                "Travessa",
-                "Rod",
-                "Rodovia",
-                "Estr",
-                "Estrada",
-            ]) {
-                address = address.replaceAll(`${prefix.toUpperCase()} `, "");
-                address = address.replaceAll(".", "");
-            }
-            return address;
+            return {
+                street: property.address.split(",")[0],
+                city: property.city,
+                county: property.neighborhood,
+                state: property.state,
+            };
+        case 1: {
+            const street = removeUnnecessaryInfoFromStreet(property.address);
+            return {
+                street: street,
+                county: property.neighborhood,
+                city: property.city,
+                state: property.state,
+            };
+        }
+        case 2: {
+            const street = removeUnnecessaryInfoFromStreet(property.address);
+            return {
+                street: street,
+                city: property.city,
+                state: property.state,
+            };
+        }
         case 3:
-            return undefined;
+            return {
+                county: property.neighborhood,
+                city: property.city,
+                state: property.state,
+            };
+        case 4:
+            return {
+                city: property.city,
+                state: property.state,
+            };
+        default:
+            throw new Error("Invalid retry number");
     }
 };
 
 async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): Promise<GeocodedProperty | undefined> {
-    if (retryNumber > 3) {
-        const street = formatStreet(property, retryNumber - 1);
+    if (retryNumber > 4) {
+        const street = formatAddress(property, retryNumber - 1);
         appendFileSync(
             "failed-geocoding.txt",
             `address: ${street} // FULL: ${property.address}, ${property.city}, ${property.state}` + "\n",
@@ -122,13 +166,11 @@ async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): P
         console.warn(`Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`);
         return;
     }
-    const street = formatStreet(property, retryNumber);
+    const address = formatAddress(property, retryNumber);
     try {
         const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
             params: {
-                ...(street ? { street: street } : {}),
-                city: property.city,
-                state: property.state,
+                ...address,
                 country: "br",
                 format: "jsonv2",
             },
@@ -138,11 +180,16 @@ async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): P
             const location = response.data[0];
             const latitude = parseFloat(location.lat);
             const longitude = parseFloat(location.lon);
+            const geocodePrecision = mapRetryNumberToGeocodePrecision[retryNumber];
             return {
                 ...property,
-                latitude: street ? latitude : latitude + (Math.random() - 0.5) / 10,
-                longitude: street ? longitude : longitude + (Math.random() - 0.5) / 10,
-                geocodePrecision: mapRetryNumberToGeocodePrecision[retryNumber],
+                latitude: [GeocodePrecision.city, GeocodePrecision.neighborhood].includes(geocodePrecision)
+                    ? latitude + (Math.random() - 0.5) / 10
+                    : latitude + (Math.random() - 0.5) / 10000,
+                longitude: [GeocodePrecision.city, GeocodePrecision.neighborhood].includes(geocodePrecision)
+                    ? longitude + (Math.random() - 0.5) / 10
+                    : longitude + (Math.random() - 0.5) / 10000,
+                geocodePrecision: geocodePrecision,
             };
         } else {
             return await fetchNominatinGeocodeData(property, retryNumber + 1);
