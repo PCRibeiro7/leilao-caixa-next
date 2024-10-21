@@ -17,7 +17,7 @@ type InputFilters = {
 type MoneyInputFilters = {
     minPrice: number;
     maxPrice: number;
-}
+};
 
 type CheckboxFilters = {
     sellingType: string[];
@@ -38,17 +38,22 @@ export default function MapFilter(props: FilterProps) {
     const { allProperties, properties, setProperties } = props;
 
     const maxPrice = Math.max(...allProperties.map((property) => property.price).filter((i) => i));
+    const minPrice = Math.min(...allProperties.map((property) => property.price).filter((i) => i));
+    const minDiscount = Math.min(...allProperties.map((property) => property.discount || 0).filter((i) => i));
+
     const availableSellingTypes = Array.from(new Set(allProperties.map((property) => property.sellingType))).filter(
         (i) => i
     );
     const availableStates = Array.from(new Set(allProperties.map((property) => property.state))).filter((i) => i);
     const availableCities = Array.from(new Set(allProperties.map((property) => property.city))).filter((i) => i);
-    const initialAvailableNeighborhoods = Array.from(new Set(allProperties.map((property) => property.neighborhood))).filter((i) => i);
+    const initialAvailableNeighborhoods = Array.from(
+        new Set(allProperties.map((property) => property.neighborhood))
+    ).filter((i) => i);
 
     const initialFilters: Filters = {
         maxPrice: maxPrice,
-        minDiscount: 0,
-        minPrice: 0,
+        minDiscount: minDiscount,
+        minPrice: minPrice,
         sellingType: availableSellingTypes,
         state: availableStates,
         city: availableCities,
@@ -152,16 +157,16 @@ export default function MapFilter(props: FilterProps) {
             <div className="flex items-center space-x-4 m-4">
                 <div>
                     <MoneyInput
-                        initialValue={initialFilters.minPrice}
+                        initialValue={filters.minPrice}
                         label="Preço Mínimo"
-                        onChange={(value) => handleMoneyInputFilterChange('minPrice', value)}
+                        onChange={(value) => handleMoneyInputFilterChange("minPrice", value)}
                     />
                 </div>
                 <div>
                     <Label htmlFor="max-price"></Label>
                     <MoneyInput
                         label="Preço Máximo"
-                        initialValue={initialFilters.maxPrice}
+                        initialValue={filters.maxPrice}
                         onChange={(event) => handleMoneyInputFilterChange("maxPrice", event)}
                     />
                 </div>
