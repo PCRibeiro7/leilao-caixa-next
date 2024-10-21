@@ -8,12 +8,16 @@ import { GeocodedProperty } from "@/types/Property";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { Checked, DropdownMenuCheckboxes } from "../ui/dropdown-menu-checkboxes";
 import { Button } from "../ui/button";
+import MoneyInput from "../ui/money-input";
 
 type InputFilters = {
-    minPrice: number;
-    maxPrice: number;
     minDiscount: number;
 };
+
+type MoneyInputFilters = {
+    minPrice: number;
+    maxPrice: number;
+}
 
 type CheckboxFilters = {
     sellingType: string[];
@@ -22,7 +26,7 @@ type CheckboxFilters = {
     neighborhood: string[];
 };
 
-type Filters = InputFilters & CheckboxFilters;
+type Filters = InputFilters & MoneyInputFilters & CheckboxFilters;
 
 type FilterProps = {
     allProperties: GeocodedProperty[];
@@ -60,6 +64,10 @@ export default function MapFilter(props: FilterProps) {
 
     function handleInputFilterChange(filterName: keyof InputFilters, event: ChangeEvent<HTMLInputElement>) {
         const value = Number(event.target.value);
+        setFilters((oldFilter) => ({ ...oldFilter, [filterName]: value }));
+    }
+
+    function handleMoneyInputFilterChange(filterName: keyof MoneyInputFilters, value: number) {
         setFilters((oldFilter) => ({ ...oldFilter, [filterName]: value }));
     }
 
@@ -143,30 +151,28 @@ export default function MapFilter(props: FilterProps) {
         <div className="flex justify-between">
             <div className="flex items-center space-x-4 m-4">
                 <div>
-                    <Label htmlFor="min-price">Preço Min. (R$):</Label>
-                    <Input
-                        type="number"
-                        name="min-price"
-                        value={filters.minPrice.toString()}
-                        onChange={(event) => handleInputFilterChange("minPrice", event)}
+                    <MoneyInput
+                        initialValue={initialFilters.minPrice}
+                        label="Preço Mínimo"
+                        onChange={(value) => handleMoneyInputFilterChange('minPrice', value)}
                     />
                 </div>
                 <div>
-                    <Label htmlFor="max-price">Preço Máx. (R$):</Label>
-                    <Input
-                        type="number"
-                        name="max-price"
-                        value={filters.maxPrice.toString()}
-                        onChange={(event) => handleInputFilterChange("maxPrice", event)}
+                    <Label htmlFor="max-price"></Label>
+                    <MoneyInput
+                        label="Preço Máximo"
+                        initialValue={initialFilters.maxPrice}
+                        onChange={(event) => handleMoneyInputFilterChange("maxPrice", event)}
                     />
                 </div>
                 <div>
-                    <Label htmlFor="min-discount">Desconto Min. (%):</Label>
+                    <Label htmlFor="min-discount">Desconto Mínimo:</Label>
                     <Input
                         type="number"
                         name="min-discount"
                         value={filters.minDiscount.toString()}
                         onChange={(event) => handleInputFilterChange("minDiscount", event)}
+                        endAdornment="%"
                     />
                 </div>
                 <div className="mt-5">
