@@ -72,7 +72,7 @@ const Map = (props: MapProps) => {
                         </a>
                         <br />
                         <a
-                            href={`https://maps.google.com/?q=${property.street}, ${property.city}, ${property.state}`}
+                            href={`https://maps.google.com/?q=${property.address}, ${property.city}, ${property.state}`}
                             target="_blank"
                         >
                             Link Maps

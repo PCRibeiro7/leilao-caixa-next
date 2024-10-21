@@ -42,15 +42,18 @@ export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
                     {availableOptions.find((option) => option.checked) ? "Desabilitar Todos" : "Habilitar Todos"}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {availableOptions.map((option) => (
-                    <DropdownMenuCheckboxItem
-                        key={option.label}
-                        checked={option.checked}
-                        onCheckedChange={(checked) => onCheckedChange(option.label, checked)}
-                    >
-                        {option.label}
-                    </DropdownMenuCheckboxItem>
-                ))}
+                <div className="max-h-[50vh] overflow-y-auto">
+                    {availableOptions.map((option) => (
+                        <DropdownMenuCheckboxItem
+                            className="cursor-pointer"
+                            key={option.label}
+                            checked={option.checked}
+                            onCheckedChange={(checked) => onCheckedChange(option.label, checked)}
+                        >
+                            {option.label}
+                        </DropdownMenuCheckboxItem>
+                    ))}
+                </div>
             </DropdownMenuContent>
         </DropdownMenu>
     );
