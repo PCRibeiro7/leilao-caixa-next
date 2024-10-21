@@ -1,7 +1,7 @@
 "use client";
-import { useReducer } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useReducer } from "react";
 
 type TextInputProps = {
     initialValue: number;
@@ -12,9 +12,6 @@ type TextInputProps = {
 // Brazilian currency config
 const moneyFormatter = Intl.NumberFormat("pt-BR", {
     currency: "BRL",
-    // currencyDisplay: "symbol",
-    // currencySign: "standard",
-    // style: "currency",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
 });
