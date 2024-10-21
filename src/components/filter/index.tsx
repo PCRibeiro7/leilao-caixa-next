@@ -19,6 +19,7 @@ type CheckboxFilters = {
     sellingType: string[];
     state: string[];
     city: string[];
+    neighborhood: string[];
 };
 
 type Filters = InputFilters & CheckboxFilters;
@@ -38,6 +39,7 @@ export default function MapFilter(props: FilterProps) {
     );
     const availableStates = Array.from(new Set(allProperties.map((property) => property.state))).filter((i) => i);
     const availableCities = Array.from(new Set(allProperties.map((property) => property.city))).filter((i) => i);
+    const initialAvailableNeighborhoods = Array.from(new Set(allProperties.map((property) => property.neighborhood))).filter((i) => i);
 
     const initialFilters: Filters = {
         maxPrice: maxPrice,
@@ -46,9 +48,11 @@ export default function MapFilter(props: FilterProps) {
         sellingType: availableSellingTypes,
         state: availableStates,
         city: availableCities,
+        neighborhood: initialAvailableNeighborhoods,
     };
 
     const [filters, setFilters] = useState<Filters>(initialFilters);
+    const [availableNeighborhoods, setAvailableNeighborhoods] = useState<string[]>(initialAvailableNeighborhoods);
 
     function resetFilters() {
         setFilters(initialFilters);
@@ -80,6 +84,7 @@ export default function MapFilter(props: FilterProps) {
                 state: availableStates,
                 sellingType: availableSellingTypes,
                 city: availableCities,
+                neighborhood: availableNeighborhoods,
             }[filterName];
         }
         setFilters((oldFilter) => ({ ...oldFilter, [filterName]: newFilter }));
@@ -97,9 +102,11 @@ export default function MapFilter(props: FilterProps) {
                 const isAboveMinPrice = price >= filters.minPrice;
                 const isBelowMaxPrice = price <= filters.maxPrice;
                 const isAboveMinDiscount = discount >= filters.minDiscount;
+
                 const isMatchingSellingTypeFilter = filters.sellingType.includes(sellingType);
                 const isMatchingStateFilter = filters.state.includes(state);
                 const isMatchingCityFilter = filters.city.includes(city);
+                const isMatchingNeighborhoodFilter = filters.neighborhood.includes(property.neighborhood);
 
                 return (
                     isAboveMinPrice &&
@@ -107,7 +114,8 @@ export default function MapFilter(props: FilterProps) {
                     isAboveMinDiscount &&
                     isMatchingSellingTypeFilter &&
                     isMatchingStateFilter &&
-                    isMatchingCityFilter
+                    isMatchingCityFilter &&
+                    isMatchingNeighborhoodFilter
                 );
             });
 
@@ -119,6 +127,17 @@ export default function MapFilter(props: FilterProps) {
     useEffect(() => {
         applyFilter(filters);
     }, [filters, applyFilter]);
+
+    useEffect(() => {
+        const newAvailableNeighborhoods = Array.from(
+            new Set(
+                allProperties
+                    .filter((property) => filters.city.includes(property.city))
+                    .map((property) => property.neighborhood)
+            )
+        ).filter((i) => i);
+        setAvailableNeighborhoods(newAvailableNeighborhoods);
+    }, [filters.city, allProperties]);
 
     return (
         <div className="flex justify-between">
@@ -181,6 +200,17 @@ export default function MapFilter(props: FilterProps) {
                         onCheckedChange={(label, checked) => handleCheckboxFilterChange("city", label, checked)}
                         toggleAll={() => handleCheckboxFilterToggle("city")}
                         title="Cidade"
+                    />
+                </div>
+                <div className="mt-5">
+                    <DropdownMenuCheckboxes
+                        availableOptions={availableNeighborhoods.map((neighborhood) => ({
+                            label: neighborhood,
+                            checked: filters.neighborhood.includes(neighborhood),
+                        }))}
+                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("neighborhood", label, checked)}
+                        toggleAll={() => handleCheckboxFilterToggle("neighborhood")}
+                        title="Bairro"
                     />
                 </div>
                 <div>
