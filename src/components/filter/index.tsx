@@ -157,16 +157,15 @@ export default function MapFilter(props: FilterProps) {
             <div className="flex items-center space-x-4 m-4">
                 <div>
                     <MoneyInput
-                        initialValue={filters.minPrice}
                         label="Preço Mínimo"
+                        value={filters.minPrice}
                         onChange={(value) => handleMoneyInputFilterChange("minPrice", value)}
                     />
                 </div>
                 <div>
-                    <Label htmlFor="max-price"></Label>
                     <MoneyInput
                         label="Preço Máximo"
-                        initialValue={filters.maxPrice}
+                        value={filters.maxPrice}
                         onChange={(event) => handleMoneyInputFilterChange("maxPrice", event)}
                     />
                 </div>
