@@ -16,8 +16,9 @@ type InputFilters = {
 };
 
 type CheckboxFilters = {
-    state: string[];
     sellingType: string[];
+    state: string[];
+    city: string[];
 };
 
 type Filters = InputFilters & CheckboxFilters;
@@ -31,17 +32,20 @@ type FilterProps = {
 export default function MapFilter(props: FilterProps) {
     const { allProperties, properties, setProperties } = props;
 
+    const maxPrice = Math.max(...allProperties.map((property) => property.price).filter((i) => i));
     const availableSellingTypes = Array.from(new Set(allProperties.map((property) => property.sellingType))).filter(
         (i) => i
     );
     const availableStates = Array.from(new Set(allProperties.map((property) => property.state))).filter((i) => i);
-    const maxPrice = Math.max(...allProperties.map((property) => property.price).filter((i) => i));
+    const availableCities = Array.from(new Set(allProperties.map((property) => property.city))).filter((i) => i);
+
     const initialFilters: Filters = {
-        sellingType: availableSellingTypes,
         maxPrice: maxPrice,
         minDiscount: 0,
         minPrice: 0,
+        sellingType: availableSellingTypes,
         state: availableStates,
+        city: availableCities,
     };
 
     const [filters, setFilters] = useState<Filters>(initialFilters);
@@ -75,6 +79,7 @@ export default function MapFilter(props: FilterProps) {
             newFilter = {
                 state: availableStates,
                 sellingType: availableSellingTypes,
+                city: availableCities,
             }[filterName];
         }
         setFilters((oldFilter) => ({ ...oldFilter, [filterName]: newFilter }));
@@ -85,21 +90,24 @@ export default function MapFilter(props: FilterProps) {
             const filteredProperties = allProperties.filter((property) => {
                 const price = property.price;
                 const discount = property.discount || 0;
-                const state = property.state;
                 const sellingType = property.sellingType;
+                const state = property.state;
+                const city = property.city;
 
                 const isAboveMinPrice = price >= filters.minPrice;
                 const isBelowMaxPrice = price <= filters.maxPrice;
                 const isAboveMinDiscount = discount >= filters.minDiscount;
-                const isMatchingStateFilter = filters.state.includes(state);
                 const isMatchingSellingTypeFilter = filters.sellingType.includes(sellingType);
+                const isMatchingStateFilter = filters.state.includes(state);
+                const isMatchingCityFilter = filters.city.includes(city);
 
                 return (
                     isAboveMinPrice &&
                     isBelowMaxPrice &&
                     isAboveMinDiscount &&
+                    isMatchingSellingTypeFilter &&
                     isMatchingStateFilter &&
-                    isMatchingSellingTypeFilter
+                    isMatchingCityFilter
                 );
             });
 
@@ -162,6 +170,17 @@ export default function MapFilter(props: FilterProps) {
                         onCheckedChange={(label, checked) => handleCheckboxFilterChange("state", label, checked)}
                         toggleAll={() => handleCheckboxFilterToggle("state")}
                         title="Estado"
+                    />
+                </div>
+                <div className="mt-5">
+                    <DropdownMenuCheckboxes
+                        availableOptions={availableCities.map((city) => ({
+                            label: city,
+                            checked: filters.city.includes(city),
+                        }))}
+                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("city", label, checked)}
+                        toggleAll={() => handleCheckboxFilterToggle("city")}
+                        title="Cidade"
                     />
                 </div>
                 <div>
