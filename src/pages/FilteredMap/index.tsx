@@ -1,7 +1,7 @@
 "use client";
 
-import MapFilter from "@/components/filter";
-import MapContainer from "@/components/map/container";
+import MapFilter from "@/components/MapFilter";
+import MapContainer from "@/components/map/MapContainer";
 import useFetchProperties from "@/hooks/useFetchProperties";
 import { GeocodedProperty } from "@/types/Property";
 import { useState } from "react";
