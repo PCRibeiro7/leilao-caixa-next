@@ -34,34 +34,22 @@ type FilterProps = {
     setProperties: (properties: GeocodedProperty[]) => void;
 };
 
+const defaultFilters: Filters = {
+    minDiscount: 0,
+    minPrice: 0,
+    maxPrice: 0,
+    sellingType: [],
+    state: [],
+    city: [],
+    neighborhood: [],
+};
+
 export default function MapFilter(props: FilterProps) {
     const { allProperties, properties, setProperties } = props;
 
-    const maxPrice = Math.max(...allProperties.map((property) => property.price).filter((i) => i));
-    const minPrice = Math.min(...allProperties.map((property) => property.price).filter((i) => i));
-    const minDiscount = Math.min(...allProperties.map((property) => property.discount || 0).filter((i) => i));
-
-    const availableSellingTypes = Array.from(new Set(allProperties.map((property) => property.sellingType))).filter(
-        (i) => i
-    );
-    const availableStates = Array.from(new Set(allProperties.map((property) => property.state))).filter((i) => i);
-    const availableCities = Array.from(new Set(allProperties.map((property) => property.city))).filter((i) => i);
-    const initialAvailableNeighborhoods = Array.from(
-        new Set(allProperties.map((property) => property.neighborhood))
-    ).filter((i) => i);
-
-    const initialFilters: Filters = {
-        maxPrice: maxPrice,
-        minDiscount: minDiscount,
-        minPrice: minPrice,
-        sellingType: availableSellingTypes,
-        state: availableStates,
-        city: availableCities,
-        neighborhood: initialAvailableNeighborhoods,
-    };
-
+    const [initialFilters, setInitialFilters] = useState<Filters>(defaultFilters);
     const [filters, setFilters] = useState<Filters>(initialFilters);
-    const [availableNeighborhoods, setAvailableNeighborhoods] = useState<string[]>(initialAvailableNeighborhoods);
+    const [availableNeighborhoods, setAvailableNeighborhoods] = useState<string[]>(initialFilters.neighborhood);
 
     function resetFilters() {
         setFilters(initialFilters);
@@ -94,9 +82,9 @@ export default function MapFilter(props: FilterProps) {
             newFilter = [];
         } else {
             newFilter = {
-                state: availableStates,
-                sellingType: availableSellingTypes,
-                city: availableCities,
+                state: initialFilters.state,
+                sellingType: initialFilters.sellingType,
+                city: initialFilters.city,
                 neighborhood: availableNeighborhoods,
             }[filterName];
         }
@@ -152,6 +140,35 @@ export default function MapFilter(props: FilterProps) {
         setAvailableNeighborhoods(newAvailableNeighborhoods);
     }, [filters.city, allProperties]);
 
+    useEffect(() => {
+        const maxPrice = Math.max(...allProperties.map((property) => property.price).filter((i) => i));
+        const minPrice = Math.min(...allProperties.map((property) => property.price).filter((i) => i));
+        const minDiscount = Math.min(
+            ...allProperties.map((property) => property.discount || 0).filter((i) => i !== undefined)
+        );
+
+        const availableSellingTypes = Array.from(new Set(allProperties.map((property) => property.sellingType))).filter(
+            (i) => i
+        );
+        const availableStates = Array.from(new Set(allProperties.map((property) => property.state))).filter((i) => i);
+        const availableCities = Array.from(new Set(allProperties.map((property) => property.city))).filter((i) => i);
+        const initialAvailableNeighborhoods = Array.from(
+            new Set(allProperties.map((property) => property.neighborhood))
+        ).filter((i) => i);
+
+        const initialFilters: Filters = {
+            maxPrice: maxPrice,
+            minDiscount: minDiscount,
+            minPrice: minPrice,
+            sellingType: availableSellingTypes,
+            state: availableStates,
+            city: availableCities,
+            neighborhood: initialAvailableNeighborhoods,
+        };
+        setInitialFilters(initialFilters);
+        setFilters(initialFilters);
+    }, [allProperties]);
+
     return (
         <div className="flex justify-between">
             <div className="flex items-center space-x-4 m-4">
@@ -181,7 +198,7 @@ export default function MapFilter(props: FilterProps) {
                 </div>
                 <div className="mt-5">
                     <DropdownMenuCheckboxes
-                        availableOptions={availableSellingTypes.map((sellingType) => ({
+                        availableOptions={initialFilters.sellingType.map((sellingType) => ({
                             label: sellingType,
                             checked: filters.sellingType.includes(sellingType),
                         }))}
@@ -192,7 +209,7 @@ export default function MapFilter(props: FilterProps) {
                 </div>
                 <div className="mt-5">
                     <DropdownMenuCheckboxes
-                        availableOptions={availableStates.map((state) => ({
+                        availableOptions={initialFilters.state.map((state) => ({
                             label: state,
                             checked: filters.state.includes(state),
                         }))}
@@ -203,7 +220,7 @@ export default function MapFilter(props: FilterProps) {
                 </div>
                 <div className="mt-5">
                     <DropdownMenuCheckboxes
-                        availableOptions={availableCities.map((city) => ({
+                        availableOptions={initialFilters.city.map((city) => ({
                             label: city,
                             checked: filters.city.includes(city),
                         }))}
