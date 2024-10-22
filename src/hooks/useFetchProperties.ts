@@ -8,7 +8,6 @@ export default function useFetchProperties(): GeocodedProperty[] {
 
     useEffect(() => {
         const supabase = createClient();
-        console.log("Fetching properties...");
         async function fetchProperties() {
             const { count: propertiesCount } = await supabase
                 .from("properties")
@@ -31,7 +30,7 @@ export default function useFetchProperties(): GeocodedProperty[] {
             setCachedProperties(allProperties);
         }
         fetchProperties();
-        console.log("Properties fetched!");
     }, []);
+
     return cachedProperties;
 }

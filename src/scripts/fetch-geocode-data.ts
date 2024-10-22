@@ -1,11 +1,11 @@
 import axios from "axios";
 import "dotenv/config";
 import { GeocodedProperty, GeocodePrecision, Property } from "@/types/Property";
-import { PROPERTIES_GEOCODED_PATH, PROPERTIES_PATH } from "@/consts/filePaths";
+import { PROPERTIES_PATH } from "@/consts/filePaths";
 import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
-import { appendFileSync, writeFileSync } from "fs";
+import { appendFileSync } from "fs";
+import { addProperty, deleteProperties, fetchAllProperties } from "@/services/properties";
 
-const geocodedProperties = readJsonlFileAsJsonArray<GeocodedProperty>(PROPERTIES_GEOCODED_PATH) || [];
 const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH) || [];
 
 const mapRetryNumberToGeocodePrecision: Record<number, GeocodePrecision> = {
@@ -24,18 +24,16 @@ type NominatinAddress = {
 };
 
 async function parseCSV(): Promise<void> {
-    // removes geocoded properties that are not in the properties file anymore (old properties)
-    const geocodedPropertiesToKeep = geocodedProperties.filter((geocodedProperty) => {
-        return properties.find((property) => property.caixaId === geocodedProperty.caixaId);
-    });
-    console.log(
-        `Existing geocodedProperties: ${geocodedProperties.length}. Properties to keep: ${geocodedPropertiesToKeep.length}`
-    );
+    const geocodedProperties = await fetchAllProperties();
+    console.log(`Existing Geocoded Properties: ${geocodedProperties.length}`);
 
-    if (geocodedPropertiesToKeep.length > 0) {
-        const propertiesToKeepContent =
-            geocodedPropertiesToKeep.map((property) => JSON.stringify(property)).join("\n") + "\n";
-        writeFileSync(PROPERTIES_GEOCODED_PATH, propertiesToKeepContent, { encoding: "latin1" });
+    const geocodedPropertiesToRemove = geocodedProperties.filter((geocodedProperty) => {
+        return !properties.find((property) => property.caixaId === geocodedProperty.caixaId);
+    });
+    console.log(`Properties to remove: ${geocodedPropertiesToRemove.length}`);
+
+    if (geocodedPropertiesToRemove.length > 0) {
+        await deleteProperties(geocodedPropertiesToRemove.map((property) => property.caixaId));
     }
 
     const newProperties = properties.filter((property) => {
@@ -43,7 +41,6 @@ async function parseCSV(): Promise<void> {
             (existingProperty: GeocodedProperty) => existingProperty.caixaId === property.caixaId
         );
     });
-
     console.log(`New properties found: ${newProperties.length}`);
 
     await geocodeProperties(newProperties);
@@ -65,9 +62,7 @@ async function geocodeProperties(properties: Property[]): Promise<void> {
             const currentGeocodedProperties = await Promise.all(promiseArray);
             for (const geocodedProperty of currentGeocodedProperties) {
                 if (geocodedProperty) {
-                    appendFileSync(PROPERTIES_GEOCODED_PATH, JSON.stringify(geocodedProperty) + "\n", {
-                        encoding: "latin1",
-                    });
+                    await addProperty(geocodedProperty);
                 }
             }
             promiseArray = [];
@@ -77,9 +72,7 @@ async function geocodeProperties(properties: Property[]): Promise<void> {
             const currentGeocodedProperties = await Promise.all(promiseArray);
             for (const geocodedProperty of currentGeocodedProperties) {
                 if (geocodedProperty) {
-                    appendFileSync(PROPERTIES_GEOCODED_PATH, JSON.stringify(geocodedProperty) + "\n", {
-                        encoding: "latin1",
-                    });
+                    await addProperty(geocodedProperty);
                 }
             }
         }

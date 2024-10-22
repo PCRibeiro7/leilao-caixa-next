@@ -1,4 +1,3 @@
-import { PROPERTIES_GEOCODED_PATH } from "@/consts/filePaths";
-import { writeFileSync } from "fs";
+import { deleteAllProperties } from "@/services/properties";
 
-writeFileSync(PROPERTIES_GEOCODED_PATH, "", { encoding: "latin1" });
+deleteAllProperties();
