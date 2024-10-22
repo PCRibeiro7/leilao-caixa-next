@@ -2,7 +2,7 @@
 
 "use client";
 
-import FilteredMap from "@/pages/FilteredMap";
+import FilteredMap from "@/app/pages/FilteredMap";
 
 export default function Page() {
     return <FilteredMap />;

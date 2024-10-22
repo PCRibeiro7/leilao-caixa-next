@@ -1,3 +1,3 @@
-export const PROPERTIES_GEOCODED_PATH = 'src/data/properties-geocoded.jsonl';
-export const PROPERTIES_PATH = 'src/data/properties.jsonl';
-export const PROPERTIES_RAW_PATH = 'src/data/properties-raw.csv';
+export const TMP_PATH = ".tmp";
+export const PROPERTIES_PATH = `${TMP_PATH}/properties.jsonl`;
+export const PROPERTIES_RAW_PATH = `${TMP_PATH}/properties-raw.csv`;
