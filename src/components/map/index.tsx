@@ -8,7 +8,7 @@ import "leaflet/dist/leaflet.css";
 
 import { GeocodedProperty, GeocodePrecision } from "@/types/Property";
 
-interface MapProps {
+export interface MapProps {
     properties: GeocodedProperty[];
 }
 
