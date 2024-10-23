@@ -1,6 +1,9 @@
 import { execSync } from "child_process";
 import { schedule } from "@netlify/functions";
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+require("package.json");
+
 // To learn about scheduled functions and supported cron extensions,
 // see: https://ntl.fyi/sched-func
 export const handler = schedule("0 12 * * *", async (event) => {
