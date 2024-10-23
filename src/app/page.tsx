@@ -2,8 +2,20 @@
 
 "use client";
 
-import FilteredMap from "@/pages/FilteredMap";
+import MapFilter from "@/components/MapFilter";
+import MapContainer from "@/components/map/MapContainer";
+import useFetchProperties from "@/hooks/useFetchProperties";
+import { GeocodedProperty } from "@/types/Property";
+import { useState } from "react";
 
 export default function Page() {
-    return <FilteredMap />;
+    const allProperties = useFetchProperties();
+    const [properties, setProperties] = useState<GeocodedProperty[]>(allProperties);
+
+    return (
+        <div className="bg-white-700 mx-auto w-[100%] h-[100%] overflow-y-clip">
+            <MapFilter allProperties={allProperties} properties={properties} setProperties={setProperties} />
+            <MapContainer properties={properties} />
+        </div>
+    );
 }
