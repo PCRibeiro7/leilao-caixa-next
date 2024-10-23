@@ -4,7 +4,7 @@ import { Property } from "@/types/Property";
 import { PROPERTIES_PATH, PROPERTIES_RAW_PATH } from "@/consts/filePaths";
 import { appendFileSync, createReadStream } from "fs";
 
-const ENV = process.env.NODE_ENV;
+const ENV = process.env.ENV;
 
 function cleanString(input: string): string {
     return input.replace(/[^a-z0-9 ,.?!]/gi, "");
@@ -54,7 +54,7 @@ function parseCSV(filePath: string): void {
 
             appendFileSync(PROPERTIES_PATH, JSON.stringify(property) + "\n", { encoding: "latin1" });
 
-            if (ENV === "development" && linesProcessed >= 100) {
+            if (ENV === "dev" && linesProcessed >= 100) {
                 readStream.destroy();
             }
         })

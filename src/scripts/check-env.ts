@@ -1,7 +1,7 @@
 import readline from "readline";
 import "dotenv/config";
 
-const ENV = process.env.NODE_ENV;
+const ENV = process.env.ENV;
 const SKIP_CHECKS = process.env.npm_config_skip_checks === "true";
 
 function askQuestion(query: string): Promise<string> {
@@ -19,9 +19,9 @@ function askQuestion(query: string): Promise<string> {
 }
 
 const checkEnv = async () => {
-    if (ENV === "development") {
+    if (ENV === "dev") {
         console.log("Running in development mode");
-    } else if (ENV === "production") {
+    } else if (ENV === "prod") {
         console.log("Running in production mode");
 
         if (SKIP_CHECKS) {
@@ -35,7 +35,7 @@ const checkEnv = async () => {
             process.abort();
         }
     } else {
-        console.error("Invalid NODE_ENV value. Use 'development' or 'production'");
+        console.error("Invalid ENV value. Use 'dev' or 'prod'");
         process.abort();
     }
 };
