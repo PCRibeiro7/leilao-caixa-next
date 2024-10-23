@@ -19,6 +19,7 @@ type DropdownMenuCheckboxesProps = {
     title: string;
     availableOptions: {
         label: string;
+        display?: string;
         checked: Checked;
     }[];
     onCheckedChange: (label: string, checked: Checked) => void;
@@ -50,7 +51,7 @@ export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
                             checked={option.checked}
                             onCheckedChange={(checked) => onCheckedChange(option.label, checked)}
                         >
-                            {option.label}
+                            {option.display || option.label}
                         </DropdownMenuCheckboxItem>
                     ))}
                 </div>

@@ -12,6 +12,14 @@ export default function Page() {
     const allProperties = useFetchProperties();
     const [properties, setProperties] = useState<GeocodedProperty[]>(allProperties);
 
+    if(allProperties.length === 0) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <p className="text-2xl text-center">Carregando...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="bg-white-700 mx-auto w-[100%] h-[100%] overflow-y-clip">
             <MapFilter allProperties={allProperties} properties={properties} setProperties={setProperties} />
