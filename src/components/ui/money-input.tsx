@@ -8,22 +8,27 @@ type TextInputProps = {
     value: number;
 };
 
+const countDecimals = function (value:number) {
+    if (Math.floor(value) === value) return 0;
+    return value.toString().split(".")[1].length || 0;
+};
+
 // Brazilian currency config
 const moneyFormatter = Intl.NumberFormat("pt-BR", {
     currency: "BRL",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
 });
 
 export default function MoneyInput(props: TextInputProps) {
     const { onChange, value } = props;
 
     const digits = `${value}`.replace(/\D/g, "");
-    const maskedValue = moneyFormatter.format(Number(digits));
+    const maskedValue = moneyFormatter.format(Number(digits) / 10 ** countDecimals(value));
 
     function handleChange(formattedValue: string) {
         const digits = formattedValue.replace(/\D/g, "");
-        const realValue = Number(digits);
+        const realValue = Number(digits) / 100;
         onChange(realValue);
     }
 
