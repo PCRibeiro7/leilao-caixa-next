@@ -4,7 +4,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GeocodedProperty } from "@/types/Property";
+import { GeocodedProperty, GeocodePrecision } from "@/types/Property";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { Checked, DropdownMenuCheckboxes } from "../ui/dropdown-menu-checkboxes";
 import { Button } from "../ui/button";
@@ -24,6 +24,7 @@ type CheckboxFilters = {
     state: string[];
     city: string[];
     neighborhood: string[];
+    geocodePrecision: GeocodePrecision[];
 };
 
 type Filters = InputFilters & MoneyInputFilters & CheckboxFilters;
@@ -42,6 +43,15 @@ const defaultFilters: Filters = {
     state: [],
     city: [],
     neighborhood: [],
+    geocodePrecision: [],
+};
+
+const mapGeocodePrecisionToDisplay: Record<GeocodePrecision, string> = {
+    [GeocodePrecision.city]: "Cidade",
+    [GeocodePrecision.neighborhood]: "Bairro",
+    [GeocodePrecision.street]: "Rua",
+    [GeocodePrecision.address]: "Endereço",
+    [GeocodePrecision.fullAddress]: "Endereço completo",
 };
 
 export default function MapFilter(props: FilterProps) {
@@ -86,6 +96,7 @@ export default function MapFilter(props: FilterProps) {
                 sellingType: initialFilters.sellingType,
                 city: initialFilters.city,
                 neighborhood: availableNeighborhoods,
+                geocodePrecision: initialFilters.geocodePrecision,
             }[filterName];
         }
         setFilters((oldFilter) => ({ ...oldFilter, [filterName]: newFilter }));
@@ -99,6 +110,7 @@ export default function MapFilter(props: FilterProps) {
                 const sellingType = property.sellingType;
                 const state = property.state;
                 const city = property.city;
+                const geocodePrecision = property.geocodePrecision;
 
                 const isAboveMinPrice = price >= filters.minPrice;
                 const isBelowMaxPrice = price <= filters.maxPrice;
@@ -108,6 +120,7 @@ export default function MapFilter(props: FilterProps) {
                 const isMatchingStateFilter = filters.state.includes(state);
                 const isMatchingCityFilter = filters.city.includes(city);
                 const isMatchingNeighborhoodFilter = filters.neighborhood.includes(property.neighborhood);
+                const isMatchingGeocodePrecisionFilter = filters.geocodePrecision.includes(geocodePrecision);
 
                 return (
                     isAboveMinPrice &&
@@ -116,7 +129,8 @@ export default function MapFilter(props: FilterProps) {
                     isMatchingSellingTypeFilter &&
                     isMatchingStateFilter &&
                     isMatchingCityFilter &&
-                    isMatchingNeighborhoodFilter
+                    isMatchingNeighborhoodFilter &&
+                    isMatchingGeocodePrecisionFilter
                 );
             });
 
@@ -136,7 +150,7 @@ export default function MapFilter(props: FilterProps) {
                     .filter((property) => filters.city.includes(property.city))
                     .map((property) => property.neighborhood)
             )
-        ).filter((i) => i);
+        ).filter((i) => i).sort((a, b) => a.localeCompare(b));
         setAvailableNeighborhoods(newAvailableNeighborhoods);
     }, [filters.city, allProperties]);
 
@@ -152,9 +166,16 @@ export default function MapFilter(props: FilterProps) {
         );
         const availableStates = Array.from(new Set(allProperties.map((property) => property.state))).filter((i) => i);
         const availableCities = Array.from(new Set(allProperties.map((property) => property.city))).filter((i) => i);
-        const initialAvailableNeighborhoods = Array.from(
+        const availableNeighborhoods = Array.from(
             new Set(allProperties.map((property) => property.neighborhood))
-        ).filter((i) => i);
+        ).filter((i) => i).sort((a, b) => a.localeCompare(b));
+        const availableGeocodePrecisions = [
+            GeocodePrecision.fullAddress,
+            GeocodePrecision.address,
+            GeocodePrecision.street,
+            GeocodePrecision.neighborhood,
+            GeocodePrecision.city,
+        ];
 
         const initialFilters: Filters = {
             maxPrice: maxPrice,
@@ -163,7 +184,8 @@ export default function MapFilter(props: FilterProps) {
             sellingType: availableSellingTypes,
             state: availableStates,
             city: availableCities,
-            neighborhood: initialAvailableNeighborhoods,
+            neighborhood: availableNeighborhoods,
+            geocodePrecision: availableGeocodePrecisions,
         };
         setInitialFilters(initialFilters);
         setFilters(initialFilters);
@@ -238,6 +260,18 @@ export default function MapFilter(props: FilterProps) {
                         onCheckedChange={(label, checked) => handleCheckboxFilterChange("neighborhood", label, checked)}
                         toggleAll={() => handleCheckboxFilterToggle("neighborhood")}
                         title="Bairro"
+                    />
+                </div>
+                <div className="mt-5">
+                    <DropdownMenuCheckboxes
+                        availableOptions={initialFilters.geocodePrecision.map((precision) => ({
+                            label: precision,
+                            display: mapGeocodePrecisionToDisplay[precision],
+                            checked: filters.geocodePrecision.includes(precision),
+                        }))}
+                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("geocodePrecision", label, checked)}
+                        toggleAll={() => handleCheckboxFilterToggle("geocodePrecision")}
+                        title="Precisão Geográfica"
                     />
                 </div>
                 <div>
