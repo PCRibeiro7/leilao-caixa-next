@@ -207,7 +207,9 @@ export default function MapFilter(props: FilterProps) {
         <Drawer>
             <div className="flex justify-center items-center h-[5vh]">
                 <DrawerTrigger asChild>
-                    <Button variant="outline" className="w-full mx-2">Filtrar</Button>
+                    <Button variant="outline" className="w-full mx-2">
+                        Filtrar
+                    </Button>
                 </DrawerTrigger>
             </div>
             <DrawerContent>
@@ -218,16 +220,16 @@ export default function MapFilter(props: FilterProps) {
                     </DrawerDescription>
                 </DrawerHeader>
                 <div className="md:flex md:space-x-4 space-y-4 m-4 items-end">
-                        <MoneyInput
-                            label="Preço Mínimo"
-                            value={filters.minPrice}
-                            onChange={(value) => handleMoneyInputFilterChange("minPrice", value)}
-                        />
-                        <MoneyInput
-                            label="Preço Máximo"
-                            value={filters.maxPrice}
-                            onChange={(event) => handleMoneyInputFilterChange("maxPrice", event)}
-                        />
+                    <MoneyInput
+                        label="Preço Mínimo"
+                        value={filters.minPrice}
+                        onChange={(value) => handleMoneyInputFilterChange("minPrice", value)}
+                    />
+                    <MoneyInput
+                        label="Preço Máximo"
+                        value={filters.maxPrice}
+                        onChange={(event) => handleMoneyInputFilterChange("maxPrice", event)}
+                    />
                     <div>
                         <Label>Desconto Mínimo:</Label>
                         <Input
@@ -237,61 +239,54 @@ export default function MapFilter(props: FilterProps) {
                             endAdornment="%"
                         />
                     </div>
-                    <div className="">
-                        <DropdownMenuCheckboxes
-                            availableOptions={initialFilters.sellingType.map((sellingType) => ({
-                                label: sellingType,
-                                checked: filters.sellingType.includes(sellingType),
-                            }))}
-                            onCheckedChange={(label, checked) =>
-                                handleCheckboxFilterChange("sellingType", label, checked)
-                            }
-                            toggleAll={() => handleCheckboxFilterToggle("sellingType")}
-                            title="Tipo Venda"
-                        />
-                    </div>
-
-                        <DropdownMenuCheckboxes
-                            availableOptions={initialFilters.state.map((state) => ({
-                                label: state,
-                                checked: filters.state.includes(state),
-                            }))}
-                            onCheckedChange={(label, checked) => handleCheckboxFilterChange("state", label, checked)}
-                            toggleAll={() => handleCheckboxFilterToggle("state")}
-                            title="Estado"
-                        />
-                        <DropdownMenuCheckboxes
-                            availableOptions={initialFilters.city.map((city) => ({
-                                label: city,
-                                checked: filters.city.includes(city),
-                            }))}
-                            onCheckedChange={(label, checked) => handleCheckboxFilterChange("city", label, checked)}
-                            toggleAll={() => handleCheckboxFilterToggle("city")}
-                            title="Cidade"
-                        />
-                        <DropdownMenuCheckboxes
-                            availableOptions={availableNeighborhoods.map((neighborhood) => ({
-                                label: neighborhood,
-                                checked: filters.neighborhood.includes(neighborhood),
-                            }))}
-                            onCheckedChange={(label, checked) =>
-                                handleCheckboxFilterChange("neighborhood", label, checked)
-                            }
-                            toggleAll={() => handleCheckboxFilterToggle("neighborhood")}
-                            title="Bairro"
-                        />
-                        <DropdownMenuCheckboxes
-                            availableOptions={initialFilters.geocodePrecision.map((precision) => ({
-                                label: precision,
-                                display: mapGeocodePrecisionToDisplay[precision],
-                                checked: filters.geocodePrecision.includes(precision),
-                            }))}
-                            onCheckedChange={(label, checked) =>
-                                handleCheckboxFilterChange("geocodePrecision", label, checked)
-                            }
-                            toggleAll={() => handleCheckboxFilterToggle("geocodePrecision")}
-                            title="Precisão Geográfica"
-                        />
+                    <DropdownMenuCheckboxes
+                        availableOptions={initialFilters.sellingType.map((sellingType) => ({
+                            label: sellingType,
+                            checked: filters.sellingType.includes(sellingType),
+                        }))}
+                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("sellingType", label, checked)}
+                        toggleAll={() => handleCheckboxFilterToggle("sellingType")}
+                        title="Tipo Venda"
+                    />
+                    <DropdownMenuCheckboxes
+                        availableOptions={initialFilters.state.map((state) => ({
+                            label: state,
+                            checked: filters.state.includes(state),
+                        }))}
+                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("state", label, checked)}
+                        toggleAll={() => handleCheckboxFilterToggle("state")}
+                        title="Estado"
+                    />
+                    <DropdownMenuCheckboxes
+                        availableOptions={initialFilters.city.map((city) => ({
+                            label: city,
+                            checked: filters.city.includes(city),
+                        }))}
+                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("city", label, checked)}
+                        toggleAll={() => handleCheckboxFilterToggle("city")}
+                        title="Cidade"
+                    />
+                    <DropdownMenuCheckboxes
+                        availableOptions={availableNeighborhoods.map((neighborhood) => ({
+                            label: neighborhood,
+                            checked: filters.neighborhood.includes(neighborhood),
+                        }))}
+                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("neighborhood", label, checked)}
+                        toggleAll={() => handleCheckboxFilterToggle("neighborhood")}
+                        title="Bairro"
+                    />
+                    <DropdownMenuCheckboxes
+                        availableOptions={initialFilters.geocodePrecision.map((precision) => ({
+                            label: precision,
+                            display: mapGeocodePrecisionToDisplay[precision],
+                            checked: filters.geocodePrecision.includes(precision),
+                        }))}
+                        onCheckedChange={(label, checked) =>
+                            handleCheckboxFilterChange("geocodePrecision", label, checked)
+                        }
+                        toggleAll={() => handleCheckboxFilterToggle("geocodePrecision")}
+                        title="Precisão Geográfica"
+                    />
                 </div>
                 <DrawerFooter>
                     <Button className="mt-5 h-9" onClick={resetFilters}>
