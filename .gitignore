@@ -40,7 +40,7 @@ next-env.d.ts
 failed-geocoding.txt
 src/data/backup
 .vscode
-.tmp
+tmp
 
 # Local Netlify folder
 .netlify
