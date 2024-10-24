@@ -207,7 +207,7 @@ export default function MapFilter(props: FilterProps) {
         <Drawer>
             <div className="flex justify-center items-center h-[5vh]">
                 <DrawerTrigger asChild>
-                    <Button variant="outline" className="w-full mx-2">
+                    <Button variant="outline" className="w-full mx-2 text-lg">
                         Filtrar
                     </Button>
                 </DrawerTrigger>
