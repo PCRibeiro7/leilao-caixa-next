@@ -1,5 +1,6 @@
 import cleanupProperties from "./steps/cleanup-properties";
-import fetchRawProperties from "./steps/fetch-raw-properties";
+// import fetchRawProperties from "./steps/fetch-raw-properties";
+import fetchRawProperties from "./steps/fetch-raw-properties-puppeteer";
 import parseProperties from "./steps/parse-properties";
 import fetchGeocodeData from "./steps/fetch-geocode-data";
 
