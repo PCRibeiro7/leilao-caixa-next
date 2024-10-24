@@ -1,13 +1,13 @@
 {
     "compilerOptions": {
         "lib": ["dom", "dom.iterable", "esnext"],
-        "target": "es6",
+        "target": "ESNext",
         "allowJs": true,
         "skipLibCheck": true,
         "strict": true,
         "noEmit": true,
         "esModuleInterop": true,
-        "module": "esnext",
+        "module": "CommonJS",
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "isolatedModules": true,
