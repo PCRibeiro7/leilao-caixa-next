@@ -3,7 +3,11 @@ import { PROPERTIES_RAW_PATH } from "@/consts/filePaths";
 import { writeFileSync } from "fs";
 import "dotenv/config";
 
-import puppeteer from "puppeteer";
+import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer-core";
+
+chromium.setHeadlessMode = true
+chromium.setGraphicsMode = false
 
 const url = "https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_RJ.csv";
 async function downloadFile(): Promise<void> {
@@ -38,8 +42,13 @@ const headlessFalse = async () => {
 
 const headlessTrue = async () => {
     const browser = await puppeteer.launch({
-        headless: false,
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath:
+            process.env.CHROME_EXECUTABLE_PATH ||
+            (await chromium.executablePath("/var/task/node_modules/@sparticuz/chromium/bin")),
     });
+
     const [page] = await browser.pages();
 
     await page.goto("https://venda-imoveis.caixa.gov.br/sistema/download-lista.asp");
