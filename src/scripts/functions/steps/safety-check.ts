@@ -16,7 +16,7 @@ function askQuestion(query: string): Promise<string> {
 }
 
 const safetyCheck = async () => {
-    const ans = await askQuestion("Are you sure you want to run in DELETE all properties? (Y/N): ");
+    const ans = await askQuestion("Are you sure you want to DELETE all properties? (Y/N): ");
     if (!["y", "yes"].includes(ans.toLowerCase())) {
         console.log("Script aborted");
         process.abort();
