@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { PROPERTIES_RAW_PATH } from "@/consts/filePaths";
 import { writeFileSync } from "fs";
+import "dotenv/config";
 
 import puppeteer from "puppeteer";
 
