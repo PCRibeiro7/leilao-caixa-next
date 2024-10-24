@@ -10,7 +10,8 @@ function cleanString(input: string): string {
     return input.replace(/[^a-z0-9 ,.?!]/gi, "");
 }
 
-function parseCSV(filePath: string): void {
+function parseCSV(): void {
+    const filePath = PROPERTIES_RAW_PATH;
     let linesProcessed = 0;
 
     const readStream = createReadStream(filePath, { encoding: "latin1" })
@@ -82,4 +83,4 @@ function parseLocaleNumber(stringNumber: string, locale: string) {
     );
 }
 
-parseCSV(PROPERTIES_RAW_PATH);
+parseCSV();
