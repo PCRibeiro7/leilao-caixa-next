@@ -45,7 +45,7 @@ const headlessTrue = async () => {
         args: chromium.args,
         defaultViewport: chromium.defaultViewport,
         executablePath:
-            process.env.CHROME_EXECUTABLE_PATH ||
+            // process.env.CHROME_EXECUTABLE_PATH ||
             (await chromium.executablePath("/var/task/node_modules/@sparticuz/chromium/bin")),
     });
 
