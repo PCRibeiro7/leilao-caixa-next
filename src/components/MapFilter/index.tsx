@@ -9,6 +9,16 @@ import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { Checked, DropdownMenuCheckboxes } from "../ui/dropdown-menu-checkboxes";
 import { Button } from "../ui/button";
 import MoneyInput from "../ui/money-input";
+import {
+    Drawer,
+    DrawerClose,
+    DrawerContent,
+    DrawerDescription,
+    DrawerFooter,
+    DrawerHeader,
+    DrawerTitle,
+    DrawerTrigger,
+} from "../ui/drawer";
 
 type InputFilters = {
     minDiscount: number;
@@ -194,97 +204,106 @@ export default function MapFilter(props: FilterProps) {
     }, [allProperties]);
 
     return (
-        <div className="flex justify-between">
-            <div className="flex items-center space-x-4 m-4">
-                <div>
-                    <MoneyInput
-                        label="Preço Mínimo"
-                        value={filters.minPrice}
-                        onChange={(value) => handleMoneyInputFilterChange("minPrice", value)}
-                    />
+        <Drawer>
+            <div className="flex justify-center items-center h-[5vh]">
+                <DrawerTrigger asChild>
+                    <Button variant="outline" className="w-full mx-2">Filtrar</Button>
+                </DrawerTrigger>
+            </div>
+            <DrawerContent>
+                <DrawerHeader>
+                    <DrawerTitle> Filtrar propriedades:</DrawerTitle>
+                    <DrawerDescription>
+                        {properties.length} propriedades encontradas para o filtro atual
+                    </DrawerDescription>
+                </DrawerHeader>
+                <div className="md:flex md:space-x-4 space-y-4 m-4 items-end">
+                        <MoneyInput
+                            label="Preço Mínimo"
+                            value={filters.minPrice}
+                            onChange={(value) => handleMoneyInputFilterChange("minPrice", value)}
+                        />
+                        <MoneyInput
+                            label="Preço Máximo"
+                            value={filters.maxPrice}
+                            onChange={(event) => handleMoneyInputFilterChange("maxPrice", event)}
+                        />
+                    <div>
+                        <Label>Desconto Mínimo:</Label>
+                        <Input
+                            type="number"
+                            value={filters.minDiscount.toString()}
+                            onChange={(event) => handleInputFilterChange("minDiscount", event)}
+                            endAdornment="%"
+                        />
+                    </div>
+                    <div className="">
+                        <DropdownMenuCheckboxes
+                            availableOptions={initialFilters.sellingType.map((sellingType) => ({
+                                label: sellingType,
+                                checked: filters.sellingType.includes(sellingType),
+                            }))}
+                            onCheckedChange={(label, checked) =>
+                                handleCheckboxFilterChange("sellingType", label, checked)
+                            }
+                            toggleAll={() => handleCheckboxFilterToggle("sellingType")}
+                            title="Tipo Venda"
+                        />
+                    </div>
+
+                        <DropdownMenuCheckboxes
+                            availableOptions={initialFilters.state.map((state) => ({
+                                label: state,
+                                checked: filters.state.includes(state),
+                            }))}
+                            onCheckedChange={(label, checked) => handleCheckboxFilterChange("state", label, checked)}
+                            toggleAll={() => handleCheckboxFilterToggle("state")}
+                            title="Estado"
+                        />
+                        <DropdownMenuCheckboxes
+                            availableOptions={initialFilters.city.map((city) => ({
+                                label: city,
+                                checked: filters.city.includes(city),
+                            }))}
+                            onCheckedChange={(label, checked) => handleCheckboxFilterChange("city", label, checked)}
+                            toggleAll={() => handleCheckboxFilterToggle("city")}
+                            title="Cidade"
+                        />
+                        <DropdownMenuCheckboxes
+                            availableOptions={availableNeighborhoods.map((neighborhood) => ({
+                                label: neighborhood,
+                                checked: filters.neighborhood.includes(neighborhood),
+                            }))}
+                            onCheckedChange={(label, checked) =>
+                                handleCheckboxFilterChange("neighborhood", label, checked)
+                            }
+                            toggleAll={() => handleCheckboxFilterToggle("neighborhood")}
+                            title="Bairro"
+                        />
+                        <DropdownMenuCheckboxes
+                            availableOptions={initialFilters.geocodePrecision.map((precision) => ({
+                                label: precision,
+                                display: mapGeocodePrecisionToDisplay[precision],
+                                checked: filters.geocodePrecision.includes(precision),
+                            }))}
+                            onCheckedChange={(label, checked) =>
+                                handleCheckboxFilterChange("geocodePrecision", label, checked)
+                            }
+                            toggleAll={() => handleCheckboxFilterToggle("geocodePrecision")}
+                            title="Precisão Geográfica"
+                        />
                 </div>
-                <div>
-                    <MoneyInput
-                        label="Preço Máximo"
-                        value={filters.maxPrice}
-                        onChange={(event) => handleMoneyInputFilterChange("maxPrice", event)}
-                    />
-                </div>
-                <div>
-                    <Label>Desconto Mínimo:</Label>
-                    <Input
-                        type="number"
-                        value={filters.minDiscount.toString()}
-                        onChange={(event) => handleInputFilterChange("minDiscount", event)}
-                        endAdornment="%"
-                    />
-                </div>
-                <div className="mt-5">
-                    <DropdownMenuCheckboxes
-                        availableOptions={initialFilters.sellingType.map((sellingType) => ({
-                            label: sellingType,
-                            checked: filters.sellingType.includes(sellingType),
-                        }))}
-                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("sellingType", label, checked)}
-                        toggleAll={() => handleCheckboxFilterToggle("sellingType")}
-                        title="Tipo Venda"
-                    />
-                </div>
-                <div className="mt-5">
-                    <DropdownMenuCheckboxes
-                        availableOptions={initialFilters.state.map((state) => ({
-                            label: state,
-                            checked: filters.state.includes(state),
-                        }))}
-                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("state", label, checked)}
-                        toggleAll={() => handleCheckboxFilterToggle("state")}
-                        title="Estado"
-                    />
-                </div>
-                <div className="mt-5">
-                    <DropdownMenuCheckboxes
-                        availableOptions={initialFilters.city.map((city) => ({
-                            label: city,
-                            checked: filters.city.includes(city),
-                        }))}
-                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("city", label, checked)}
-                        toggleAll={() => handleCheckboxFilterToggle("city")}
-                        title="Cidade"
-                    />
-                </div>
-                <div className="mt-5">
-                    <DropdownMenuCheckboxes
-                        availableOptions={availableNeighborhoods.map((neighborhood) => ({
-                            label: neighborhood,
-                            checked: filters.neighborhood.includes(neighborhood),
-                        }))}
-                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("neighborhood", label, checked)}
-                        toggleAll={() => handleCheckboxFilterToggle("neighborhood")}
-                        title="Bairro"
-                    />
-                </div>
-                <div className="mt-5">
-                    <DropdownMenuCheckboxes
-                        availableOptions={initialFilters.geocodePrecision.map((precision) => ({
-                            label: precision,
-                            display: mapGeocodePrecisionToDisplay[precision],
-                            checked: filters.geocodePrecision.includes(precision),
-                        }))}
-                        onCheckedChange={(label, checked) =>
-                            handleCheckboxFilterChange("geocodePrecision", label, checked)
-                        }
-                        toggleAll={() => handleCheckboxFilterToggle("geocodePrecision")}
-                        title="Precisão Geográfica"
-                    />
-                </div>
-                <div>
+                <DrawerFooter>
                     <Button className="mt-5 h-9" onClick={resetFilters}>
                         Resetar filtros
                     </Button>
-                </div>
-            </div>
-
-            <div className="m-4 content-end">{properties.length} propriedades encontradas</div>
-        </div>
+                    <DrawerClose className="w-full">
+                        <Button variant="outline" className="w-full">
+                            Cancelar
+                        </Button>
+                    </DrawerClose>
+                </DrawerFooter>
+            </DrawerContent>
+        </Drawer>
     );
 }
