@@ -6,8 +6,8 @@ import "dotenv/config";
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 
-chromium.setHeadlessMode = true
-chromium.setGraphicsMode = false
+chromium.setHeadlessMode = true;
+chromium.setGraphicsMode = false;
 
 const url = "https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_RJ.csv";
 async function downloadFile(): Promise<void> {
@@ -46,7 +46,8 @@ const headlessTrue = async () => {
         defaultViewport: chromium.defaultViewport,
         executablePath:
             // process.env.CHROME_EXECUTABLE_PATH ||
-            (await chromium.executablePath("/var/task/node_modules/@sparticuz/chromium/bin")),
+            await chromium.executablePath("/var/task/node_modules/@sparticuz/chromium/bin"),
+        headless: false,
     });
 
     const [page] = await browser.pages();
