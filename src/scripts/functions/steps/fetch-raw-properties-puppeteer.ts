@@ -35,9 +35,6 @@ const headlessFalse = async () => {
     return browser.close();
 };
 
-const callback = (text: string) => {
-};
-
 const headlessTrue = async () => {
     const browser = await puppeteer.launch({
         headless: false,
@@ -55,6 +52,8 @@ const headlessTrue = async () => {
     });
     console.log(csvContent);
     writeFileSync(PROPERTIES_RAW_PATH, csvContent);
+
+    return browser.close();
 };
 
 export default downloadFile;

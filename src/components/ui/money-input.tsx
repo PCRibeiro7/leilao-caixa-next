@@ -8,7 +8,7 @@ type TextInputProps = {
     value: number;
 };
 
-const countDecimals = function (value:number) {
+const countDecimals = function (value: number) {
     if (Math.floor(value) === value) return 0;
     return value.toString().split(".")[1].length || 0;
 };

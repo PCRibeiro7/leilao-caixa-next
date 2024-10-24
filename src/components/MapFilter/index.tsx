@@ -150,7 +150,9 @@ export default function MapFilter(props: FilterProps) {
                     .filter((property) => filters.city.includes(property.city))
                     .map((property) => property.neighborhood)
             )
-        ).filter((i) => i).sort((a, b) => a.localeCompare(b));
+        )
+            .filter((i) => i)
+            .sort((a, b) => a.localeCompare(b));
         setAvailableNeighborhoods(newAvailableNeighborhoods);
     }, [filters.city, allProperties]);
 
@@ -166,9 +168,9 @@ export default function MapFilter(props: FilterProps) {
         );
         const availableStates = Array.from(new Set(allProperties.map((property) => property.state))).filter((i) => i);
         const availableCities = Array.from(new Set(allProperties.map((property) => property.city))).filter((i) => i);
-        const availableNeighborhoods = Array.from(
-            new Set(allProperties.map((property) => property.neighborhood))
-        ).filter((i) => i).sort((a, b) => a.localeCompare(b));
+        const availableNeighborhoods = Array.from(new Set(allProperties.map((property) => property.neighborhood)))
+            .filter((i) => i)
+            .sort((a, b) => a.localeCompare(b));
         const availableGeocodePrecisions = [
             GeocodePrecision.fullAddress,
             GeocodePrecision.address,
@@ -209,10 +211,9 @@ export default function MapFilter(props: FilterProps) {
                     />
                 </div>
                 <div>
-                    <Label htmlFor="min-discount">Desconto Mínimo:</Label>
+                    <Label>Desconto Mínimo:</Label>
                     <Input
                         type="number"
-                        name="min-discount"
                         value={filters.minDiscount.toString()}
                         onChange={(event) => handleInputFilterChange("minDiscount", event)}
                         endAdornment="%"
@@ -269,7 +270,9 @@ export default function MapFilter(props: FilterProps) {
                             display: mapGeocodePrecisionToDisplay[precision],
                             checked: filters.geocodePrecision.includes(precision),
                         }))}
-                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("geocodePrecision", label, checked)}
+                        onCheckedChange={(label, checked) =>
+                            handleCheckboxFilterChange("geocodePrecision", label, checked)
+                        }
                         toggleAll={() => handleCheckboxFilterToggle("geocodePrecision")}
                         title="Precisão Geográfica"
                     />
