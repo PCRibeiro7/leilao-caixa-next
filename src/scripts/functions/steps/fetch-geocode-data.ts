@@ -6,8 +6,6 @@ import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
 import { appendFileSync } from "fs";
 import { addProperty, deleteProperties, fetchAllProperties } from "@/services/properties";
 
-const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH) || [];
-
 const mapRetryNumberToGeocodePrecision: Record<number, GeocodePrecision> = {
     0: GeocodePrecision.fullAddress,
     1: GeocodePrecision.address,
@@ -24,6 +22,8 @@ type NominatinAddress = {
 };
 
 async function parseCSV(): Promise<void> {
+    const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH) || [];
+
     const geocodedProperties = await fetchAllProperties();
     console.log(`Existing Geocoded Properties: ${geocodedProperties.length}`);
 
@@ -190,4 +190,4 @@ async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): P
     }
 }
 
-parseCSV();
+export default parseCSV;

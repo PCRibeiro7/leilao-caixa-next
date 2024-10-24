@@ -1,3 +1,3 @@
 import { deleteAllProperties } from "@/services/properties";
 
-deleteAllProperties();
+export default deleteAllProperties;

@@ -8,14 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "check-env": "tsx ./src/scripts/check-env.ts",
-    "cleanup-properties": "tsx ./src/scripts/cleanup-properties.ts",
-    "cleanup-geocoded-properties": "tsx ./src/scripts/cleanup-geocoded-properties.ts",
-    "fetch-raw-properties": "tsx ./src/scripts/fetch-raw-properties.ts",
-    "parse-properties": "tsx ./src/scripts/parse-properties.ts",
-    "fetch-geocode-data": "tsx ./src/scripts/fetch-geocode-data.ts",
-    "update-properties": "npm run check-env && npm run cleanup-properties && npm run fetch-raw-properties && npm run parse-properties && npm run fetch-geocode-data",
-    "reset-properties": "npm run check-env && npm run cleanup-properties && npm run cleanup-geocoded-properties && npm run fetch-raw-properties && npm run parse-properties && npm run fetch-geocode-data"
+    "update-properties": "tsx ./src/scripts/run-update-properties.ts",
+    "reset-properties": "tsx ./src/scripts/run-reset-properties.ts"
   },
   "dependencies": {
     "@netlify/functions": "^2.8.2",
