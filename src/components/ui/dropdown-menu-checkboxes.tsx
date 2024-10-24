@@ -34,7 +34,7 @@ export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
     return (
         <DropdownMenu open={isOpen}>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full" onClick={() => setIsOpen(true)}>
+                <Button variant="outline" className="w-full h-10" onClick={() => setIsOpen(true)}>
                     {title}
                 </Button>
             </DropdownMenuTrigger>
