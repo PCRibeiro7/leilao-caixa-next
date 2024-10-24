@@ -1,8 +1,6 @@
 import { execSync } from "child_process";
 import { schedule } from "@netlify/functions";
 
-import "package.json";
-
 // To learn about scheduled functions and supported cron extensions,
 // see: https://ntl.fyi/sched-func
 export const handler = schedule("*/5 * * * *", async (event) => {
