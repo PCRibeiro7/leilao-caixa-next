@@ -1,3 +1,17 @@
+export enum PropertyType {
+    Apartment = "Apartamento",
+    House = "Casa",
+    Land = "Terreno",
+    Store = "Loja",
+    Warehouse = "Galpão",
+    Others = "Outros",
+    Building = "Prédio",
+    Office = "Sala",
+    TwoStoryHouse = "Sobrado",
+    Comercial = "Comercial",
+    Unknown = "Desconhecido",
+}
+
 export interface Property {
     caixaId: string;
     street: string;
@@ -10,6 +24,11 @@ export interface Property {
     priceAsCurrency: string;
     evaluationPrice: number;
     discount: number;
+    type: PropertyType;
+    totalArea: number;
+    builtArea: number;
+    landArea: number;
+    bedrooms?: number;
 }
 
 export enum GeocodePrecision {
