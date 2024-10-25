@@ -239,7 +239,7 @@ export default function MapFilter(props: FilterProps) {
                             type="number"
                             value={filters.minDiscount.toString()}
                             onChange={(event) => handleInputFilterChange("minDiscount", event)}
-                            endAdornment="%"
+                            startAdornment="%"
                         />
                     </div>
                     <DropdownMenuCheckboxes
