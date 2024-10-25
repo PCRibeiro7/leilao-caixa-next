@@ -7,25 +7,30 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import "leaflet/dist/leaflet.css";
 
 import { GeocodedProperty, GeocodePrecision } from "@/types/Property";
+import { useState } from "react";
+import Legend from "./Legend";
+import { Map } from "leaflet";
 
 export interface MapProps {
     properties: GeocodedProperty[];
 }
 
-const mapGeocodePrecisionToColor: Record<GeocodePrecision, string> = {
-    fullAddress: "rgb(49,54,149)",
-    address: "rgb(69,117,180)",
-    street: "rgb(253,174,97)",
-    neighborhood: "rgb(244,109,67)",
-    city: "rgb(165,0,38)",
+export const mapGeocodePrecisionToColor: Record<GeocodePrecision, string> = {
+    fullAddress: "#313695",
+    address: "#4575b4",
+    street: "#fdae61",
+    neighborhood: "#f46d43",
+    city: "#a50026",
 };
 
 const defaults = {
     zoom: 8,
 };
 
-const Map = (props: MapProps) => {
+const MainMap = (props: MapProps) => {
     const { properties } = props;
+
+    const [map, setMap] = useState<Map | null>(null);
 
     if (properties.length === 0) {
         return (
@@ -41,11 +46,13 @@ const Map = (props: MapProps) => {
             zoom={defaults.zoom}
             className="h-[95%] md:h-[92%] w-[100%] z-[1]"
             preferCanvas={true}
+            ref={setMap}
         >
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
+            <Legend map={map} />
             {properties.map((property) => (
                 <CircleMarker
                     key={property.caixaId}
@@ -56,14 +63,14 @@ const Map = (props: MapProps) => {
                     <Popup>
                         <b>{property.address} </b>
                         <br />
-                        {property.city} , {property.state}
+                        {property.neighborhood}, {property.city}, {property.state}
                         <br />
                         {property.priceAsCurrency}
                         <br />
                         Desconto: {property.discount}%
                         <br />
                         {property.type}
-                        {property.bedrooms ? <>, {property.bedrooms} quartos</> : null}, {" "}
+                        {property.bedrooms ? <>, {property.bedrooms} quartos</> : null},{" "}
                         {property.totalArea ? property.totalArea : property.builtArea} m²
                         <br />
                         {property.sellingType}
@@ -88,4 +95,4 @@ const Map = (props: MapProps) => {
     );
 };
 
-export default Map;
+export default MainMap;

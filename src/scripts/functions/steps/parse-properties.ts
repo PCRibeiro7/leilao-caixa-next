@@ -4,8 +4,6 @@ import { Property, PropertyType } from "@/types/Property";
 import { PROPERTIES_PATH, PROPERTIES_RAW_PATH } from "@/consts/filePaths";
 import { appendFileSync, createReadStream } from "fs";
 
-const ENV = process.env.ENV;
-
 function cleanString(input: string): string {
     return input.replace(/[^a-z0-9 ,.?!]/gi, "");
 }
@@ -35,9 +33,9 @@ const mapPropertyTypeToEnum = (propertyType: string): PropertyType => {
         default:
             return PropertyType.Unknown;
     }
-}
+};
 
-async function parseCSV(): Promise<void> {
+async function parseProperties(): Promise<void> {
     const filePath = PROPERTIES_RAW_PATH;
     let linesProcessed = 0;
 
@@ -69,9 +67,9 @@ async function parseCSV(): Promise<void> {
                 .on("data", (data) => {
                     const descriptionArray: string[] = data["Descrição"].split(",");
                     const propertyType = descriptionArray[0].trim();
-                    const propertyTotalArea = Number(descriptionArray[1].trim().split(' ')[0]);
-                    const propertyBuiltArea = Number(descriptionArray[2].trim().split(' ')[0]);
-                    const propertyLandArea = Number(descriptionArray[3].trim().split(' ')[0]);
+                    const propertyTotalArea = Number(descriptionArray[1].trim().split(" ")[0]);
+                    const propertyBuiltArea = Number(descriptionArray[2].trim().split(" ")[0]);
+                    const propertyLandArea = Number(descriptionArray[3].trim().split(" ")[0]);
 
                     const descriptionEnd = descriptionArray.slice(4).join("");
                     const bedroomsString =
@@ -106,10 +104,6 @@ async function parseCSV(): Promise<void> {
                     linesProcessed++;
 
                     appendFileSync(PROPERTIES_PATH, JSON.stringify(property) + "\n", { encoding: "latin1" });
-
-                    if (ENV === "dev" && linesProcessed >= 100) {
-                        readStream.destroy();
-                    }
                 })
                 .on("end", async () => {
                     console.log("CSV file successfully processed");
@@ -141,6 +135,4 @@ function parseLocaleNumber(stringNumber: string, locale: string) {
     );
 }
 
-// parseCSV();
-
-export default parseCSV;
+export default parseProperties;

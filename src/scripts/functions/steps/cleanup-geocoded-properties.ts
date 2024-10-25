@@ -1,3 +1,5 @@
 import { deleteAllProperties } from "@/services/properties";
 
-export default deleteAllProperties;
+export default async function cleanupGeocodedProperties() {
+    await deleteAllProperties();
+}

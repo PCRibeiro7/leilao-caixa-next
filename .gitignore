@@ -37,9 +37,8 @@ yarn-error.log*
 next-env.d.ts
 
 # development
-failed-geocoding.txt
-src/data/backup
 .vscode
+tmp
 
 # Local Netlify folder
 .netlify

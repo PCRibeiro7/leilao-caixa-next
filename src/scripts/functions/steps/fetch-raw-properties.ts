@@ -2,7 +2,7 @@ import { PROPERTIES_RAW_PATH } from "@/consts/filePaths";
 import axios from "axios";
 import { createWriteStream } from "fs";
 
-async function downloadFile(): Promise<void> {
+async function fetchRawProperties(): Promise<void> {
     const url = "https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_RJ.csv";
     const outputPath = PROPERTIES_RAW_PATH;
     const promise = new Promise<void>(async (resolve, reject) => {
@@ -29,6 +29,4 @@ async function downloadFile(): Promise<void> {
     await promise;
 }
 
-// downloadFile();
-
-export default downloadFile;
+export default fetchRawProperties;

@@ -21,7 +21,7 @@ type NominatinAddress = {
     state: string;
 };
 
-async function parseCSV(): Promise<void> {
+async function fetchGeocodeData(): Promise<void> {
     const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH) || [];
 
     const geocodedProperties = await fetchAllProperties();
@@ -32,7 +32,7 @@ async function parseCSV(): Promise<void> {
     });
     console.log(`Properties to remove: ${geocodedPropertiesToRemove.length}`);
 
-    if (geocodedPropertiesToRemove.length > 0) {
+    if (geocodedPropertiesToRemove.length > 0 || process.env.ENV !== 'prod') {
         await deleteProperties(geocodedPropertiesToRemove.map((property) => property.caixaId));
     }
 
@@ -190,4 +190,4 @@ async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): P
     }
 }
 
-export default parseCSV;
+export default fetchGeocodeData;

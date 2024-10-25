@@ -60,7 +60,7 @@ const defaultFilters: Filters = {
     geocodePrecision: [],
 };
 
-const mapGeocodePrecisionToDisplay: Record<GeocodePrecision, string> = {
+export const mapGeocodePrecisionToDisplay: Record<GeocodePrecision, string> = {
     [GeocodePrecision.city]: "Cidade",
     [GeocodePrecision.neighborhood]: "Bairro",
     [GeocodePrecision.street]: "Rua",
