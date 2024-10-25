@@ -1,6 +1,6 @@
 import csv from "csv-parser";
 import "dotenv/config";
-import { Property } from "@/types/Property";
+import { Property, PropertyType } from "@/types/Property";
 import { PROPERTIES_PATH, PROPERTIES_RAW_PATH } from "@/consts/filePaths";
 import { appendFileSync, createReadStream } from "fs";
 
@@ -8,6 +8,29 @@ const ENV = process.env.ENV;
 
 function cleanString(input: string): string {
     return input.replace(/[^a-z0-9 ,.?!]/gi, "");
+}
+
+const mapPropertyTypeToEnum = (propertyType: string): PropertyType => {
+    switch (propertyType) {
+        case "Apartamento":
+            return PropertyType.Apartment;
+        case "Casa":
+            return PropertyType.House;
+        case "Terreno":
+            return PropertyType.Land;
+        case "Loja":
+            return PropertyType.Store;
+        case "Galpão":
+            return PropertyType.Warehouse;
+        case "Prédio":
+            return PropertyType.Building;
+        case "Sala":
+            return PropertyType.Office;
+        case "Sobrado":
+            return PropertyType.TwoStoryHouse;
+        default:
+            return PropertyType.Unknown;
+    }
 }
 
 async function parseCSV(): Promise<void> {
@@ -40,6 +63,21 @@ async function parseCSV(): Promise<void> {
                     console.log("CSV file is being processed");
                 })
                 .on("data", (data) => {
+                    const descriptionArray: string[] = data["Descrição"].split(",");
+                    const propertyType = descriptionArray[0].trim();
+                    const propertyTotalArea = Number(descriptionArray[1].trim().split(' ')[0]);
+                    const propertyBuiltArea = Number(descriptionArray[2].trim().split(' ')[0]);
+                    const propertyLandArea = Number(descriptionArray[3].trim().split(' ')[0]);
+
+                    const descriptionEnd = descriptionArray.slice(4).join("");
+                    const bedroomsString =
+                        descriptionEnd.indexOf("qto") !== -1 ? descriptionEnd.split("qto")[0].trim() : undefined;
+
+                    let bedrooms = undefined;
+                    if (bedroomsString) {
+                        bedrooms = Number(bedroomsString);
+                    }
+
                     const property: Property = {
                         caixaId: data["N° do imóvel"].trim(),
                         state: data["UF"].trim(),
@@ -55,6 +93,11 @@ async function parseCSV(): Promise<void> {
                             .trim()
                             .normalize("NFD")
                             .replace(/[\u0300-\u036f]/g, ""),
+                        type: mapPropertyTypeToEnum(propertyType),
+                        totalArea: propertyTotalArea,
+                        builtArea: propertyBuiltArea,
+                        landArea: propertyLandArea,
+                        bedrooms: bedrooms,
                     };
                     linesProcessed++;
 
