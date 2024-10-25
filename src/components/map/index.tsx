@@ -29,7 +29,7 @@ const Map = (props: MapProps) => {
 
     if (properties.length === 0) {
         return (
-            <div className="flex justify-center items-center h-screen">
+            <div className="flex justify-center items-center h-[95%] md:h-[92%]">
                 <p className="text-2xl text-center">Nenhum imóvel encontrado para o filtro selecionado</p>
             </div>
         );
@@ -58,11 +58,15 @@ const Map = (props: MapProps) => {
                         <br />
                         {property.city} , {property.state}
                         <br />
-                        Preço: {property.priceAsCurrency}
+                        {property.priceAsCurrency}
                         <br />
-                        Desconto: {property.discount} %
+                        Desconto: {property.discount}%
                         <br />
-                        Tipo: {property.sellingType}
+                        {property.type}
+                        {property.bedrooms ? <>, {property.bedrooms} quartos</> : null}, {" "}
+                        {property.totalArea ? property.totalArea : property.builtArea} m²
+                        <br />
+                        {property.sellingType}
                         <br />
                         <a
                             href={`https://venda-imoveis.caixa.gov.br/sistema/detalhe-imovel.asp?hdnimovel=${property.caixaId}`}

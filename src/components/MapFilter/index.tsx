@@ -20,6 +20,7 @@ import {
     DrawerTrigger,
 } from "../ui/drawer";
 import ToArray from "@/utils/enumToArray";
+import { Separator } from "../ui/separator";
 
 type InputFilters = {
     minDiscount: number;
@@ -155,9 +156,9 @@ export default function MapFilter(props: FilterProps) {
         [allProperties, setProperties]
     );
 
-    useEffect(() => {
-        applyFilter(filters);
-    }, [filters, applyFilter]);
+    // useEffect(() => {
+    //     applyFilter(filters);
+    // }, [filters, applyFilter]);
 
     useEffect(() => {
         const newAvailableNeighborhoods = Array.from(
@@ -201,25 +202,27 @@ export default function MapFilter(props: FilterProps) {
         };
         setInitialFilters(initialFilters);
         setFilters(initialFilters);
-    }, [allProperties]);
+        applyFilter(initialFilters);
+    }, [allProperties, applyFilter]);
 
     return (
         <Drawer>
-            <div className="flex justify-center items-center h-[5dvh] md:h-[8dvh]">
+            <div className="flex justify-center items-center h-[5dvh] md:h-[8dvh] relative">
                 <DrawerTrigger asChild>
-                    <Button  className="w-full md:w-1/4 mx-2 text-base">
-                        Filtrar
+                    <Button variant={"secondary"} className="w-full md:w-1/4 m-1 text-base">
+                        Filtrar Imóveis
                     </Button>
                 </DrawerTrigger>
+                <p className="absolute right-5 text-muted-foreground hidden md:block">
+                    {properties.length} imóveis encontradas para o filtro atual
+                </p>
             </div>
             <DrawerContent>
                 <DrawerHeader>
-                    <DrawerTitle> Filtrar propriedades:</DrawerTitle>
-                    <DrawerDescription>
-                        {properties.length} propriedades encontradas para o filtro atual
-                    </DrawerDescription>
+                    <DrawerTitle> Filtrar imóveis:</DrawerTitle>
+                    <DrawerDescription>{properties.length} imóveis encontradas para o filtro atual</DrawerDescription>
                 </DrawerHeader>
-                <div className="md:flex md:space-x-4 space-y-4 m-4 items-end">
+                <div className="md:flex md:space-x-4 space-y-2 m-4 items-end">
                     <MoneyInput
                         label="Preço Mínimo"
                         value={filters.minPrice}
@@ -255,7 +258,7 @@ export default function MapFilter(props: FilterProps) {
                         }))}
                         onCheckedChange={(label, checked) => handleCheckboxFilterChange("type", label, checked)}
                         toggleAll={() => handleCheckboxFilterToggle("type")}
-                        title="Tipo de Propriedade"
+                        title="Tipo de Imóvel"
                     />
                     <DropdownMenuCheckboxes
                         availableOptions={initialFilters.state.map((state) => ({
@@ -298,8 +301,12 @@ export default function MapFilter(props: FilterProps) {
                     />
                 </div>
                 <DrawerFooter>
-                    <Button className="mt-5 h-9 w-full md:w-1/4 self-center" onClick={resetFilters}>
-                        Resetar filtros
+                    <Separator className="w-5/6 self-center" />
+                    <Button className="mt-5 h-9 w-full md:w-1/4 self-center" onClick={() => applyFilter(filters)}>
+                        Aplicar Filtros
+                    </Button>
+                    <Button variant={"secondary"} className="h-9 w-full md:w-1/4 self-center" onClick={resetFilters}>
+                        Limpar filtros
                     </Button>
                     <DrawerClose className="w-full md:w-full">
                         <Button variant="outline" className="w-full md:w-1/4">
