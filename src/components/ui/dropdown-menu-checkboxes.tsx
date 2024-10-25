@@ -43,7 +43,7 @@ export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
                     {availableOptions.find((option) => option.checked) ? "Desabilitar Todos" : "Habilitar Todos"}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <div className="max-h-[50vh] overflow-y-auto">
+                <div className="max-h-[50dvh] overflow-y-auto">
                     {availableOptions.map((option) => (
                         <DropdownMenuCheckboxItem
                             className="cursor-pointer"

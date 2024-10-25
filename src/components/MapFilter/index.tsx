@@ -4,7 +4,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GeocodedProperty, GeocodePrecision } from "@/types/Property";
+import { GeocodedProperty, GeocodePrecision, PropertyType } from "@/types/Property";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { Checked, DropdownMenuCheckboxes } from "../ui/dropdown-menu-checkboxes";
 import { Button } from "../ui/button";
@@ -19,6 +19,7 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "../ui/drawer";
+import ToArray from "@/utils/enumToArray";
 
 type InputFilters = {
     minDiscount: number;
@@ -31,6 +32,7 @@ type MoneyInputFilters = {
 
 type CheckboxFilters = {
     sellingType: string[];
+    type: string[];
     state: string[];
     city: string[];
     neighborhood: string[];
@@ -50,6 +52,7 @@ const defaultFilters: Filters = {
     minPrice: 0,
     maxPrice: 0,
     sellingType: [],
+    type: [],
     state: [],
     city: [],
     neighborhood: [],
@@ -104,6 +107,7 @@ export default function MapFilter(props: FilterProps) {
             newFilter = {
                 state: initialFilters.state,
                 sellingType: initialFilters.sellingType,
+                type: initialFilters.type,
                 city: initialFilters.city,
                 neighborhood: availableNeighborhoods,
                 geocodePrecision: initialFilters.geocodePrecision,
@@ -127,6 +131,7 @@ export default function MapFilter(props: FilterProps) {
                 const isAboveMinDiscount = discount >= filters.minDiscount;
 
                 const isMatchingSellingTypeFilter = filters.sellingType.includes(sellingType);
+                const isMatchingTypeFilter = filters.type.includes(property.type);
                 const isMatchingStateFilter = filters.state.includes(state);
                 const isMatchingCityFilter = filters.city.includes(city);
                 const isMatchingNeighborhoodFilter = filters.neighborhood.includes(property.neighborhood);
@@ -137,6 +142,7 @@ export default function MapFilter(props: FilterProps) {
                     isBelowMaxPrice &&
                     isAboveMinDiscount &&
                     isMatchingSellingTypeFilter &&
+                    isMatchingTypeFilter &&
                     isMatchingStateFilter &&
                     isMatchingCityFilter &&
                     isMatchingNeighborhoodFilter &&
@@ -181,23 +187,17 @@ export default function MapFilter(props: FilterProps) {
         const availableNeighborhoods = Array.from(new Set(allProperties.map((property) => property.neighborhood)))
             .filter((i) => i)
             .sort((a, b) => a.localeCompare(b));
-        const availableGeocodePrecisions = [
-            GeocodePrecision.fullAddress,
-            GeocodePrecision.address,
-            GeocodePrecision.street,
-            GeocodePrecision.neighborhood,
-            GeocodePrecision.city,
-        ];
 
         const initialFilters: Filters = {
             maxPrice: maxPrice,
             minDiscount: minDiscount,
             minPrice: minPrice,
             sellingType: availableSellingTypes,
+            type: ToArray(PropertyType),
             state: availableStates,
             city: availableCities,
             neighborhood: availableNeighborhoods,
-            geocodePrecision: availableGeocodePrecisions,
+            geocodePrecision: ToArray(GeocodePrecision),
         };
         setInitialFilters(initialFilters);
         setFilters(initialFilters);
@@ -205,9 +205,9 @@ export default function MapFilter(props: FilterProps) {
 
     return (
         <Drawer>
-            <div className="flex justify-center items-center h-[5vh]">
+            <div className="flex justify-center items-center h-[5dvh] md:h-[8dvh]">
                 <DrawerTrigger asChild>
-                    <Button variant="outline" className="w-full mx-2 text-lg">
+                    <Button  className="w-full md:w-1/4 mx-2 text-base">
                         Filtrar
                     </Button>
                 </DrawerTrigger>
@@ -246,7 +246,16 @@ export default function MapFilter(props: FilterProps) {
                         }))}
                         onCheckedChange={(label, checked) => handleCheckboxFilterChange("sellingType", label, checked)}
                         toggleAll={() => handleCheckboxFilterToggle("sellingType")}
-                        title="Tipo Venda"
+                        title="Tipo de Venda"
+                    />
+                    <DropdownMenuCheckboxes
+                        availableOptions={initialFilters.type.map((type) => ({
+                            label: type,
+                            checked: filters.type.includes(type),
+                        }))}
+                        onCheckedChange={(label, checked) => handleCheckboxFilterChange("type", label, checked)}
+                        toggleAll={() => handleCheckboxFilterToggle("type")}
+                        title="Tipo de Propriedade"
                     />
                     <DropdownMenuCheckboxes
                         availableOptions={initialFilters.state.map((state) => ({
@@ -289,11 +298,11 @@ export default function MapFilter(props: FilterProps) {
                     />
                 </div>
                 <DrawerFooter>
-                    <Button className="mt-5 h-9" onClick={resetFilters}>
+                    <Button className="mt-5 h-9 w-full md:w-1/4 self-center" onClick={resetFilters}>
                         Resetar filtros
                     </Button>
-                    <DrawerClose className="w-full">
-                        <Button variant="outline" className="w-full">
+                    <DrawerClose className="w-full md:w-full">
+                        <Button variant="outline" className="w-full md:w-1/4">
                             Cancelar
                         </Button>
                     </DrawerClose>

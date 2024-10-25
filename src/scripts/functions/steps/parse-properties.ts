@@ -28,6 +28,10 @@ const mapPropertyTypeToEnum = (propertyType: string): PropertyType => {
             return PropertyType.Office;
         case "Sobrado":
             return PropertyType.TwoStoryHouse;
+        case "Comercial":
+            return PropertyType.Comercial;
+        case "Outros":
+            return PropertyType.Others;
         default:
             return PropertyType.Unknown;
     }

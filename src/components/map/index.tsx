@@ -39,7 +39,7 @@ const Map = (props: MapProps) => {
         <MapContainer
             center={[properties[0].latitude, properties[0].longitude]}
             zoom={defaults.zoom}
-            style={{ height: "95%", width: "100%", zIndex: 1 }}
+            className="h-[95%] md:h-[92%] w-[100%] z-[1]"
             preferCanvas={true}
         >
             <TileLayer

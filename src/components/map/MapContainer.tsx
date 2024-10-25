@@ -8,7 +8,11 @@ export default function MapContainer(props: MapProps) {
     const Map = useMemo(
         () =>
             dynamic(() => import("@/components/map/"), {
-                loading: () => <p>Carregando mapa...</p>,
+                loading: () => (
+                    <div className="flex justify-center items-center h-screen">
+                        <p className="text-2xl text-center">Carregando mapa...</p>
+                    </div>
+                ),
                 ssr: false,
             }),
         []

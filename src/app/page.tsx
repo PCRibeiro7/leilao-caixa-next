@@ -15,7 +15,7 @@ export default function Page() {
     if (allProperties.length === 0) {
         return (
             <div className="flex justify-center items-center h-screen">
-                <p className="text-2xl text-center">Carregando...</p>
+                <p className="text-2xl text-center">Carregando propriedades...</p>
             </div>
         );
     }
