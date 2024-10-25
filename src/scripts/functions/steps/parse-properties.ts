@@ -37,11 +37,10 @@ const mapPropertyTypeToEnum = (propertyType: string): PropertyType => {
 
 async function parseProperties(): Promise<void> {
     const filePath = PROPERTIES_RAW_PATH;
-    let linesProcessed = 0;
 
     const promise = new Promise<void>((resolve, reject) => {
         try {
-            const readStream = createReadStream(filePath, { encoding: "latin1" })
+            createReadStream(filePath, { encoding: "latin1" })
                 .pipe(
                     csv({
                         separator: ";",
@@ -101,8 +100,6 @@ async function parseProperties(): Promise<void> {
                         landArea: propertyLandArea,
                         bedrooms: bedrooms,
                     };
-                    linesProcessed++;
-
                     appendFileSync(PROPERTIES_PATH, JSON.stringify(property) + "\n", { encoding: "latin1" });
                 })
                 .on("end", async () => {
