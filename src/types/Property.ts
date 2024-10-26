@@ -14,11 +14,12 @@ export enum PropertyType {
 
 export interface Property {
     caixaId: string;
-    street: string;
-    address: string;
+    state: string;
     city: string;
     neighborhood: string;
-    state: string;
+    address: string;
+    street: string;
+    number?: number;
     sellingType: string;
     price: number;
     priceAsCurrency: string;

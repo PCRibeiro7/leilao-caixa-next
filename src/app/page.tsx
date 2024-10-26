@@ -2,7 +2,7 @@
 
 "use client";
 
-import MapFilter from "@/components/MapFilter";
+import MapFilter from "@/views/PropertiesMap";
 import MapContainer from "@/components/map/MapContainer";
 import useFetchProperties from "@/hooks/useFetchProperties";
 import { GeocodedProperty } from "@/types/Property";

@@ -8,6 +8,22 @@ function cleanString(input: string): string {
     return input.replace(/[^a-z0-9 ,.?!]/gi, "");
 }
 
+function getPropertyNumber(fullAddress: string): number | undefined {
+    const addressWithoutDotsAndCommas = fullAddress.replace(/\.|,/g, "");
+
+    const numberAsString =
+        addressWithoutDotsAndCommas.indexOf(" N ") !== -1 ? addressWithoutDotsAndCommas.split(" N ")[1].split(" ")[0].trim() : undefined;
+
+    let number: number | undefined = undefined;
+    if (numberAsString) {
+        number = Number(numberAsString);
+        if (isNaN(number)) {
+            number = undefined;
+        }
+    }
+    return number;
+}
+
 const mapPropertyTypeToEnum = (propertyType: string): PropertyType => {
     switch (propertyType) {
         case "Apartamento":
@@ -74,7 +90,7 @@ async function parseProperties(): Promise<void> {
                     const bedroomsString =
                         descriptionEnd.indexOf("qto") !== -1 ? descriptionEnd.split("qto")[0].trim() : undefined;
 
-                    let bedrooms = undefined;
+                    let bedrooms: number | undefined = undefined;
                     if (bedroomsString) {
                         bedrooms = Number(bedroomsString);
                     }
@@ -84,8 +100,9 @@ async function parseProperties(): Promise<void> {
                         state: data["UF"].trim(),
                         city: data["Cidade"].trim(),
                         neighborhood: cleanString(data["Bairro"]).trim(),
-                        street: cleanString(data["Endereço"].split(",")[0]).trim(),
                         address: cleanString(data["Endereço"]).trim(),
+                        street: cleanString(data["Endereço"].split(",")[0]).trim(),
+                        number: getPropertyNumber(data["Endereço"]),
                         price: parseLocaleNumber(data["Preço"], "pt-BR"),
                         priceAsCurrency: `R$ ${data["Preço"]}`.trim(),
                         evaluationPrice: parseLocaleNumber(data["Valor de avaliação"], "pt-BR"),

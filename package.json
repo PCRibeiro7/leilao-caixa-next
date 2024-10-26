@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "update-base-properties": "tsx ./src/scripts/run-update-base-properties.ts",
     "update-properties": "tsx ./src/scripts/run-update-properties.ts",
     "reset-properties": "tsx ./src/scripts/run-reset-properties.ts"
   },

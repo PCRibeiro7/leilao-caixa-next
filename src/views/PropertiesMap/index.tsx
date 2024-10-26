@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GeocodedProperty, GeocodePrecision, PropertyType } from "@/types/Property";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
-import { Checked, DropdownMenuCheckboxes } from "../ui/dropdown-menu-checkboxes";
-import { Button } from "../ui/button";
-import MoneyInput from "../ui/money-input";
+import { Checked, DropdownMenuCheckboxes } from "../../components/ui/dropdown-menu-checkboxes";
+import { Button } from "../../components/ui/button";
+import MoneyInput from "../../components/ui/money-input";
 import {
     Drawer,
     DrawerClose,
@@ -18,9 +18,9 @@ import {
     DrawerHeader,
     DrawerTitle,
     DrawerTrigger,
-} from "../ui/drawer";
+} from "../../components/ui/drawer";
 import ToArray from "@/utils/enumToArray";
-import { Separator } from "../ui/separator";
+import { Separator } from "../../components/ui/separator";
 
 type InputFilters = {
     minDiscount: number;
@@ -68,7 +68,7 @@ export const mapGeocodePrecisionToDisplay: Record<GeocodePrecision, string> = {
     [GeocodePrecision.fullAddress]: "Endereço completo",
 };
 
-export default function MapFilter(props: FilterProps) {
+export default function PropertiesMap(props: FilterProps) {
     const { allProperties, properties, setProperties } = props;
 
     const [initialFilters, setInitialFilters] = useState<Filters>(defaultFilters);
@@ -155,10 +155,6 @@ export default function MapFilter(props: FilterProps) {
         },
         [allProperties, setProperties]
     );
-
-    // useEffect(() => {
-    //     applyFilter(filters);
-    // }, [filters, applyFilter]);
 
     useEffect(() => {
         const newAvailableNeighborhoods = Array.from(

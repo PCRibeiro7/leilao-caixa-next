@@ -1,4 +1,4 @@
-import { GeocodedProperty } from "@/types/Property";
+import { GeocodedProperty, Property } from "@/types/Property";
 import { createClient } from "@/utils/supabase/client";
 
 const supabase = createClient();
@@ -34,6 +34,12 @@ export async function deleteProperties(caixaIds: string[]) {
 
 export async function addProperty(property: GeocodedProperty) {
     const { error } = await supabase.from(PROPERTIES_TABLE_NAME).insert([property]);
+
+    if (error) throw error;
+}
+
+export async function updateProperty(property: Property | GeocodedProperty) {
+    const { error } = await supabase.from(PROPERTIES_TABLE_NAME).update(property).eq("caixaId", property.caixaId);
 
     if (error) throw error;
 }
