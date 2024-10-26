@@ -22,6 +22,7 @@ import {
 import ToArray from "@/utils/enumToArray";
 import { Separator } from "../../ui/separator";
 import useBreakpoints from "@/hooks/useBreakPoints";
+import { mapGeocodePrecisionToColor } from "@/components/map";
 
 type InputFilters = {
     minDiscount: number;
@@ -291,6 +292,10 @@ export default function FilteredMap(props: FilterProps) {
                             label: precision,
                             display: mapGeocodePrecisionToDisplay[precision],
                             checked: filters.geocodePrecision.includes(precision),
+                            icon: {
+                                style: { background: mapGeocodePrecisionToColor[precision] },
+                                className: `rounded-full w-[18px] h-[18px] float-left mr-2 `,
+                            },
                         }))}
                         onCheckedChange={(label, checked) =>
                             handleCheckboxFilterChange("geocodePrecision", label, checked)

@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { CSSProperties, useState } from "react";
 import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,10 @@ type DropdownMenuCheckboxesProps = {
         label: string;
         display?: string;
         checked: Checked;
+        icon?: {
+            style?: CSSProperties;
+            className?: string;
+        };
     }[];
     onCheckedChange: (label: string, checked: Checked) => void;
     toggleAll?: () => void;
@@ -29,7 +33,7 @@ type DropdownMenuCheckboxesProps = {
 export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
     const { title, availableOptions, onCheckedChange, toggleAll } = props;
 
-    const [isOpen, setIsOpen] = React.useState(false);
+    const [isOpen, setIsOpen] = useState(false);
 
     return (
         <DropdownMenu open={isOpen}>
@@ -43,7 +47,7 @@ export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
                     {availableOptions.find((option) => option.checked) ? "Desabilitar Todos" : "Habilitar Todos"}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <div className="max-h-[50dvh] overflow-y-auto">
+                <div className="max-h-[40dvh] overflow-y-auto">
                     {availableOptions.map((option) => (
                         <DropdownMenuCheckboxItem
                             className="cursor-pointer"
@@ -51,6 +55,7 @@ export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
                             checked={option.checked}
                             onCheckedChange={(checked) => onCheckedChange(option.label, checked)}
                         >
+                            {option.icon ? <i className={option.icon.className} style={option.icon.style}></i> : null}
                             {option.display || option.label}
                         </DropdownMenuCheckboxItem>
                     ))}
