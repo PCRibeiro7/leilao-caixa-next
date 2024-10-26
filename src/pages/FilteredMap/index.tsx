@@ -68,7 +68,7 @@ export const mapGeocodePrecisionToDisplay: Record<GeocodePrecision, string> = {
     [GeocodePrecision.fullAddress]: "Endereço completo",
 };
 
-export default function PropertiesMap(props: FilterProps) {
+export default function FilteredMap(props: FilterProps) {
     const { allProperties, properties, setProperties } = props;
 
     const [initialFilters, setInitialFilters] = useState<Filters>(defaultFilters);
