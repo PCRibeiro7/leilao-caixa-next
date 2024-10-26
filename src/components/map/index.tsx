@@ -34,7 +34,7 @@ const MainMap = (props: MapProps) => {
 
     if (properties.length === 0) {
         return (
-            <div className="flex justify-center items-center h-[95%] md:h-[92%]">
+            <div className="flex justify-center items-center h-[100%]">
                 <p className="text-2xl text-center">Nenhum imóvel encontrado para o filtro selecionado</p>
             </div>
         );
@@ -44,7 +44,7 @@ const MainMap = (props: MapProps) => {
         <MapContainer
             center={[properties[0].latitude, properties[0].longitude]}
             zoom={defaults.zoom}
-            className="h-[95%] md:h-[92%] w-[100%] z-[1]"
+            className="h-[100%] w-[100%] z-[1]"
             preferCanvas={true}
             ref={setMap}
         >

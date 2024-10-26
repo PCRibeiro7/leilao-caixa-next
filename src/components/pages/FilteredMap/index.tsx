@@ -207,16 +207,14 @@ export default function FilteredMap(props: FilterProps) {
 
     return (
         <Drawer direction={isMd ? "right" : "bottom"}>
-            <div className="flex justify-center items-center h-[5dvh] md:h-[8dvh] relative">
-                <DrawerTrigger asChild>
-                    <Button variant={"default"} className="w-full md:w-1/4 m-1 text-base">
-                        Filtrar Imóveis
-                    </Button>
-                </DrawerTrigger>
-                <p className="absolute right-5 text-muted-foreground hidden md:block">
-                    {properties.length} imóveis encontradas para o filtro atual
-                </p>
-            </div>
+            <DrawerTrigger asChild>
+                <Button
+                    variant={"default"}
+                    className="md:w-1/4 m-[4px] md:m-[10px] text-base absolute bottom-0 md:mr-auto md:ml-auto left-0 right-0 z-10"
+                >
+                    Filtrar Imóveis
+                </Button>
+            </DrawerTrigger>
             <DrawerContent className={isMd ? "h-screen top-0 right-0 left-auto mt-0 w-[500px] rounded-none" : ""}>
                 <DrawerHeader>
                     <DrawerTitle> Filtrar imóveis:</DrawerTitle>

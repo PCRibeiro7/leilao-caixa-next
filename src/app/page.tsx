@@ -21,7 +21,7 @@ export default function Page() {
     }
 
     return (
-        <div className="bg-white-700 mx-auto w-[100%] h-[100%] overflow-y-clip">
+        <div className="w-[100%] h-[100%] overflow-y-clip relative">
             <MapContainer properties={properties} />
             <MapFilter allProperties={allProperties} properties={properties} setProperties={setProperties} />
         </div>

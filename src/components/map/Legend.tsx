@@ -17,7 +17,7 @@ function Legend({ map }: Props) {
             legend.onAdd = () => {
                 const div = DomUtil.create(
                     "div",
-                    "bg-white px-2 py-1.5 rounded-[5px] text-left leading-[18px] text-[#555] flex flex-col space-y-1"
+                    "bg-white px-2 py-1.5 rounded-[5px] text-left leading-[18px] text-[#555] flex flex-col space-y-1 !ml-[4px] md:!ml-[10px] !mb-[44px] md:!mb-[10px] "
                 );
                 const geocodePrecisions = ToArray(GeocodePrecision) as GeocodePrecision[];
                 const content = geocodePrecisions.map(
