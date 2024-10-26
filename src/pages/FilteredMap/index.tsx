@@ -205,7 +205,7 @@ export default function FilteredMap(props: FilterProps) {
         <Drawer>
             <div className="flex justify-center items-center h-[5dvh] md:h-[8dvh] relative">
                 <DrawerTrigger asChild>
-                    <Button variant={"secondary"} className="w-full md:w-1/4 m-1 text-base">
+                    <Button variant={"default"} className="w-full md:w-1/4 m-1 text-base">
                         Filtrar Imóveis
                     </Button>
                 </DrawerTrigger>
@@ -296,16 +296,16 @@ export default function FilteredMap(props: FilterProps) {
                         title="Precisão Geográfica"
                     />
                 </div>
-                <DrawerFooter>
-                    <Separator className="w-5/6 self-center" />
+                <DrawerFooter className="flex items-center">
+                    <Separator className="w-5/6 self-center " />
                     <Button className="mt-5 h-9 w-full md:w-1/4 self-center" onClick={() => applyFilter(filters)}>
                         Aplicar Filtros
                     </Button>
-                    <Button variant={"secondary"} className="h-9 w-full md:w-1/4 self-center" onClick={resetFilters}>
+                    <Button variant={"outline"} className="h-9 w-full md:w-1/4 self-center" onClick={resetFilters}>
                         Limpar filtros
                     </Button>
-                    <DrawerClose className="w-full md:w-full">
-                        <Button variant="outline" className="w-full md:w-1/4">
+                    <DrawerClose className="w-full md:w-full" asChild>
+                        <Button variant="destructive" className="w-full md:w-1/4">
                             Cancelar
                         </Button>
                     </DrawerClose>

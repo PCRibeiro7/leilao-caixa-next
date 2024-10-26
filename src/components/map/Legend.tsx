@@ -20,7 +20,6 @@ function Legend({ map }: Props) {
                     "bg-white px-2 py-1.5 rounded-[5px] text-left leading-[18px] text-[#555] flex flex-col space-y-1"
                 );
                 const geocodePrecisions = ToArray(GeocodePrecision) as GeocodePrecision[];
-                console.log(geocodePrecisions);
                 const content = geocodePrecisions.map(
                     (precision) =>
                         '<div><i style="background: ' +
@@ -29,7 +28,6 @@ function Legend({ map }: Props) {
                         mapGeocodePrecisionToDisplay[precision] + '</div>'
                 );
                 div.innerHTML = '<p class="text-md font-bold mb-2">Precisão dos Marcadores:</p>' + content.join("");
-                console.log(div)
 
                 return div;
             };
