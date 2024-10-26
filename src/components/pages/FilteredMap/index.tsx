@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GeocodedProperty, GeocodePrecision, PropertyType } from "@/types/Property";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
-import { Checked, DropdownMenuCheckboxes } from "../../components/ui/dropdown-menu-checkboxes";
-import { Button } from "../../components/ui/button";
-import MoneyInput from "../../components/ui/money-input";
+import { Checked, DropdownMenuCheckboxes } from "../../ui/dropdown-menu-checkboxes";
+import { Button } from "../../ui/button";
+import MoneyInput from "../../ui/money-input";
 import {
     Drawer,
     DrawerClose,
@@ -18,9 +18,9 @@ import {
     DrawerHeader,
     DrawerTitle,
     DrawerTrigger,
-} from "../../components/ui/drawer";
+} from "../../ui/drawer";
 import ToArray from "@/utils/enumToArray";
-import { Separator } from "../../components/ui/separator";
+import { Separator } from "../../ui/separator";
 
 type InputFilters = {
     minDiscount: number;
