@@ -22,7 +22,6 @@ import {
 import ToArray from "@/utils/enumToArray";
 import { Separator } from "../../ui/separator";
 import useBreakpoints from "@/hooks/useBreakPoints";
-import { mapGeocodePrecisionToColor } from "@/components/map";
 
 type InputFilters = {
     minDiscount: number;
@@ -68,6 +67,14 @@ export const mapGeocodePrecisionToDisplay: Record<GeocodePrecision, string> = {
     [GeocodePrecision.street]: "Rua",
     [GeocodePrecision.address]: "Endereço",
     [GeocodePrecision.fullAddress]: "Endereço completo",
+};
+
+export const mapGeocodePrecisionToColor: Record<GeocodePrecision, string> = {
+    fullAddress: "#313695",
+    address: "#4575b4",
+    street: "#fdae61",
+    neighborhood: "#f46d43",
+    city: "#a50026",
 };
 
 export default function FilteredMap(props: FilterProps) {

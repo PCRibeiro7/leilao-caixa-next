@@ -2,8 +2,7 @@ import { useEffect } from "react";
 import { Control, DomUtil, Map } from "leaflet";
 import { GeocodePrecision } from "@/types/Property";
 import ToArray from "@/utils/enumToArray";
-import { mapGeocodePrecisionToDisplay } from "../pages/FilteredMap";
-import { mapGeocodePrecisionToColor } from ".";
+import { mapGeocodePrecisionToColor, mapGeocodePrecisionToDisplay } from "../pages/FilteredMap";
 
 type Props = {
     map: Map | null;

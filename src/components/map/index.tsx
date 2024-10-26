@@ -6,22 +6,15 @@ import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet/dist/leaflet.css";
 
-import { GeocodedProperty, GeocodePrecision } from "@/types/Property";
+import { GeocodedProperty } from "@/types/Property";
 import { useState } from "react";
 import Legend from "./Legend";
 import { Map } from "leaflet";
+import { mapGeocodePrecisionToColor } from "@/components/pages/FilteredMap";
 
 export interface MapProps {
     properties: GeocodedProperty[];
 }
-
-export const mapGeocodePrecisionToColor: Record<GeocodePrecision, string> = {
-    fullAddress: "#313695",
-    address: "#4575b4",
-    street: "#fdae61",
-    neighborhood: "#f46d43",
-    city: "#a50026",
-};
 
 const defaults = {
     zoom: 8,
