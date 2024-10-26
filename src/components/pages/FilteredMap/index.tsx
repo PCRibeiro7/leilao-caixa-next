@@ -21,6 +21,7 @@ import {
 } from "../../ui/drawer";
 import ToArray from "@/utils/enumToArray";
 import { Separator } from "../../ui/separator";
+import useBreakpoints from "@/hooks/useBreakPoints";
 
 type InputFilters = {
     minDiscount: number;
@@ -70,6 +71,8 @@ export const mapGeocodePrecisionToDisplay: Record<GeocodePrecision, string> = {
 
 export default function FilteredMap(props: FilterProps) {
     const { allProperties, properties, setProperties } = props;
+
+    const { isMd } = useBreakpoints();
 
     const [initialFilters, setInitialFilters] = useState<Filters>(defaultFilters);
     const [filters, setFilters] = useState<Filters>(initialFilters);
@@ -202,7 +205,7 @@ export default function FilteredMap(props: FilterProps) {
     }, [allProperties, applyFilter]);
 
     return (
-        <Drawer>
+        <Drawer direction={isMd ? "right" : "bottom"}>
             <div className="flex justify-center items-center h-[5dvh] md:h-[8dvh] relative">
                 <DrawerTrigger asChild>
                     <Button variant={"default"} className="w-full md:w-1/4 m-1 text-base">
@@ -213,12 +216,12 @@ export default function FilteredMap(props: FilterProps) {
                     {properties.length} imóveis encontradas para o filtro atual
                 </p>
             </div>
-            <DrawerContent>
+            <DrawerContent className={isMd ? "h-screen top-0 right-0 left-auto mt-0 w-[500px] rounded-none" : ""}>
                 <DrawerHeader>
                     <DrawerTitle> Filtrar imóveis:</DrawerTitle>
                     <DrawerDescription>{properties.length} imóveis encontradas para o filtro atual</DrawerDescription>
                 </DrawerHeader>
-                <div className="md:flex md:space-x-4 space-y-2 m-4 items-end">
+                <div className="space-y-2 m-4 items-end">
                     <MoneyInput
                         label="Preço Mínimo"
                         value={filters.minPrice}
@@ -298,14 +301,14 @@ export default function FilteredMap(props: FilterProps) {
                 </div>
                 <DrawerFooter className="flex items-center">
                     <Separator className="w-5/6 self-center " />
-                    <Button className="mt-5 h-9 w-full md:w-1/4 self-center" onClick={() => applyFilter(filters)}>
+                    <Button className="mt-5 h-9 w-full self-center" onClick={() => applyFilter(filters)}>
                         Aplicar Filtros
                     </Button>
-                    <Button variant={"outline"} className="h-9 w-full md:w-1/4 self-center" onClick={resetFilters}>
+                    <Button variant={"outline"} className="h-9 w-full self-center" onClick={resetFilters}>
                         Limpar filtros
                     </Button>
-                    <DrawerClose className="w-full md:w-full" asChild>
-                        <Button variant="destructive" className="w-full md:w-1/4">
+                    <DrawerClose className="w-full" asChild>
+                        <Button variant="destructive" className="w-full">
                             Cancelar
                         </Button>
                     </DrawerClose>
