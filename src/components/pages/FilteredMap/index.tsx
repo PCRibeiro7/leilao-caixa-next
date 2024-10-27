@@ -86,6 +86,8 @@ export default function FilteredMap(props: FilterProps) {
     const [filters, setFilters] = useState<Filters>(initialFilters);
     const [availableNeighborhoods, setAvailableNeighborhoods] = useState<string[]>(initialFilters.neighborhood);
 
+    const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+
     function resetFilters() {
         setFilters(initialFilters);
     }
@@ -213,7 +215,12 @@ export default function FilteredMap(props: FilterProps) {
     }, [allProperties, applyFilter]);
 
     return (
-        <Drawer direction={isMd ? "right" : "bottom"}>
+        <Drawer
+            direction={isMd ? "right" : "bottom"}
+            open={isFilterDrawerOpen}
+            onOpenChange={setIsFilterDrawerOpen}
+            onClose={() => applyFilter(filters)}
+        >
             <DrawerTrigger asChild>
                 <Button
                     variant={"default"}
@@ -311,7 +318,13 @@ export default function FilteredMap(props: FilterProps) {
                 </div>
                 <DrawerFooter className="flex items-center">
                     <Separator className="w-5/6 self-center " />
-                    <Button className="mt-5 h-9 w-full self-center" onClick={() => applyFilter(filters)}>
+                    <Button
+                        className="mt-5 h-9 w-full self-center"
+                        onClick={() => {
+                            applyFilter(filters);
+                            setIsFilterDrawerOpen(false);
+                        }}
+                    >
                         Aplicar Filtros
                     </Button>
                     <Button variant={"outline"} className="h-9 w-full self-center" onClick={resetFilters}>

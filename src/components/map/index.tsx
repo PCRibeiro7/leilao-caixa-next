@@ -20,6 +20,16 @@ const defaults = {
     zoom: 8,
 };
 
+function getArea(property: GeocodedProperty) {
+    if (property.totalArea) {
+        return property.totalArea;
+    }
+    if (property.builtArea) {
+        return property.builtArea;
+    }
+    return property.landArea;
+}
+
 const MainMap = (props: MapProps) => {
     const { properties } = props;
 
@@ -63,8 +73,8 @@ const MainMap = (props: MapProps) => {
                         Desconto: {property.discount}%
                         <br />
                         {property.type}
-                        {property.bedrooms ? <>, {property.bedrooms} quartos</> : null},{" "}
-                        {property.totalArea ? property.totalArea : property.builtArea} m²
+                        {property.bedrooms ? <>, {property.bedrooms} quartos</> : null}, {getArea(property)}
+                        m²
                         <br />
                         {property.sellingType}
                         <br />
