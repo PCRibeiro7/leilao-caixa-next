@@ -62,6 +62,7 @@ const MainMap = (props: MapProps) => {
                     center={[property.latitude, property.longitude]}
                     radius={4}
                     color={mapGeocodePrecisionToColor[property.geocodePrecision]}
+                    fillOpacity={1}
                 >
                     <Popup>
                         <b>{property.address} </b>
