@@ -219,7 +219,6 @@ export default function FilteredMap(props: FilterProps) {
             direction={isMd ? "right" : "bottom"}
             open={isFilterDrawerOpen}
             onOpenChange={setIsFilterDrawerOpen}
-            onClose={() => applyFilter(filters)}
         >
             <DrawerTrigger asChild>
                 <Button
