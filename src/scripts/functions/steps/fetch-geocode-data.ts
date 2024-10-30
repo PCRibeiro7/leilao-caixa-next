@@ -6,12 +6,12 @@ import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
 import { appendFileSync } from "fs";
 import { addProperty, deleteProperties, fetchAllProperties } from "@/services/properties";
 
-const mapRetryNumberToGeocodePrecision: Record<number, GeocodePrecision> = {
-    0: GeocodePrecision.fullAddress,
-    1: GeocodePrecision.address,
-    2: GeocodePrecision.street,
-    3: GeocodePrecision.neighborhood,
-    4: GeocodePrecision.city,
+const mapGeocodePrecisionToNextPrecision: Record<GeocodePrecision, GeocodePrecision | undefined> = {
+    [GeocodePrecision.fullAddress]: GeocodePrecision.address,
+    [GeocodePrecision.address]: GeocodePrecision.street,
+    [GeocodePrecision.street]: GeocodePrecision.neighborhood,
+    [GeocodePrecision.neighborhood]: GeocodePrecision.city,
+    [GeocodePrecision.city]: undefined,
 };
 
 type NominatinAddress = {
@@ -91,7 +91,7 @@ async function geocodeProperties(properties: Property[]): Promise<void> {
 }
 
 const removeUnnecessaryInfoFromStreet = (street: string): string => {
-    street = street.split("N ")[0].split("ANTIGA ")[0].split("QUADRA ")[0];
+    street = street.split("N ")[0].split("ANTIGA ")[0].split("QUADRA ")[0].split("ANT ")[0];
     for (const prefix of [
         "R",
         "Rua",
@@ -109,31 +109,30 @@ const removeUnnecessaryInfoFromStreet = (street: string): string => {
         "Estrada",
         "Apto",
     ]) {
-        street = street.replaceAll(`${prefix.toUpperCase()} `, "");
         street = street.replaceAll(".", "");
+        street = street.replaceAll(` ${prefix.toUpperCase()} `, "");
+        street = street.replaceAll(`,${prefix.toUpperCase()} `, "");
     }
     return street;
 };
 
-const formatAddress = (property: Property, retryNumber: number): NominatinAddress => {
-    switch (retryNumber) {
-        case 0:
+const formatAddress = (property: Property, precision: GeocodePrecision): NominatinAddress => {
+    switch (precision) {
+        case GeocodePrecision.fullAddress:
             return {
                 street: property.street,
-                county: property.neighborhood,
                 city: property.city,
                 state: property.state,
             };
-        case 1: {
+        case GeocodePrecision.address: {
             const street = removeUnnecessaryInfoFromStreet(property.street);
             return {
-                street: street,
-                county: property.neighborhood,
+                street: `${street}${property.number ? `, ${property.number}` : ""}`,
                 city: property.city,
                 state: property.state,
             };
         }
-        case 2: {
+        case GeocodePrecision.street: {
             const street = removeUnnecessaryInfoFromStreet(property.street);
             return {
                 street: street,
@@ -141,33 +140,36 @@ const formatAddress = (property: Property, retryNumber: number): NominatinAddres
                 state: property.state,
             };
         }
-        case 3:
+        case GeocodePrecision.neighborhood:
             return {
                 county: property.neighborhood,
                 city: property.city,
                 state: property.state,
             };
-        case 4:
+        case GeocodePrecision.city:
             return {
                 city: property.city,
                 state: property.state,
             };
         default:
-            throw new Error("Invalid retry number");
+            throw new Error("Invalid precision");
     }
 };
 
-async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): Promise<GeocodedProperty | undefined> {
-    if (retryNumber > 4) {
+async function fetchNominatinGeocodeData(
+    property: Property,
+    precision: GeocodePrecision | undefined = GeocodePrecision.fullAddress
+): Promise<GeocodedProperty | undefined> {
+    if (!precision) {
         appendFileSync(
             "failed-geocoding.txt",
             `FULL: ${property.address}, ${property.city}, ${property.state}` + "\n",
             { encoding: "latin1" }
         );
         console.warn(`Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`);
-        return;
+        throw new Error(`Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`);
     }
-    const address = formatAddress(property, retryNumber);
+    const address = formatAddress(property, precision);
     try {
         const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
             params: {
@@ -187,19 +189,18 @@ async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): P
             const location = response.data[0];
             const latitude = parseFloat(location.lat);
             const longitude = parseFloat(location.lon);
-            const geocodePrecision = mapRetryNumberToGeocodePrecision[retryNumber];
             return {
                 ...property,
-                latitude: [GeocodePrecision.city, GeocodePrecision.neighborhood].includes(geocodePrecision)
+                latitude: [GeocodePrecision.city, GeocodePrecision.neighborhood].includes(precision)
                     ? latitude + (Math.random() - 0.5) / 10
                     : latitude + (Math.random() - 0.5) / 1000,
-                longitude: [GeocodePrecision.city, GeocodePrecision.neighborhood].includes(geocodePrecision)
+                longitude: [GeocodePrecision.city, GeocodePrecision.neighborhood].includes(precision)
                     ? longitude + (Math.random() - 0.5) / 10
                     : longitude + (Math.random() - 0.5) / 1000,
-                geocodePrecision: geocodePrecision,
+                geocodePrecision: precision,
             };
         } else {
-            return await fetchNominatinGeocodeData(property, retryNumber + 1);
+            return await fetchNominatinGeocodeData(property, mapGeocodePrecisionToNextPrecision[precision]);
         }
     } catch (error) {
         console.error(`Error geocoding address: ${property.address}`, error);

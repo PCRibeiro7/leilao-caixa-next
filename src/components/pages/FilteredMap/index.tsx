@@ -207,19 +207,19 @@ export default function FilteredMap(props: FilterProps) {
             state: availableStates,
             city: availableCities,
             neighborhood: availableNeighborhoods,
-            geocodePrecision: ToArray(GeocodePrecision),
+            geocodePrecision: ToArray(GeocodePrecision).filter((i) => i !== GeocodePrecision.city),
         };
         setInitialFilters(initialFilters);
         setFilters(initialFilters);
         applyFilter(initialFilters);
     }, [allProperties, applyFilter]);
 
+    useEffect(() => {
+        applyFilter(filters);
+    }, [filters, applyFilter]);
+
     return (
-        <Drawer
-            direction={isMd ? "right" : "bottom"}
-            open={isFilterDrawerOpen}
-            onOpenChange={setIsFilterDrawerOpen}
-        >
+        <Drawer direction={isMd ? "right" : "bottom"} open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
             <DrawerTrigger asChild>
                 <Button
                     variant={"default"}
@@ -299,7 +299,7 @@ export default function FilteredMap(props: FilterProps) {
                         title="Bairro"
                     />
                     <DropdownMenuCheckboxes
-                        availableOptions={initialFilters.geocodePrecision.map((precision) => ({
+                        availableOptions={(ToArray(GeocodePrecision) as GeocodePrecision[]).map((precision) => ({
                             label: precision,
                             display: mapGeocodePrecisionToDisplay[precision],
                             checked: filters.geocodePrecision.includes(precision),
@@ -320,7 +320,6 @@ export default function FilteredMap(props: FilterProps) {
                     <Button
                         className="mt-5 h-9 w-full self-center"
                         onClick={() => {
-                            applyFilter(filters);
                             setIsFilterDrawerOpen(false);
                         }}
                     >
