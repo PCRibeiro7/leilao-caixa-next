@@ -232,7 +232,7 @@ export default function FilteredMap(props: FilterProps) {
             <DrawerContent className={isMd ? "h-screen top-0 right-0 left-auto mt-0 w-[500px] rounded-none" : ""}>
                 <DrawerHeader>
                     <DrawerTitle> Filtrar imóveis:</DrawerTitle>
-                    <DrawerDescription>{properties.length} imóveis encontradas para o filtro atual</DrawerDescription>
+                    <DrawerDescription>{properties.length} imóveis encontrados para o filtro atual</DrawerDescription>
                 </DrawerHeader>
                 <div className="space-y-2 m-4 items-end">
                     <MoneyInput
