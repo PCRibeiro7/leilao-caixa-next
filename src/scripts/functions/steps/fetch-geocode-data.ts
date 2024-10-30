@@ -21,6 +21,10 @@ type NominatinAddress = {
     state: string;
 };
 
+type Coordinates<T> = [T, T, T, T];
+
+const mapCityToBoundingBox = new Map<string, Coordinates<number>>();
+
 async function fetchGeocodeData(): Promise<void> {
     const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH) || [];
 
@@ -32,7 +36,7 @@ async function fetchGeocodeData(): Promise<void> {
     });
     console.log(`Properties to remove: ${geocodedPropertiesToRemove.length}`);
 
-    if (geocodedPropertiesToRemove.length > 0 || process.env.ENV !== 'prod') {
+    if (geocodedPropertiesToRemove.length > 0 || process.env.ENV !== "prod") {
         await deleteProperties(geocodedPropertiesToRemove.map((property) => property.caixaId));
     }
 
@@ -42,6 +46,13 @@ async function fetchGeocodeData(): Promise<void> {
         );
     });
     console.log(`New properties found: ${newProperties.length}`);
+
+    console.log(`Fetching City Bounded Boxes`);
+    const uniqueCities = [...new Set(newProperties.map((property) => property.city))];
+    for (const city of uniqueCities) {
+        await fetchBoundingBox("RJ", city);
+    }
+    console.log(`City Bounded Boxes Fetched Successfully`);
 
     await geocodeProperties(newProperties);
 
@@ -80,6 +91,7 @@ async function geocodeProperties(properties: Property[]): Promise<void> {
 }
 
 const removeUnnecessaryInfoFromStreet = (street: string): string => {
+    street = street.split("N ")[0].split("ANTIGA ")[0].split("QUADRA ")[0];
     for (const prefix of [
         "R",
         "Rua",
@@ -95,8 +107,6 @@ const removeUnnecessaryInfoFromStreet = (street: string): string => {
         "Rodovia",
         "Estr",
         "Estrada",
-        "N",
-        "Antiga",
         "Apto",
     ]) {
         street = street.replaceAll(`${prefix.toUpperCase()} `, "");
@@ -110,8 +120,8 @@ const formatAddress = (property: Property, retryNumber: number): NominatinAddres
         case 0:
             return {
                 street: property.street,
-                city: property.city,
                 county: property.neighborhood,
+                city: property.city,
                 state: property.state,
             };
         case 1: {
@@ -162,6 +172,12 @@ async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): P
         const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
             params: {
                 ...address,
+                ...(mapCityToBoundingBox.has(property.city)
+                    ? {
+                          viewbox: mapCityToBoundingBox.get(property.city)?.join(","),
+                          bounded: 1,
+                      }
+                    : {}),
                 country: "br",
                 format: "jsonv2",
             },
@@ -176,10 +192,10 @@ async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): P
                 ...property,
                 latitude: [GeocodePrecision.city, GeocodePrecision.neighborhood].includes(geocodePrecision)
                     ? latitude + (Math.random() - 0.5) / 10
-                    : latitude + (Math.random() - 0.5) / 10000,
+                    : latitude + (Math.random() - 0.5) / 1000,
                 longitude: [GeocodePrecision.city, GeocodePrecision.neighborhood].includes(geocodePrecision)
                     ? longitude + (Math.random() - 0.5) / 10
-                    : longitude + (Math.random() - 0.5) / 10000,
+                    : longitude + (Math.random() - 0.5) / 1000,
                 geocodePrecision: geocodePrecision,
             };
         } else {
@@ -187,6 +203,41 @@ async function fetchNominatinGeocodeData(property: Property, retryNumber = 0): P
         }
     } catch (error) {
         console.error(`Error geocoding address: ${property.address}`, error);
+    }
+}
+
+async function fetchBoundingBox(state: string, city: string): Promise<Coordinates<number>> {
+    try {
+        const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
+            params: {
+                state: state,
+                city: city,
+                country: "br",
+                format: "jsonv2",
+            },
+        });
+
+        // Sort by place rank to get the most relevant result => lower place rank
+        response.data.sort((a: { place_rank: number }, b: { place_rank: number }) => a.place_rank - b.place_rank);
+
+        if (response.data.length > 0) {
+            const location = response.data[0];
+            const boundingBox: Coordinates<string> = location.boundingbox;
+            const boundingBoxNumbers = boundingBox.map((value) => parseFloat(value)) as Coordinates<number>;
+            const orderedBoundingBox: Coordinates<number> = [
+                boundingBoxNumbers[2],
+                boundingBoxNumbers[0],
+                boundingBoxNumbers[3],
+                boundingBoxNumbers[1],
+            ];
+            mapCityToBoundingBox.set(city, orderedBoundingBox);
+            return orderedBoundingBox;
+        } else {
+            throw new Error(`No bounding box found for city: ${city}`);
+        }
+    } catch (error) {
+        console.error(`Error fetching bounding box for city: ${city}`, error);
+        throw new Error(`No bounding box found for city: ${city}`);
     }
 }
 
