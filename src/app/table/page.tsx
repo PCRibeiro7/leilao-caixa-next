@@ -12,11 +12,16 @@ import { Row } from "@tanstack/react-table";
 import { Map } from "leaflet";
 import { useState } from "react";
 
+export type SelectedProperty = {
+    old: GeocodedProperty | null;
+    new: GeocodedProperty | null;
+};
+
 export default function Page() {
     const allProperties = useFetchProperties();
     const [properties, setProperties] = useState<GeocodedProperty[]>(allProperties);
     const [map, setMap] = useState<Map | null>(null);
-    const [selectedProperty, setSelectedProperty] = useState<GeocodedProperty | null>(null);
+    const [selectedProperty, setSelectedProperty] = useState<SelectedProperty>({ old: null, new: null });
 
     if (allProperties.length === 0) {
         return (
@@ -27,8 +32,11 @@ export default function Page() {
     }
 
     const handleRowClick = (row: Row<GeocodedProperty>) => {
-        window.scrollTo(0, 0)
-        setSelectedProperty(row.original);
+        window.scrollTo(0, 0);
+        setSelectedProperty({
+            old: selectedProperty.new,
+            new: row.original,
+        });
         map?.setView([row.original.latitude, row.original.longitude], 12);
     };
 
@@ -37,7 +45,6 @@ export default function Page() {
             <Card className="m-4">
                 <CardHeader>
                     <CardTitle>Mapa de Imóveis:</CardTitle>
-                    <CardDescription>{properties.length} imóveis encontrados para o filtro atual</CardDescription>
                 </CardHeader>
                 <CardContent className="w-[100%] h-[50dvh]">
                     <MapContainer
@@ -50,15 +57,22 @@ export default function Page() {
                 </CardContent>
             </Card>
             <Card className="m-4">
-                <CardHeader>
-                    <CardTitle>Lista de Imóveis:</CardTitle>
-                    <CardDescription>{properties.length} imóveis encontrados para o filtro atual</CardDescription>
+                <CardHeader className="flex-row justify-between align-top">
+                    <div>
+                        <CardTitle>Lista de Imóveis:</CardTitle>
+                        <CardDescription>{properties.length} imóveis encontrados para o filtro atual</CardDescription>
+                    </div>
+                    <MapFilter
+                        allProperties={allProperties}
+                        properties={properties}
+                        setProperties={setProperties}
+                        buttonClassName="!mt-0"
+                    />
                 </CardHeader>
                 <CardContent>
                     <PropertiesTable properties={properties} onRowClick={handleRowClick} />
                 </CardContent>
             </Card>
-            <MapFilter allProperties={allProperties} properties={properties} setProperties={setProperties} />
         </div>
     );
 }

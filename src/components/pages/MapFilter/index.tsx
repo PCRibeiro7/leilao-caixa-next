@@ -47,6 +47,7 @@ type FilterProps = {
     allProperties: GeocodedProperty[];
     properties: GeocodedProperty[];
     setProperties: (properties: GeocodedProperty[]) => void;
+    buttonClassName?: string;
 };
 
 const defaultFilters: Filters = {
@@ -78,7 +79,7 @@ export const mapGeocodePrecisionToColor: Record<GeocodePrecision, string> = {
 };
 
 export default function MapFilter(props: FilterProps) {
-    const { allProperties, properties, setProperties } = props;
+    const { allProperties, properties, setProperties, buttonClassName } = props;
 
     const { isMd } = useBreakpoints();
 
@@ -223,7 +224,7 @@ export default function MapFilter(props: FilterProps) {
             <DrawerTrigger asChild>
                 <Button
                     variant={"default"}
-                    className="md:w-1/4 m-[4px] md:m-[10px] text-base fixed bottom-0 md:mr-auto md:ml-auto left-0 right-0 z-10"
+                    className={buttonClassName}
                 >
                     Filtrar Imóveis
                 </Button>

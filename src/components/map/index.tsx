@@ -1,5 +1,6 @@
 "use client";
 
+import { SelectedProperty } from "@/app/table/page";
 import { mapGeocodePrecisionToColor } from "@/components/pages/MapFilter";
 import { GeocodedProperty } from "@/types/Property";
 import { Map as IMap, CircleMarker as LeafletCircleMarker } from "leaflet";
@@ -16,7 +17,7 @@ export interface MapProps {
     showLegend: boolean;
     map: IMap | null;
     setMap: (map: IMap) => void;
-    selectedProperty?: GeocodedProperty | null;
+    selectedProperty?: SelectedProperty;
 }
 
 const defaults = {
@@ -28,10 +29,17 @@ const MainMap = (props: MapProps) => {
     const itemsRef = useRef<Map<string, LeafletCircleMarker>>(new Map());
 
     useEffect(() => {
-        if (selectedProperty) {
-            const selectedMarker = itemsRef.current.get(selectedProperty.caixaId);
+        if (selectedProperty?.new) {
+            const selectedMarker = itemsRef.current.get(selectedProperty.new.caixaId);
             if (selectedMarker) {
-                selectedMarker.setStyle({ color: "red", weight: 5 });
+                selectedMarker.setStyle({ radius: 10, weight: 5, color: "black" });
+            }
+        }
+
+        if(selectedProperty?.old) {
+            const oldMarker = itemsRef.current.get(selectedProperty.old.caixaId);
+            if (oldMarker) {
+                oldMarker.setStyle({ radius: 4, weight: 0 });
             }
         }
     }, [selectedProperty]);
@@ -61,7 +69,7 @@ const MainMap = (props: MapProps) => {
                 <CircleMarker
                     key={property.caixaId}
                     center={[property.latitude, property.longitude]}
-                    radius={selectedProperty?.caixaId === property.caixaId ? 10 : 4}
+                    radius={4}
                     weight={0}
                     fillColor={mapGeocodePrecisionToColor[property.geocodePrecision]}
                     fillOpacity={1}

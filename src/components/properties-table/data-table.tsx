@@ -37,11 +37,13 @@ export function DataTable<TData, TValue>({ columns, data, onRowClick }: DataTabl
         getSortedRowModel: getSortedRowModel(),
         state: {
             sorting,
+        },
+        initialState: {
             pagination: {
                 pageIndex: 0,
                 pageSize: 50,
             },
-        },
+        }
     });
 
     return (

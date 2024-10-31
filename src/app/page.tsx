@@ -25,7 +25,12 @@ export default function Page() {
     return (
         <div className="w-[100%] h-[100%] overflow-y-clip relative">
             <MapContainer properties={properties} showLegend={true} map={map} setMap={setMap} />
-            <MapFilter allProperties={allProperties} properties={properties} setProperties={setProperties} />
+            <MapFilter
+                allProperties={allProperties}
+                properties={properties}
+                setProperties={setProperties}
+                buttonClassName="md:w-1/4 m-[4px] md:m-[10px] text-base fixed bottom-0 md:mr-auto md:ml-auto left-0 right-0 z-10"
+            />
         </div>
     );
 }
