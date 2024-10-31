@@ -67,13 +67,11 @@ export const mapGeocodePrecisionToDisplay: Record<GeocodePrecision, string> = {
     [GeocodePrecision.neighborhood]: "Bairro",
     [GeocodePrecision.street]: "Rua",
     [GeocodePrecision.address]: "Endereço",
-    [GeocodePrecision.fullAddress]: "Endereço completo",
 };
 
 export const mapGeocodePrecisionToColor: Record<GeocodePrecision, string> = {
-    fullAddress: "#313695",
-    address: "#4575b4",
-    street: "#fdae61",
+    address: "#313695",
+    street: "#4575b4",
     neighborhood: "#f46d43",
     city: "#a50026",
 };
@@ -313,7 +311,7 @@ export default function MapFilter(props: FilterProps) {
                             handleCheckboxFilterChange("geocodePrecision", label, checked)
                         }
                         toggleAll={() => handleCheckboxFilterToggle("geocodePrecision")}
-                        title="Precisão Geográfica"
+                        title="Precisão da Localização"
                     />
                 </div>
                 <DrawerFooter className="flex items-center">

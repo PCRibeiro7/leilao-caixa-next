@@ -2,12 +2,15 @@
 
 "use client";
 
-import MapFilter from "@/components/pages/MapFilter";
 import MapContainer from "@/components/map/MapContainer";
+import MapFilter from "@/components/pages/MapFilter";
+import { Button } from "@/components/ui/button";
 import useFetchProperties from "@/hooks/useFetchProperties";
 import { GeocodedProperty } from "@/types/Property";
-import { useState } from "react";
+import { TableIcon } from "@radix-ui/react-icons";
 import { Map } from "leaflet";
+import Link from "next/link";
+import { useState } from "react";
 
 export default function Page() {
     const allProperties = useFetchProperties();
@@ -25,6 +28,11 @@ export default function Page() {
     return (
         <div className="w-[100%] h-[100%] overflow-y-clip relative">
             <MapContainer properties={properties} showLegend={true} map={map} setMap={setMap} />
+            <Button className="fixed top-0 right-0 z-10 m-[4px] md:m-[10px]" asChild>
+                <Link href="/table">
+                    <TableIcon /> Ver em Tabela
+                </Link>
+            </Button>
             <MapFilter
                 allProperties={allProperties}
                 properties={properties}

@@ -26,7 +26,7 @@ function Legend({ map }: Props) {
                         '" class="rounded-full w-[18px] h-[18px] float-left mr-2"></i> ' +
                         mapGeocodePrecisionToDisplay[precision] + '</div>'
                 );
-                div.innerHTML = '<p class="text-md font-bold mb-2">Precisão dos Marcadores:</p>' + content.join("");
+                div.innerHTML = '<p class="text-md font-bold mb-2">Precisão da Localização:</p>' + content.join("");
 
                 return div;
             };

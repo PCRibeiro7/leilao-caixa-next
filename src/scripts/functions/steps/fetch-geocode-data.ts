@@ -6,12 +6,12 @@ import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
 import { appendFileSync } from "fs";
 import { addProperty, deleteProperties, fetchAllProperties } from "@/services/properties";
 
-const mapGeocodePrecisionToNextPrecision: Record<GeocodePrecision, GeocodePrecision | undefined> = {
-    [GeocodePrecision.fullAddress]: GeocodePrecision.address,
-    [GeocodePrecision.address]: GeocodePrecision.street,
-    [GeocodePrecision.street]: GeocodePrecision.neighborhood,
-    [GeocodePrecision.neighborhood]: GeocodePrecision.city,
-    [GeocodePrecision.city]: undefined,
+const mapAttemptCountToPrecision: Record<number, GeocodePrecision> = {
+    0: GeocodePrecision.address,
+    1: GeocodePrecision.address,
+    2: GeocodePrecision.street,
+    3: GeocodePrecision.neighborhood,
+    4: GeocodePrecision.city,
 };
 
 type NominatinAddress = {
@@ -116,15 +116,15 @@ const removeUnnecessaryInfoFromStreet = (street: string): string => {
     return street;
 };
 
-const formatAddress = (property: Property, precision: GeocodePrecision): NominatinAddress => {
-    switch (precision) {
-        case GeocodePrecision.fullAddress:
+const formatAddress = (property: Property, attemptCount: number): NominatinAddress => {
+    switch (attemptCount) {
+        case 0:
             return {
                 street: property.street,
                 city: property.city,
                 state: property.state,
             };
-        case GeocodePrecision.address: {
+        case 1: {
             const street = removeUnnecessaryInfoFromStreet(property.street);
             return {
                 street: `${street}${property.number ? `, ${property.number}` : ""}`,
@@ -132,7 +132,7 @@ const formatAddress = (property: Property, precision: GeocodePrecision): Nominat
                 state: property.state,
             };
         }
-        case GeocodePrecision.street: {
+        case 2: {
             const street = removeUnnecessaryInfoFromStreet(property.street);
             return {
                 street: street,
@@ -140,13 +140,13 @@ const formatAddress = (property: Property, precision: GeocodePrecision): Nominat
                 state: property.state,
             };
         }
-        case GeocodePrecision.neighborhood:
+        case 3:
             return {
                 county: property.neighborhood,
                 city: property.city,
                 state: property.state,
             };
-        case GeocodePrecision.city:
+        case 4:
             return {
                 city: property.city,
                 state: property.state,
@@ -158,9 +158,9 @@ const formatAddress = (property: Property, precision: GeocodePrecision): Nominat
 
 async function fetchNominatinGeocodeData(
     property: Property,
-    precision: GeocodePrecision | undefined = GeocodePrecision.fullAddress
+    attemptCount: number = 0
 ): Promise<GeocodedProperty | undefined> {
-    if (!precision) {
+    if (attemptCount > 4) {
         appendFileSync(
             "failed-geocoding.txt",
             `FULL: ${property.address}, ${property.city}, ${property.state}` + "\n",
@@ -169,7 +169,7 @@ async function fetchNominatinGeocodeData(
         console.warn(`Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`);
         throw new Error(`Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`);
     }
-    const address = formatAddress(property, precision);
+    const address = formatAddress(property, attemptCount);
     try {
         const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
             params: {
@@ -189,6 +189,7 @@ async function fetchNominatinGeocodeData(
             const location = response.data[0];
             const latitude = parseFloat(location.lat);
             const longitude = parseFloat(location.lon);
+            const precision = mapAttemptCountToPrecision[attemptCount];
             return {
                 ...property,
                 latitude: [GeocodePrecision.city, GeocodePrecision.neighborhood].includes(precision)
@@ -200,7 +201,7 @@ async function fetchNominatinGeocodeData(
                 geocodePrecision: precision,
             };
         } else {
-            return await fetchNominatinGeocodeData(property, mapGeocodePrecisionToNextPrecision[precision]);
+            return await fetchNominatinGeocodeData(property, attemptCount + 1);
         }
     } catch (error) {
         console.error(`Error geocoding address: ${property.address}`, error);

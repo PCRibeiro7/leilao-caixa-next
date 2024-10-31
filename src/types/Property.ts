@@ -33,12 +33,12 @@ export interface Property {
 }
 
 export enum GeocodePrecision {
-    fullAddress = "fullAddress",
     address = "address",
     street = "street",
     neighborhood = "neighborhood",
     city = "city",
 }
+
 export interface GeocodedProperty extends Property {
     latitude: number;
     longitude: number;
