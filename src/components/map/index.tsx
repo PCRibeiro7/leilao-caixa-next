@@ -6,16 +6,18 @@ import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet/dist/leaflet.css";
 
-import { GeocodedProperty } from "@/types/Property";
-import { useState } from "react";
-import Legend from "./Legend";
-import { Map } from "leaflet";
 import { mapGeocodePrecisionToColor } from "@/components/pages/MapFilter";
+import { GeocodedProperty } from "@/types/Property";
+import { Map } from "leaflet";
 import { getArea } from "../properties-table/columns";
+import Legend from "./Legend";
 
 export interface MapProps {
     properties: GeocodedProperty[];
     showLegend: boolean;
+    map: Map | null;
+    setMap: (map: Map) => void;
+    selectedProperty?: GeocodedProperty | null;
 }
 
 const defaults = {
@@ -23,9 +25,7 @@ const defaults = {
 };
 
 const MainMap = (props: MapProps) => {
-    const { properties, showLegend } = props;
-
-    const [map, setMap] = useState<Map | null>(null);
+    const { properties, showLegend, map, setMap, selectedProperty } = props;
 
     if (properties.length === 0) {
         return (
@@ -34,6 +34,7 @@ const MainMap = (props: MapProps) => {
             </div>
         );
     }
+    console.log({selectedProperty})
 
     return (
         <MapContainer
@@ -52,8 +53,9 @@ const MainMap = (props: MapProps) => {
                 <CircleMarker
                     key={property.caixaId}
                     center={[property.latitude, property.longitude]}
-                    radius={4}
-                    color={mapGeocodePrecisionToColor[property.geocodePrecision]}
+                    radius={selectedProperty?.caixaId === property.caixaId ? 10 : 4}
+                    weight={0}
+                    fillColor={mapGeocodePrecisionToColor[property.geocodePrecision]}
                     fillOpacity={1}
                 >
                     <Popup>

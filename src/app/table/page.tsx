@@ -9,11 +9,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import useFetchProperties from "@/hooks/useFetchProperties";
 import { GeocodedProperty } from "@/types/Property";
 import { Row } from "@tanstack/react-table";
+import { Map } from "leaflet";
 import { useState } from "react";
 
 export default function Page() {
     const allProperties = useFetchProperties();
     const [properties, setProperties] = useState<GeocodedProperty[]>(allProperties);
+    const [map, setMap] = useState<Map | null>(null);
+    const [selectedProperty, setSelectedProperty] = useState<GeocodedProperty | null>(null);
 
     if (allProperties.length === 0) {
         return (
@@ -25,6 +28,8 @@ export default function Page() {
 
     const handleRowClick = (row: Row<GeocodedProperty>) => {
         console.log(row);
+        setSelectedProperty(row.original);
+        map?.setView([row.original.latitude, row.original.longitude], 12);
     };
 
     return (
@@ -35,7 +40,13 @@ export default function Page() {
                     <CardDescription>{properties.length} imóveis encontrados para o filtro atual</CardDescription>
                 </CardHeader>
                 <CardContent className="w-[100%] h-[50dvh]">
-                    <MapContainer properties={properties} showLegend={false} />
+                    <MapContainer
+                        properties={properties}
+                        showLegend={false}
+                        map={map}
+                        setMap={setMap}
+                        selectedProperty={selectedProperty}
+                    />
                 </CardContent>
             </Card>
             <Card className="m-4">
