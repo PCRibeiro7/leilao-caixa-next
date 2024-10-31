@@ -26,7 +26,7 @@ export default function RootLayout({
     children: ReactNode;
 }>) {
     return (
-        <html lang="en" suppressHydrationWarning>
+        <html lang="en" suppressHydrationWarning className="bg-slate-100">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased h-[100dvh]`}>
                 <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
                     {children}

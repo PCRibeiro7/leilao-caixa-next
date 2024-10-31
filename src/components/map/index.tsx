@@ -1,22 +1,21 @@
 "use client";
 
-import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
-
+import { mapGeocodePrecisionToColor } from "@/components/pages/MapFilter";
+import { GeocodedProperty } from "@/types/Property";
+import { Map as IMap, CircleMarker as LeafletCircleMarker } from "leaflet";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet/dist/leaflet.css";
-
-import { mapGeocodePrecisionToColor } from "@/components/pages/MapFilter";
-import { GeocodedProperty } from "@/types/Property";
-import { Map } from "leaflet";
+import { useEffect, useRef } from "react";
+import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
 import { getArea } from "../properties-table/columns";
 import Legend from "./Legend";
 
 export interface MapProps {
     properties: GeocodedProperty[];
     showLegend: boolean;
-    map: Map | null;
-    setMap: (map: Map) => void;
+    map: IMap | null;
+    setMap: (map: IMap) => void;
     selectedProperty?: GeocodedProperty | null;
 }
 
@@ -26,6 +25,16 @@ const defaults = {
 
 const MainMap = (props: MapProps) => {
     const { properties, showLegend, map, setMap, selectedProperty } = props;
+    const itemsRef = useRef<Map<string, LeafletCircleMarker>>(new Map());
+
+    useEffect(() => {
+        if (selectedProperty) {
+            const selectedMarker = itemsRef.current.get(selectedProperty.caixaId);
+            if (selectedMarker) {
+                selectedMarker.setStyle({ color: "red", weight: 5 });
+            }
+        }
+    }, [selectedProperty]);
 
     if (properties.length === 0) {
         return (
@@ -34,7 +43,6 @@ const MainMap = (props: MapProps) => {
             </div>
         );
     }
-    console.log({selectedProperty})
 
     return (
         <MapContainer
@@ -57,6 +65,15 @@ const MainMap = (props: MapProps) => {
                     weight={0}
                     fillColor={mapGeocodePrecisionToColor[property.geocodePrecision]}
                     fillOpacity={1}
+                    ref={(node) => {
+                        const refsMap = itemsRef.current;
+                        if (node) {
+                            refsMap.set(property.caixaId, node);
+                        }
+                        return () => {
+                            refsMap.delete(property.caixaId);
+                        };
+                    }}
                 >
                     <Popup>
                         <b>{property.address} </b>

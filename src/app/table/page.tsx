@@ -27,13 +27,13 @@ export default function Page() {
     }
 
     const handleRowClick = (row: Row<GeocodedProperty>) => {
-        console.log(row);
+        window.scrollTo(0, 0)
         setSelectedProperty(row.original);
         map?.setView([row.original.latitude, row.original.longitude], 12);
     };
 
     return (
-        <div className="w-[100%] h-[100%]">
+        <div className="w-[100%] h-[100%] bg-slate-100">
             <Card className="m-4">
                 <CardHeader>
                     <CardTitle>Mapa de Imóveis:</CardTitle>

@@ -9,7 +9,7 @@ export default function MapContainer(props: MapProps) {
         () =>
             dynamic(() => import("@/components/map/"), {
                 loading: () => (
-                    <div className="flex justify-center items-center h-screen">
+                    <div className="flex justify-center items-center h-full">
                         <p className="text-2xl text-center">Carregando mapa...</p>
                     </div>
                 ),
