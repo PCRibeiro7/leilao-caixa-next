@@ -223,7 +223,7 @@ export default function FilteredMap(props: FilterProps) {
             <DrawerTrigger asChild>
                 <Button
                     variant={"default"}
-                    className="md:w-1/4 m-[4px] md:m-[10px] text-base absolute bottom-0 md:mr-auto md:ml-auto left-0 right-0 z-10"
+                    className="md:w-1/4 m-[4px] md:m-[10px] text-base fixed bottom-0 md:mr-auto md:ml-auto left-0 right-0 z-10"
                 >
                     Filtrar Imóveis
                 </Button>

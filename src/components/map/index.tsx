@@ -11,6 +11,7 @@ import { useState } from "react";
 import Legend from "./Legend";
 import { Map } from "leaflet";
 import { mapGeocodePrecisionToColor } from "@/components/pages/FilteredMap";
+import { getArea } from "../properties-table/columns";
 
 export interface MapProps {
     properties: GeocodedProperty[];
@@ -19,16 +20,6 @@ export interface MapProps {
 const defaults = {
     zoom: 8,
 };
-
-function getArea(property: GeocodedProperty) {
-    if (property.totalArea) {
-        return property.totalArea;
-    }
-    if (property.builtArea) {
-        return property.builtArea;
-    }
-    return property.landArea;
-}
 
 const MainMap = (props: MapProps) => {
     const { properties } = props;
