@@ -77,7 +77,7 @@ export const mapGeocodePrecisionToColor: Record<GeocodePrecision, string> = {
     city: "#a50026",
 };
 
-export default function FilteredMap(props: FilterProps) {
+export default function MapFilter(props: FilterProps) {
     const { allProperties, properties, setProperties } = props;
 
     const { isMd } = useBreakpoints();

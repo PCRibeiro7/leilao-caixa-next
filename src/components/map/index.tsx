@@ -10,11 +10,12 @@ import { GeocodedProperty } from "@/types/Property";
 import { useState } from "react";
 import Legend from "./Legend";
 import { Map } from "leaflet";
-import { mapGeocodePrecisionToColor } from "@/components/pages/FilteredMap";
+import { mapGeocodePrecisionToColor } from "@/components/pages/MapFilter";
 import { getArea } from "../properties-table/columns";
 
 export interface MapProps {
     properties: GeocodedProperty[];
+    showLegend: boolean;
 }
 
 const defaults = {
@@ -22,7 +23,7 @@ const defaults = {
 };
 
 const MainMap = (props: MapProps) => {
-    const { properties } = props;
+    const { properties, showLegend } = props;
 
     const [map, setMap] = useState<Map | null>(null);
 
@@ -46,7 +47,7 @@ const MainMap = (props: MapProps) => {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Legend map={map} />
+            {showLegend && <Legend map={map} />}
             {properties.map((property) => (
                 <CircleMarker
                     key={property.caixaId}

@@ -6,6 +6,7 @@ import {
     getCoreRowModel,
     getPaginationRowModel,
     getSortedRowModel,
+    Row,
     SortingState,
     useReactTable,
 } from "@tanstack/react-table";
@@ -21,9 +22,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
+    onRowClick?: (row: Row<TData>) => void;
 }
 
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, onRowClick }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
 
     const table = useReactTable({
@@ -35,6 +37,10 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         getSortedRowModel: getSortedRowModel(),
         state: {
             sorting,
+            pagination: {
+                pageIndex: 0,
+                pageSize: 50,
+            },
         },
     });
 
@@ -59,7 +65,11 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                 <TableBody>
                     {table.getRowModel().rows?.length ? (
                         table.getRowModel().rows.map((row) => (
-                            <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                            <TableRow
+                                key={row.id}
+                                data-state={row.getIsSelected() && "selected"}
+                                onClick={() => onRowClick?.(row)}
+                            >
                                 {row.getVisibleCells().map((cell) => (
                                     <TableCell key={cell.id}>
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -90,7 +100,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                                 <SelectValue placeholder={table.getState().pagination.pageSize} />
                             </SelectTrigger>
                             <SelectContent side="top">
-                                {[10, 20, 30, 40, 50].map((pageSize) => (
+                                {[50, 100, 500].map((pageSize) => (
                                     <SelectItem key={pageSize} value={`${pageSize}`}>
                                         {pageSize}
                                     </SelectItem>

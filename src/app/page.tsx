@@ -2,7 +2,7 @@
 
 "use client";
 
-import MapFilter from "@/components/pages/FilteredMap";
+import MapFilter from "@/components/pages/MapFilter";
 import MapContainer from "@/components/map/MapContainer";
 import useFetchProperties from "@/hooks/useFetchProperties";
 import { GeocodedProperty } from "@/types/Property";
@@ -22,7 +22,7 @@ export default function Page() {
 
     return (
         <div className="w-[100%] h-[100%] overflow-y-clip relative">
-            <MapContainer properties={properties} />
+            <MapContainer properties={properties} showLegend={true} />
             <MapFilter allProperties={allProperties} properties={properties} setProperties={setProperties} />
         </div>
     );
