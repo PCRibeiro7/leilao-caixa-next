@@ -5,11 +5,14 @@
 import MapContainer from "@/components/map/MapContainer";
 import MapFilter from "@/components/pages/MapFilter";
 import PropertiesTable from "@/components/properties-table";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import useFetchProperties from "@/hooks/useFetchProperties";
 import { GeocodedProperty } from "@/types/Property";
 import { Row } from "@tanstack/react-table";
 import { Map } from "leaflet";
+import { MapIcon } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 export type SelectedProperty = {
@@ -43,8 +46,13 @@ export default function Page() {
     return (
         <div className="w-[100%] h-[100%] bg-slate-100">
             <Card className="m-4">
-                <CardHeader>
+                <CardHeader className="flex-row justify-between align-top">
                     <CardTitle>Mapa de Imóveis:</CardTitle>
+                    <Button asChild className="!mt-0">
+                        <Link href="/">
+                            <MapIcon /> Ampliar Mapa
+                        </Link>
+                    </Button>
                 </CardHeader>
                 <CardContent className="w-[100%] h-[50dvh]">
                     <MapContainer
