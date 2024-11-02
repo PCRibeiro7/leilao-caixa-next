@@ -1,10 +1,11 @@
+import { PROPERTIES_PATH } from "@/consts/filePaths";
+import { deletePhoto, getImage, uploadPhoto } from "@/services/photos";
+import { addProperty, deleteProperties, fetchAllProperties } from "@/services/properties";
+import { GeocodedProperty, GeocodePrecision, Property } from "@/types/Property";
+import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
 import axios from "axios";
 import "dotenv/config";
-import { GeocodedProperty, GeocodePrecision, Property } from "@/types/Property";
-import { PROPERTIES_PATH } from "@/consts/filePaths";
-import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
 import { appendFileSync } from "fs";
-import { addProperty, deleteProperties, fetchAllProperties } from "@/services/properties";
 
 const mapAttemptCountToPrecision: Record<number, GeocodePrecision> = {
     0: GeocodePrecision.address,
@@ -36,8 +37,9 @@ async function fetchGeocodeData(): Promise<void> {
     });
     console.log(`Properties to remove: ${geocodedPropertiesToRemove.length}`);
 
-    if (geocodedPropertiesToRemove.length > 0 || process.env.ENV !== "prod") {
-        await deleteProperties(geocodedPropertiesToRemove.map((property) => property.caixaId));
+    if (geocodedPropertiesToRemove.length > 0) {
+        console.log(`Removing properties`);
+        await removeProperties(geocodedPropertiesToRemove.map((property) => property.caixaId));
     }
 
     const newProperties = properties.filter((property) => {
@@ -59,6 +61,19 @@ async function fetchGeocodeData(): Promise<void> {
     console.log(`Geocoded Properties Generated Successfully`);
 }
 
+async function removeProperties(caixaIds: string[]): Promise<void> {
+    await Promise.all([deletePhoto(caixaIds), deleteProperties(caixaIds)]);
+}
+
+async function uploadProperty(geocodedProperty: GeocodedProperty): Promise<void> {
+    const base64 = await getImage(geocodedProperty.caixaId);
+    if (!base64) {
+        console.error(`Failed to get image for property: ${geocodedProperty.caixaId}`);
+        return;
+    }
+    await Promise.all([uploadPhoto(geocodedProperty.caixaId, base64), addProperty(geocodedProperty)]);
+}
+
 async function geocodeProperties(properties: Property[]): Promise<void> {
     let promiseArray: Promise<GeocodedProperty | undefined>[] = [];
 
@@ -73,7 +88,7 @@ async function geocodeProperties(properties: Property[]): Promise<void> {
             const currentGeocodedProperties = await Promise.all(promiseArray);
             for (const geocodedProperty of currentGeocodedProperties) {
                 if (geocodedProperty) {
-                    await addProperty(geocodedProperty);
+                    await uploadProperty(geocodedProperty);
                 }
             }
             promiseArray = [];
@@ -83,7 +98,7 @@ async function geocodeProperties(properties: Property[]): Promise<void> {
             const currentGeocodedProperties = await Promise.all(promiseArray);
             for (const geocodedProperty of currentGeocodedProperties) {
                 if (geocodedProperty) {
-                    await addProperty(geocodedProperty);
+                    await uploadProperty(geocodedProperty);
                 }
             }
         }

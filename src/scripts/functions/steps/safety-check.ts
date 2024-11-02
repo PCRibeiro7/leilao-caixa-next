@@ -15,12 +15,18 @@ function askQuestion(query: string): Promise<string> {
     );
 }
 
-const safetyCheck = async () => {
-    const ans = await askQuestion("Are you sure you want to DELETE all properties? (Y/N): ");
+const safetyCheck = async (question: string, errorType: "abort" | "return") => {
+    const ans = await askQuestion(`${question} (Y/N): `);
     if (!["y", "yes"].includes(ans.toLowerCase())) {
         console.log("Script aborted");
-        process.abort();
+        switch (errorType) {
+            case "abort":
+                process.abort();
+            case "return":
+                return false;
+        }
     }
+    return true;
 };
 
 export default safetyCheck;

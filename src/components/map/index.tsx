@@ -87,7 +87,7 @@ const MainMap = (props: MapProps) => {
                     <Popup>
                         <Image
                             alt="foto-imovel"
-                            src={`https://venda-imoveis.caixa.gov.br/fotos/F${property.caixaId}21.jpg`}
+                            src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${property.caixaId}.jpg`}
                             layout="responsive"
                             width={500}
                             height={300}

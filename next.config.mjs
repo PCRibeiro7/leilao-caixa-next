@@ -14,9 +14,9 @@ const nextConfig = {
         remotePatterns: [
           {
             protocol: 'https',
-            hostname: 'venda-imoveis.caixa.gov.br',
+            hostname: 'gtruriysffqoprgwoeff.supabase.co',
             port: '',
-            pathname: '/fotos/**',
+            pathname: '/storage/**',
           },
         ],
       },

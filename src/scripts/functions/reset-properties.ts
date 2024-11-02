@@ -8,7 +8,7 @@ import safetyCheck from "./steps/safety-check";
 
 export default async function resetProperties(shouldSafetyCheck = true) {
     if (shouldSafetyCheck) {
-        await safetyCheck();
+        await safetyCheck("Are you sure you want to DELETE all properties?", "abort");
     }
     cleanupProperties();
     await deleteAllProperties();
