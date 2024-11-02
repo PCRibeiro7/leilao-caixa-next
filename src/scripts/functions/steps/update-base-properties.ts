@@ -3,7 +3,6 @@ import { getImage, listFiles, uploadPhoto } from "@/services/photos";
 import { Property } from "@/types/Property";
 import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
 import "dotenv/config";
-import { writeFileSync } from "fs";
 import safetyCheck from "./safety-check";
 import { updateProperty } from "@/services/properties";
 
