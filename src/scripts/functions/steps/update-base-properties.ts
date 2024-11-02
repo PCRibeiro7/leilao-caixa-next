@@ -16,7 +16,6 @@ async function setBaseProperties(): Promise<void> {
         const files = await listFiles();
         const fileNames = files?.map((file) => file.name.split(".")[0]);
         console.log(`Found ${fileNames?.length} files`);
-        writeFileSync("files.txt", fileNames?.join("\n") || "");
 
         for (const [index, property] of properties.entries()) {
             if (index % 100 === 0) console.log(`Updating property ${index} of ${properties.length}`);
