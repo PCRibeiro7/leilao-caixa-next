@@ -7,6 +7,7 @@ import { Map as IMap, CircleMarker as LeafletCircleMarker } from "leaflet";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet/dist/leaflet.css";
+import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
 import { getArea } from "../properties-table/columns";
@@ -84,6 +85,13 @@ const MainMap = (props: MapProps) => {
                     }}
                 >
                     <Popup>
+                        <Image
+                            alt="foto-imovel"
+                            src={`https://venda-imoveis.caixa.gov.br/fotos/F${property.caixaId}21.jpg`}
+                            layout="responsive"
+                            width={500}
+                            height={300}
+                        />
                         <b>{property.address} </b>
                         <br />
                         {property.neighborhood}, {property.city}, {property.state}

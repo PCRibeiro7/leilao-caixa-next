@@ -10,6 +10,16 @@ const nextConfig = {
         config.resolve.alias["@"] = path.resolve(__dirname, "src");
         return config;
     },
+    images: {
+        remotePatterns: [
+          {
+            protocol: 'https',
+            hostname: 'venda-imoveis.caixa.gov.br',
+            port: '',
+            pathname: '/fotos/**',
+          },
+        ],
+      },
 };
 
 export default nextConfig;
