@@ -7,11 +7,10 @@ import { Map as IMap, CircleMarker as LeafletCircleMarker } from "leaflet";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet/dist/leaflet.css";
-import Image from "next/image";
 import { useEffect, useRef } from "react";
-import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
-import { getArea } from "../properties-table/columns";
+import { CircleMarker, MapContainer, TileLayer } from "react-leaflet";
 import Legend from "./Legend";
+import PropertyPopup from "./PropertyPopup";
 
 export interface MapProps {
     properties: GeocodedProperty[];
@@ -37,7 +36,7 @@ const MainMap = (props: MapProps) => {
             }
         }
 
-        if(selectedProperty?.old) {
+        if (selectedProperty?.old) {
             const oldMarker = itemsRef.current.get(selectedProperty.old.caixaId);
             if (oldMarker) {
                 oldMarker.setStyle({ radius: 4, weight: 0 });
@@ -84,44 +83,7 @@ const MainMap = (props: MapProps) => {
                         };
                     }}
                 >
-                    <Popup>
-                        <Image
-                            alt="foto-imovel"
-                            src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${property.caixaId}.jpg`}
-                            layout="responsive"
-                            width={500}
-                            height={300}
-                        />
-                        <b>{property.address} </b>
-                        <br />
-                        {property.neighborhood}, {property.city}, {property.state}
-                        <br />
-                        {property.priceAsCurrency}
-                        <br />
-                        Desconto: {property.discount}%
-                        <br />
-                        {property.type}
-                        {property.bedrooms ? <>, {property.bedrooms} quartos</> : null}, {getArea(property)}
-                        m²
-                        <br />
-                        {property.sellingType}
-                        <br />
-                        <a
-                            href={`https://venda-imoveis.caixa.gov.br/sistema/detalhe-imovel.asp?hdnimovel=${property.caixaId}`}
-                            target="_blank"
-                        >
-                            Link Caixa
-                        </a>
-                        <br />
-                        <a
-                            href={`https://maps.google.com/?q=${
-                                property.number ? `${property.street}, ${property.number}` : property.address
-                            } - ${property.city}, ${property.state}`}
-                            target="_blank"
-                        >
-                            Link Maps
-                        </a>
-                    </Popup>
+                    <PropertyPopup property={property} />
                 </CircleMarker>
             ))}
         </MapContainer>

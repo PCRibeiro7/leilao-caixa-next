@@ -44,8 +44,8 @@ export default function Page() {
     };
 
     return (
-        <div className="w-[100%] h-[100%] bg-slate-100">
-            <Card className="m-4">
+        <div className="w-[100%] min-h-[100%] bg-muted pt-4">
+            <Card className="m-4 mt-0">
                 <CardHeader className="flex-row justify-between align-top">
                     <CardTitle>Mapa de Imóveis:</CardTitle>
                     <Button asChild className="!mt-0">

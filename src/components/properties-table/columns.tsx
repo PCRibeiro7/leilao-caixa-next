@@ -31,6 +31,7 @@ export const columns: ColumnDef<GeocodedProperty>[] = [
     {
         accessorKey: "address",
         header: ({ column }) => <HeaderButton column={column} header="Endereço" />,
+        size: 400,
     },
     {
         accessorKey: "city",

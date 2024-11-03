@@ -1,5 +1,5 @@
-import { fileURLToPath } from 'url';
-import path from 'path';
+import { fileURLToPath } from "url";
+import path from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,14 +12,14 @@ const nextConfig = {
     },
     images: {
         remotePatterns: [
-          {
-            protocol: 'https',
-            hostname: 'gtruriysffqoprgwoeff.supabase.co',
-            port: '',
-            pathname: '/storage/**',
-          },
+            {
+                protocol: "https",
+                hostname: "gtruriysffqoprgwoeff.supabase.co",
+                port: "",
+                pathname: "/storage/**",
+            },
         ],
-      },
+    },
 };
 
 export default nextConfig;
