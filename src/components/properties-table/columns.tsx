@@ -56,6 +56,7 @@ export const columns: ColumnDef<GeocodedProperty>[] = [
     {
         accessorKey: "discount",
         header: ({ column }) => <HeaderButton column={column} header="Desconto" />,
+        accessorFn: (property) => property.discount + " %",
     },
     {
         accessorKey: "totalArea",
