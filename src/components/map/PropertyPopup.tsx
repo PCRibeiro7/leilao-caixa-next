@@ -1,6 +1,5 @@
 "use client";
 import { GeocodedProperty } from "@/types/Property";
-import Image from "next/image";
 import { Popup } from "react-leaflet";
 import { getArea } from "../properties-table/columns";
 
@@ -10,13 +9,13 @@ type PropertyPopupProps = {
 export default function PropertyPopup({ property }: PropertyPopupProps) {
     return (
         <Popup>
-            <Image
-                alt="foto-imovel"
-                src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${property.caixaId}.jpg`}
-                layout="responsive"
-                width={1}
-                height={1}
-            />
+            <picture>
+                <img
+                    alt="foto-imovel"
+                    src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${property.caixaId}.jpg`}
+                    width="100%"
+                />
+            </picture>
             <b>{property.address} </b>
             <br />
             {property.neighborhood}, {property.city}, {property.state}
