@@ -32,7 +32,7 @@ const MainMap = (props: MapProps) => {
         if (selectedProperty?.new) {
             const selectedMarker = itemsRef.current.get(selectedProperty.new.caixaId);
             if (selectedMarker) {
-                selectedMarker.setStyle({ radius: 10, weight: 5, color: "black" });
+                selectedMarker.setStyle({ radius: 10, weight: 5, color: "yellow" });
             }
         }
 
