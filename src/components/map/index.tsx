@@ -9,8 +9,8 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef } from "react";
 import { CircleMarker, MapContainer, TileLayer } from "react-leaflet";
-import Legend from "./Legend";
-import PropertyPopup from "./PropertyPopup";
+import Legend from "./map-legend";
+import PropertyPopup from "./property-popup";
 
 export interface MapProps {
     properties: GeocodedProperty[];

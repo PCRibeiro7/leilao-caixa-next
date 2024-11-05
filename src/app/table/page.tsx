@@ -2,7 +2,7 @@
 
 "use client";
 
-import MapContainer from "@/components/map/MapContainer";
+import MapContainer from "@/components/map/map-container";
 import MapFilter from "@/components/pages/MapFilter";
 import PropertiesTable from "@/components/properties-table";
 import { Button } from "@/components/ui/button";
