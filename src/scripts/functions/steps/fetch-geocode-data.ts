@@ -24,10 +24,12 @@ type NominatinAddress = {
 
 type Coordinates<T> = [T, T, T, T];
 
-const mapCityToBoundingBox = new Map<string, Coordinates<number>>();
+// state -> city -> bounding box
+const mapStateAndCityToBoundingBox = new Map<string, Map<string, Coordinates<number>>>();
 
 async function fetchGeocodeData(): Promise<void> {
     const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH) || [];
+    const uniqueStates = [...new Set(properties.map((property) => property.state))];
 
     const geocodedProperties = await fetchAllProperties();
     console.log(`Existing Geocoded Properties: ${geocodedProperties.length}`);
@@ -50,9 +52,11 @@ async function fetchGeocodeData(): Promise<void> {
     console.log(`New properties found: ${newProperties.length}`);
 
     console.log(`Fetching City Bounded Boxes`);
-    const uniqueCities = [...new Set(newProperties.map((property) => property.city))];
-    for (const city of uniqueCities) {
-        await fetchBoundingBox("RJ", city);
+    for (const state of uniqueStates) {
+        const uniqueCities = [...new Set(newProperties.map((property) => property.city))];
+        for (const city of uniqueCities) {
+            await fetchBoundingBox(state, city);
+        }
     }
     console.log(`City Bounded Boxes Fetched Successfully`);
 
@@ -189,9 +193,10 @@ async function fetchNominatinGeocodeData(
         const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
             params: {
                 ...address,
-                ...(mapCityToBoundingBox.has(property.city)
+                ...(mapStateAndCityToBoundingBox.has(property.state) &&
+                mapStateAndCityToBoundingBox.get(property.state)?.has(property.city)
                     ? {
-                          viewbox: mapCityToBoundingBox.get(property.city)?.join(","),
+                          viewbox: mapStateAndCityToBoundingBox.get(property.state)?.get(property.city)?.join(","),
                           bounded: 1,
                       }
                     : {}),
@@ -247,7 +252,9 @@ async function fetchBoundingBox(state: string, city: string): Promise<Coordinate
                 boundingBoxNumbers[3],
                 boundingBoxNumbers[1],
             ];
-            mapCityToBoundingBox.set(city, orderedBoundingBox);
+            const cityMap = mapStateAndCityToBoundingBox.get(state) || new Map<string, Coordinates<number>>();
+            mapStateAndCityToBoundingBox.set(state, cityMap);
+            cityMap.set(city, orderedBoundingBox);
             return orderedBoundingBox;
         } else {
             throw new Error(`No bounding box found for city: ${city}`);
