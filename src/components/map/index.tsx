@@ -29,7 +29,13 @@ const MainMap = (props: MapProps) => {
     const itemsRef = useRef<Map<string, LeafletCircleMarker>>(new Map());
 
     useEffect(() => {
+        window.scrollTo(0, 0);
+
         if (selectedProperty?.new) {
+            map?.setView([selectedProperty.new.latitude, selectedProperty.new.longitude], 12, {
+                animate: true,
+                duration: 0.5,
+            });
             const selectedMarker = itemsRef.current.get(selectedProperty.new.caixaId);
             if (selectedMarker) {
                 selectedMarker.setStyle({ radius: 10, weight: 5, color: "yellow" });

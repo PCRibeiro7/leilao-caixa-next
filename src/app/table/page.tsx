@@ -35,12 +35,10 @@ export default function Page() {
     }
 
     const handleRowClick = (row: Row<GeocodedProperty>) => {
-        window.scrollTo(0, 0);
         setSelectedProperty({
             old: selectedProperty.new,
             new: row.original,
         });
-        map?.setView([row.original.latitude, row.original.longitude], 12);
     };
 
     return (
