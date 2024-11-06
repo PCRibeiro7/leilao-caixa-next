@@ -30,6 +30,7 @@ export interface Property {
     builtArea: number;
     landArea: number;
     bedrooms?: number;
+    createdAt: string;
 }
 
 export enum GeocodePrecision {

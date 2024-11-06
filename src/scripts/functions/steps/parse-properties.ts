@@ -1,8 +1,9 @@
+import { PROPERTIES_PATH, PROPERTIES_RAW_PATH } from "@/consts/filePaths";
+import { Property, PropertyType } from "@/types/Property";
 import csv from "csv-parser";
 import "dotenv/config";
-import { Property, PropertyType } from "@/types/Property";
-import { PROPERTIES_PATH, PROPERTIES_RAW_PATH } from "@/consts/filePaths";
 import { appendFileSync, createReadStream } from "fs";
+import moment from "moment";
 
 function cleanString(input: string): string {
     return input.replace(/[^a-z0-9 ,.?!]/gi, "");
@@ -116,6 +117,7 @@ async function parseProperties(): Promise<void> {
                         builtArea: propertyBuiltArea,
                         landArea: propertyLandArea,
                         bedrooms: bedrooms,
+                        createdAt: moment().toISOString(),
                     };
                     appendFileSync(PROPERTIES_PATH, JSON.stringify(property) + "\n", { encoding: "latin1" });
                 })

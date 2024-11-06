@@ -84,7 +84,7 @@ async function geocodeProperties(properties: Property[]): Promise<void> {
 
         promiseArray.push(fetchNominatinGeocodeData(property));
 
-        if (index % 5 === 0) {
+        if (index % 2 === 0) {
             const currentGeocodedProperties = await Promise.all(promiseArray);
             for (const geocodedProperty of currentGeocodedProperties) {
                 if (geocodedProperty) {

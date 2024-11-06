@@ -4,11 +4,12 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import useBreakpoints from "@/hooks/useBreakPoints";
 import { GeocodedProperty, GeocodePrecision, PropertyType } from "@/types/Property";
+import ToArray from "@/utils/enumToArray";
+import moment from "moment";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
-import { Checked, DropdownMenuCheckboxes } from "../../ui/dropdown-menu-checkboxes";
 import { Button } from "../../ui/button";
-import MoneyInput from "../../ui/money-input";
 import {
     Drawer,
     DrawerClose,
@@ -19,9 +20,9 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "../../ui/drawer";
-import ToArray from "@/utils/enumToArray";
+import { Checked, DropdownMenuCheckboxes } from "../../ui/dropdown-menu-checkboxes";
+import MoneyInput from "../../ui/money-input";
 import { Separator } from "../../ui/separator";
-import useBreakpoints from "@/hooks/useBreakPoints";
 
 type InputFilters = {
     minDiscount: number;
@@ -39,6 +40,7 @@ type CheckboxFilters = {
     city: string[];
     neighborhood: string[];
     geocodePrecision: GeocodePrecision[];
+    createdAtDate: string[];
 };
 
 type Filters = InputFilters & MoneyInputFilters & CheckboxFilters;
@@ -54,6 +56,7 @@ const defaultFilters: Filters = {
     minDiscount: 0,
     minPrice: 0,
     maxPrice: 0,
+    createdAtDate: [],
     sellingType: [],
     type: [],
     state: [],
@@ -119,6 +122,7 @@ export default function MapFilter(props: FilterProps) {
         } else {
             newFilter = {
                 state: initialFilters.state,
+                createdAtDate: initialFilters.createdAtDate,
                 sellingType: initialFilters.sellingType,
                 type: initialFilters.type,
                 city: initialFilters.city,
@@ -134,6 +138,7 @@ export default function MapFilter(props: FilterProps) {
             const filteredProperties = allProperties.filter((property) => {
                 const price = property.price;
                 const discount = property.discount || 0;
+                const createdAtDate = moment(property.createdAt).format("DD/MM/YYYY");
                 const sellingType = property.sellingType;
                 const state = property.state;
                 const city = property.city;
@@ -143,6 +148,7 @@ export default function MapFilter(props: FilterProps) {
                 const isBelowMaxPrice = price <= filters.maxPrice;
                 const isAboveMinDiscount = discount >= filters.minDiscount;
 
+                const isMatchingCreatedAtDateFilter = filters.createdAtDate.includes(createdAtDate);
                 const isMatchingSellingTypeFilter = filters.sellingType.includes(sellingType);
                 const isMatchingTypeFilter = filters.type.includes(property.type);
                 const isMatchingStateFilter = filters.state.includes(state);
@@ -154,6 +160,7 @@ export default function MapFilter(props: FilterProps) {
                     isAboveMinPrice &&
                     isBelowMaxPrice &&
                     isAboveMinDiscount &&
+                    isMatchingCreatedAtDateFilter &&
                     isMatchingSellingTypeFilter &&
                     isMatchingTypeFilter &&
                     isMatchingStateFilter &&
@@ -188,11 +195,20 @@ export default function MapFilter(props: FilterProps) {
             ...allProperties.map((property) => property.discount || 0).filter((i) => i !== undefined)
         );
 
+        const availableCreatedAtDates = Array.from(
+            new Set(allProperties.map((property) => moment(property.createdAt).format("DD/MM/YYYY")))
+        )
+            .filter((i) => i)
+            .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
         const availableSellingTypes = Array.from(new Set(allProperties.map((property) => property.sellingType))).filter(
             (i) => i
         );
-        const availableStates = Array.from(new Set(allProperties.map((property) => property.state))).filter((i) => i);
-        const availableCities = Array.from(new Set(allProperties.map((property) => property.city))).filter((i) => i);
+        const availableStates = Array.from(new Set(allProperties.map((property) => property.state)))
+            .filter((i) => i)
+            .sort((a, b) => a.localeCompare(b));
+        const availableCities = Array.from(new Set(allProperties.map((property) => property.city)))
+            .filter((i) => i)
+            .sort((a, b) => a.localeCompare(b));
         const availableNeighborhoods = Array.from(new Set(allProperties.map((property) => property.neighborhood)))
             .filter((i) => i)
             .sort((a, b) => a.localeCompare(b));
@@ -201,6 +217,7 @@ export default function MapFilter(props: FilterProps) {
             maxPrice: maxPrice,
             minDiscount: minDiscount,
             minPrice: minPrice,
+            createdAtDate: availableCreatedAtDates,
             sellingType: availableSellingTypes,
             type: ToArray(PropertyType),
             state: availableStates,
@@ -220,10 +237,7 @@ export default function MapFilter(props: FilterProps) {
     return (
         <Drawer direction={isMd ? "right" : "bottom"} open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
             <DrawerTrigger asChild>
-                <Button
-                    variant={"default"}
-                    className={buttonClassName}
-                >
+                <Button variant={"default"} className={buttonClassName}>
                     Filtrar Imóveis
                 </Button>
             </DrawerTrigger>
@@ -312,6 +326,17 @@ export default function MapFilter(props: FilterProps) {
                         }
                         toggleAll={() => handleCheckboxFilterToggle("geocodePrecision")}
                         title="Precisão da Localização"
+                    />
+                    <DropdownMenuCheckboxes
+                        availableOptions={initialFilters.createdAtDate.map((createdAtDate) => ({
+                            label: createdAtDate,
+                            checked: filters.createdAtDate.includes(createdAtDate),
+                        }))}
+                        onCheckedChange={(label, checked) =>
+                            handleCheckboxFilterChange("createdAtDate", label, checked)
+                        }
+                        toggleAll={() => handleCheckboxFilterToggle("createdAtDate")}
+                        title="Criado em"
                     />
                 </div>
                 <DrawerFooter className="flex items-center">
