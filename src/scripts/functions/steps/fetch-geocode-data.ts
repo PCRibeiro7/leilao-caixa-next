@@ -72,12 +72,12 @@ async function removeProperties(caixaIds: string[]): Promise<void> {
 }
 
 async function uploadProperty(geocodedProperty: GeocodedProperty): Promise<void> {
+    await addProperty(geocodedProperty);
+
     const base64 = await getImage(geocodedProperty.caixaId);
-    if (!base64) {
-        console.error(`Failed to get image for property: ${geocodedProperty.caixaId}`);
-        return;
+    if (base64) {
+        await uploadPhoto(geocodedProperty.caixaId, base64);
     }
-    await Promise.all([uploadPhoto(geocodedProperty.caixaId, base64), addProperty(geocodedProperty)]);
 }
 
 async function geocodeProperties(properties: Property[]): Promise<void> {

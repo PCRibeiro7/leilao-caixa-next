@@ -48,7 +48,7 @@ const MainMap = (props: MapProps) => {
                 oldMarker.setStyle({ radius: 4, weight: 0 });
             }
         }
-    }, [selectedProperty]);
+    }, [map, selectedProperty]);
 
     if (properties.length === 0) {
         return (
