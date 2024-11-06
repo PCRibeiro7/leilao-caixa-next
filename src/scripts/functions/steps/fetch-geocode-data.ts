@@ -53,7 +53,9 @@ async function fetchGeocodeData(): Promise<void> {
 
     console.log(`Fetching City Bounded Boxes`);
     for (const state of uniqueStates) {
-        const uniqueCities = [...new Set(newProperties.map((property) => property.city))];
+        const uniqueCities = [
+            ...new Set(newProperties.filter((property) => property.state === state).map((property) => property.city)),
+        ];
         for (const city of uniqueCities) {
             await fetchBoundingBox(state, city);
         }

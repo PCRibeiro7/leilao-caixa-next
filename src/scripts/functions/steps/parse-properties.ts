@@ -74,7 +74,6 @@ async function parseProperties(): Promise<void> {
                             "Modalidade de venda",
                             "Link de acesso",
                         ],
-                        skipLines: 4, // Skip the first 2 lines before reading headers
                     })
                 )
                 .on("pipe", () => {
