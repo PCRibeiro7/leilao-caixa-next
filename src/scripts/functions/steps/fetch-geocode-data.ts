@@ -1,4 +1,5 @@
 import { PROPERTIES_PATH } from "@/consts/filePaths";
+import { addBoundingBox, fetchBoundingBoxes, FetchBoundingBoxFilter } from "@/services/boundingBoxes";
 import { deletePhoto, getImage, uploadPhoto } from "@/services/photos";
 import { addProperty, deleteProperties, fetchAllProperties } from "@/services/properties";
 import { GeocodedProperty, GeocodePrecision, Property } from "@/types/Property";
@@ -25,11 +26,10 @@ type NominatinAddress = {
 type Coordinates<T> = [T, T, T, T];
 
 // state -> city -> bounding box
-const mapStateAndCityToBoundingBox = new Map<string, Map<string, Coordinates<number>>>();
+const mapStateAndCityToBoundingBox = new Map<string, Map<string, Coordinates<number> | undefined>>();
 
 async function fetchGeocodeData(): Promise<void> {
     const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH) || [];
-    const uniqueStates = [...new Set(properties.map((property) => property.state))];
 
     const geocodedProperties = await fetchAllProperties();
     console.log(`Existing Geocoded Properties: ${geocodedProperties.length}`);
@@ -51,16 +51,37 @@ async function fetchGeocodeData(): Promise<void> {
     });
     console.log(`New properties found: ${newProperties.length}`);
 
-    console.log(`Fetching City Bounded Boxes`);
-    for (const state of uniqueStates) {
-        const uniqueCities = [
-            ...new Set(newProperties.filter((property) => property.state === state).map((property) => property.city)),
-        ];
-        for (const city of uniqueCities) {
-            await fetchBoundingBox(state, city);
+    const fetchBoundingBoxesFilter: FetchBoundingBoxFilter = [];
+
+    for (const property of newProperties) {
+        if (!mapStateAndCityToBoundingBox.has(property.state)) {
+            mapStateAndCityToBoundingBox.set(property.state, new Map<string, Coordinates<number>>());
+        }
+
+        if (!mapStateAndCityToBoundingBox.get(property.state)?.has(property.city)) {
+            mapStateAndCityToBoundingBox.get(property.state)?.set(property.city, undefined);
+            fetchBoundingBoxesFilter.push({ state: property.state, city: property.city });
         }
     }
-    console.log(`City Bounded Boxes Fetched Successfully`);
+    
+    console.log(`Fetching Cached Bounding Boxes`);
+    const cachedBoundingBoxes = await fetchBoundingBoxes(fetchBoundingBoxesFilter);
+
+    for (const boundingBox of cachedBoundingBoxes) {
+        const cityMap = mapStateAndCityToBoundingBox.get(boundingBox.state);
+        cityMap?.set(boundingBox.city, [boundingBox.x1, boundingBox.y1, boundingBox.x2, boundingBox.y2]);
+    }
+    console.log(`Cached Bounding Boxes Fetched Successfully. Total Cached: ${cachedBoundingBoxes.length}`);
+
+    console.log(`Fetching New Bounded Boxes`);
+    for (const [state, cityMap] of mapStateAndCityToBoundingBox) {
+        for (const [city, boundingBox] of cityMap) {
+            if (!boundingBox) {
+                await fetchBoundingBoxFromNominatim(state, city);
+            }
+        }
+    }
+    console.log(`New Bounded Boxes Fetched Successfully`);
 
     await geocodeProperties(newProperties);
 
@@ -80,7 +101,7 @@ async function uploadProperty(geocodedProperty: GeocodedProperty): Promise<void>
     }
 }
 
-async function geocodeProperties(properties: Property[]): Promise<void> {
+async function geocodeProperties(properties: Property[], batchSize = 1): Promise<void> {
     let promiseArray: Promise<GeocodedProperty | undefined>[] = [];
 
     for (const [index, property] of properties.entries()) {
@@ -90,7 +111,7 @@ async function geocodeProperties(properties: Property[]): Promise<void> {
 
         promiseArray.push(fetchNominatinGeocodeData(property));
 
-        if (index % 2 === 0) {
+        if (index % batchSize === 0) {
             const currentGeocodedProperties = await Promise.all(promiseArray);
             for (const geocodedProperty of currentGeocodedProperties) {
                 if (geocodedProperty) {
@@ -196,7 +217,7 @@ async function fetchNominatinGeocodeData(
             params: {
                 ...address,
                 ...(mapStateAndCityToBoundingBox.has(property.state) &&
-                mapStateAndCityToBoundingBox.get(property.state)?.has(property.city)
+                mapStateAndCityToBoundingBox.get(property.state)?.get(property.city)?.length
                     ? {
                           viewbox: mapStateAndCityToBoundingBox.get(property.state)?.get(property.city)?.join(","),
                           bounded: 1,
@@ -230,7 +251,7 @@ async function fetchNominatinGeocodeData(
     }
 }
 
-async function fetchBoundingBox(state: string, city: string): Promise<Coordinates<number>> {
+async function fetchBoundingBoxFromNominatim(state: string, city: string) {
     try {
         const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
             params: {
@@ -238,6 +259,9 @@ async function fetchBoundingBox(state: string, city: string): Promise<Coordinate
                 city: city,
                 country: "br",
                 format: "jsonv2",
+            },
+            headers: {
+                "User-Agent": "Leilao-Caixa-App",
             },
         });
 
@@ -257,7 +281,15 @@ async function fetchBoundingBox(state: string, city: string): Promise<Coordinate
             const cityMap = mapStateAndCityToBoundingBox.get(state) || new Map<string, Coordinates<number>>();
             mapStateAndCityToBoundingBox.set(state, cityMap);
             cityMap.set(city, orderedBoundingBox);
-            return orderedBoundingBox;
+            await addBoundingBox({
+                state,
+                city,
+                x1: orderedBoundingBox[0],
+                y1: orderedBoundingBox[1],
+                x2: orderedBoundingBox[2],
+                y2: orderedBoundingBox[3],
+                createdAt: new Date().toISOString(),
+            });
         } else {
             throw new Error(`No bounding box found for city: ${city}`);
         }
