@@ -4,7 +4,7 @@ import { deletePhoto, getImage, uploadPhoto } from "@/services/photos";
 import { addProperty, deleteProperties, fetchAllProperties } from "@/services/properties";
 import { GeocodedProperty, GeocodePrecision, Property } from "@/types/Property";
 import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import "dotenv/config";
 import { appendFileSync } from "fs";
 
@@ -63,7 +63,7 @@ async function fetchGeocodeData(): Promise<void> {
             fetchBoundingBoxesFilter.push({ state: property.state, city: property.city });
         }
     }
-    
+
     console.log(`Fetching Cached Bounding Boxes`);
     const cachedBoundingBoxes = await fetchBoundingBoxes(fetchBoundingBoxesFilter);
 
@@ -198,6 +198,8 @@ const formatAddress = (property: Property, attemptCount: number): NominatinAddre
     }
 };
 
+const randomUserAgent = `Leilao-Caixa-App-${Math.random().toString(36).substring(7)}`;
+
 async function fetchNominatinGeocodeData(
     property: Property,
     attemptCount: number = 0
@@ -226,7 +228,13 @@ async function fetchNominatinGeocodeData(
                 country: "br",
                 format: "jsonv2",
             },
+            headers: {
+                "User-Agent": randomUserAgent,
+            },
         });
+
+        // sleep for ~1 second to avoid rate limiting
+        await new Promise((resolve) => setTimeout(resolve, (Math.random() + 1) * 1000));
 
         if (response.data.length > 0) {
             const location = response.data[0];
@@ -247,7 +255,10 @@ async function fetchNominatinGeocodeData(
             return await fetchNominatinGeocodeData(property, attemptCount + 1);
         }
     } catch (error) {
-        console.error(`Error geocoding address: ${property.address}`, error);
+        if (error instanceof AxiosError) {
+            console.error(error.response?.data);
+        }
+        throw new Error(`Error geocoding address: ${property.address}`);
     }
 }
 
@@ -261,9 +272,12 @@ async function fetchBoundingBoxFromNominatim(state: string, city: string) {
                 format: "jsonv2",
             },
             headers: {
-                "User-Agent": "Leilao-Caixa-App",
+                "User-Agent": randomUserAgent,
             },
         });
+
+        // sleep for ~1 second to avoid rate limiting
+        await new Promise((resolve) => setTimeout(resolve, (Math.random() + 1) * 1000));
 
         // Sort by place rank to get the most relevant result => lower place rank
         response.data.sort((a: { place_rank: number }, b: { place_rank: number }) => a.place_rank - b.place_rank);

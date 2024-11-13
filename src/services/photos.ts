@@ -6,8 +6,8 @@ import "dotenv/config";
 const supabase = createClient();
 const PHOTO_BUCKET_NAME = "photos";
 
-export async function getImage(caixaId: string) {
-    const imageId = `${caixaId}21`.padStart(15, "0");
+export async function getImage(caixaId: string, retryCount = 0): Promise<string | undefined> {
+    const imageId = `${caixaId}${21 + retryCount}`.padStart(15, "0");
     const imageUrl = `https://venda-imoveis.caixa.gov.br/fotos/F${imageId}.jpg`;
     try {
         const response = await axios.get(imageUrl, {
@@ -16,6 +16,10 @@ export async function getImage(caixaId: string) {
         const base64 = Buffer.from(response.data).toString("base64");
         return base64;
     } catch {
+        if (retryCount === 0) {
+            console.log(`Retrying to fetch image for property: ${caixaId}`, imageUrl);
+            return getImage(caixaId, 1);
+        }
         console.error(`Error fetching image for property: ${caixaId}`, imageUrl);
     }
 }
