@@ -1,7 +1,6 @@
 "use client";
 
 import { SelectedProperty } from "@/app/table/page";
-import { mapGeocodePrecisionToColor } from "@/components/pages/MapFilter";
 import { GeocodedProperty } from "@/types/Property";
 import { Map as IMap, CircleMarker as LeafletCircleMarker } from "leaflet";
 import "leaflet-defaulticon-compatibility";
@@ -11,6 +10,7 @@ import { useEffect, useRef } from "react";
 import { CircleMarker, MapContainer, TileLayer } from "react-leaflet";
 import Legend from "./map-legend";
 import PropertyPopup from "./property-popup";
+import { mapGeocodePrecisionToColor } from "../filter";
 
 export interface MapProps {
     properties: GeocodedProperty[];

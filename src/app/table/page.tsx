@@ -2,8 +2,8 @@
 
 "use client";
 
+import Filter from "@/components/filter";
 import MapContainer from "@/components/map/map-container";
-import MapFilter from "@/components/pages/MapFilter";
 import PropertiesTable from "@/components/properties-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,7 +68,7 @@ export default function Page() {
                         <CardTitle>Lista de Imóveis:</CardTitle>
                         <CardDescription>{properties.length} imóveis encontrados para o filtro atual</CardDescription>
                     </div>
-                    <MapFilter
+                    <Filter
                         allProperties={allProperties}
                         properties={properties}
                         setProperties={setProperties}

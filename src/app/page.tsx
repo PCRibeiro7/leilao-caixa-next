@@ -2,8 +2,8 @@
 
 "use client";
 
+import Filter from "@/components/filter";
 import MapContainer from "@/components/map/map-container";
-import MapFilter from "@/components/pages/MapFilter";
 import { Button } from "@/components/ui/button";
 import useFetchProperties from "@/hooks/useFetchProperties";
 import { GeocodedProperty } from "@/types/Property";
@@ -33,7 +33,7 @@ export default function Page() {
                     <TableIcon /> Ver em Tabela
                 </Link>
             </Button>
-            <MapFilter
+            <Filter
                 allProperties={allProperties}
                 properties={properties}
                 setProperties={setProperties}

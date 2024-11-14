@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import useBreakpoints from "@/hooks/useBreakPoints";
 import { GeocodedProperty, GeocodePrecision, PropertyType } from "@/types/Property";
 import ToArray from "@/utils/enumToArray";
+import { Separator } from "@radix-ui/react-select";
 import moment from "moment";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
-import { Button } from "../../ui/button";
+import { Button } from "../ui/button";
 import {
     Drawer,
     DrawerClose,
@@ -19,10 +20,9 @@ import {
     DrawerHeader,
     DrawerTitle,
     DrawerTrigger,
-} from "../../ui/drawer";
-import { Checked, DropdownMenuCheckboxes } from "../../ui/dropdown-menu-checkboxes";
-import MoneyInput from "../../ui/money-input";
-import { Separator } from "../../ui/separator";
+} from "../ui/drawer";
+import { Checked, DropdownMenuCheckboxes } from "../ui/dropdown-menu-checkboxes";
+import MoneyInput from "../ui/money-input";
 
 type InputFilters = {
     minDiscount: number;
@@ -79,7 +79,7 @@ export const mapGeocodePrecisionToColor: Record<GeocodePrecision, string> = {
     city: "#a50026",
 };
 
-export default function MapFilter(props: FilterProps) {
+export default function Filter(props: FilterProps) {
     const { allProperties, properties, setProperties, buttonClassName } = props;
 
     const { isMd } = useBreakpoints();

@@ -1,8 +1,8 @@
-import { useEffect } from "react";
-import { Control, DomUtil, Map } from "leaflet";
 import { GeocodePrecision } from "@/types/Property";
 import ToArray from "@/utils/enumToArray";
-import { mapGeocodePrecisionToColor, mapGeocodePrecisionToDisplay } from "../pages/MapFilter";
+import { Control, DomUtil, Map } from "leaflet";
+import { useEffect } from "react";
+import { mapGeocodePrecisionToColor, mapGeocodePrecisionToDisplay } from "../filter";
 
 type Props = {
     map: Map | null;
@@ -24,7 +24,8 @@ function Legend({ map }: Props) {
                         '<div><i style="background: ' +
                         mapGeocodePrecisionToColor[precision] +
                         '" class="rounded-full w-[18px] h-[18px] float-left mr-2"></i> ' +
-                        mapGeocodePrecisionToDisplay[precision] + '</div>'
+                        mapGeocodePrecisionToDisplay[precision] +
+                        "</div>"
                 );
                 div.innerHTML = '<p class="text-md font-bold mb-2">Precisão da Localização:</p>' + content.join("");
 
