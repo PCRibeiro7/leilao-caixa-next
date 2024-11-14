@@ -30,6 +30,7 @@ const mapStateAndCityToBoundingBox = new Map<string, Map<string, Coordinates<num
 
 async function fetchGeocodeData(): Promise<void> {
     const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH) || [];
+    console.log(`Total Properties: ${properties.length}`);
 
     const geocodedProperties = await fetchAllProperties();
     console.log(`Existing Geocoded Properties: ${geocodedProperties.length}`);
@@ -51,6 +52,11 @@ async function fetchGeocodeData(): Promise<void> {
     });
     console.log(`New properties found: ${newProperties.length}`);
 
+    if(newProperties.length === 0) {
+        console.log(`No new properties found. Exiting...`);
+        return;
+    }
+
     const fetchBoundingBoxesFilter: FetchBoundingBoxFilter = [];
 
     for (const property of newProperties) {
@@ -64,7 +70,7 @@ async function fetchGeocodeData(): Promise<void> {
         }
     }
 
-    console.log(`Fetching Cached Bounding Boxes`);
+    console.log(`Fetching Cached Bounding Boxes. Total to Fetch: ${fetchBoundingBoxesFilter.length}`);
     const cachedBoundingBoxes = await fetchBoundingBoxes(fetchBoundingBoxesFilter);
 
     for (const boundingBox of cachedBoundingBoxes) {
