@@ -31,7 +31,7 @@ type DropdownMenuCheckboxesProps = {
     toggleAll?: () => void;
 };
 
-const MAX_VISIBLE_OPTIONS = 5;
+const MAX_VISIBLE_OPTIONS = 20;
 
 export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
     const { title, availableOptions, onCheckedChange, toggleAll } = props;
