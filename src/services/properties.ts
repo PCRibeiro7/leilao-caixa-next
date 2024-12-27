@@ -27,9 +27,14 @@ export async function fetchAllProperties() {
 }
 
 export async function deleteProperties(caixaIds: string[]) {
-    const { error } = await supabase.from(PROPERTIES_TABLE_NAME).delete().in("caixaId", caixaIds);
+    for (let i = 0; i < caixaIds.length; i += 500) {
+        const { error } = await supabase
+            .from(PROPERTIES_TABLE_NAME)
+            .delete()
+            .in("caixaId", caixaIds.slice(i, i + 500));
 
-    if (error) throw error;
+        if (error) throw error;
+    }
 }
 
 export async function addProperty(property: GeocodedProperty) {
