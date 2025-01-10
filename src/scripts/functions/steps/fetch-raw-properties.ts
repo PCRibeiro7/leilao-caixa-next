@@ -4,7 +4,7 @@ import { appendFileSync } from "fs";
 import { Stream } from "stream";
 
 async function fetchRawProperties(): Promise<void> {
-    const states = ["RJ", "SP"];
+    const states = ["RJ"];
     const promises = [];
     for (const state of states) {
         const url = `https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_${state}.csv`;

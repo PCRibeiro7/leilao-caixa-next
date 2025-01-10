@@ -168,16 +168,18 @@ const formatAddress = (property: Property, attemptCount: number): NominatinAddre
     switch (attemptCount) {
         case 0:
             return {
-                street: property.street,
+                street: `${property.number ? `${property.number} ` : ""}${property.street}`,
                 city: property.city,
                 state: property.state,
+                county: property.neighborhood,
             };
         case 1: {
             const street = removeUnnecessaryInfoFromStreet(property.street);
             return {
-                street: `${street}${property.number ? `, ${property.number}` : ""}`,
+                street: `${property.number ? `${property.number} ` : ""}${street}`,
                 city: property.city,
                 state: property.state,
+                county: property.neighborhood,
             };
         }
         case 2: {
@@ -210,6 +212,9 @@ async function fetchNominatinGeocodeData(
     property: Property,
     attemptCount: number = 0
 ): Promise<GeocodedProperty | undefined> {
+    if(attemptCount === 3){
+        return await fetchGeocodeMapsGeocodeData(property);
+    }
     if (attemptCount > 4) {
         appendFileSync(
             "failed-geocoding.txt",
@@ -264,6 +269,62 @@ async function fetchNominatinGeocodeData(
         if (error instanceof AxiosError) {
             console.error(error.response?.data);
         }
+        throw new Error(`Error geocoding address: ${property.address}`);
+    }
+}
+
+async function fetchGeocodeMapsGeocodeData(
+    property: Property,
+    attemptCount: number = 0
+): Promise<GeocodedProperty | undefined> {
+    if (attemptCount > 4) {
+        appendFileSync(
+            "failed-geocoding.txt",
+            `FULL: ${property.address}, ${property.city}, ${property.state}` + "\n",
+            { encoding: "latin1" }
+        );
+        console.warn(`Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`);
+        throw new Error(`Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`);
+    }
+    const address = formatAddress(property, attemptCount);
+    try {
+        const response = await axios.get(`https://geocode.maps.co/search`, {
+            params: {
+                ...address,
+                api_key: process.env.GEOCODE_MAPS_API_KEY,
+                country: "BR",
+            },
+            headers: {
+                "User-Agent": randomUserAgent,
+            },
+        });
+
+        // sleep for ~1 second to avoid rate limiting
+        await new Promise((resolve) => setTimeout(resolve, (Math.random() + 1) * 1000));
+
+        if (response.data.length > 0) {
+            const location = response.data[0];
+            const latitude = parseFloat(location.lat);
+            const longitude = parseFloat(location.lon);
+            const precision = mapAttemptCountToPrecision[attemptCount];
+            return {
+                ...property,
+                latitude: [GeocodePrecision.city, GeocodePrecision.neighborhood].includes(precision)
+                    ? latitude + (Math.random() - 0.5) / 10
+                    : latitude + (Math.random() - 0.5) / 1000,
+                longitude: [GeocodePrecision.city, GeocodePrecision.neighborhood].includes(precision)
+                    ? longitude + (Math.random() - 0.5) / 10
+                    : longitude + (Math.random() - 0.5) / 1000,
+                geocodePrecision: precision,
+            };
+        } else {
+            return await fetchGeocodeMapsGeocodeData(property, attemptCount + 1);
+        }
+    } catch (error) {
+        if (error instanceof AxiosError) {
+            console.error(error.response?.data);
+        }
+        // console.log(property, attemptCount);
         throw new Error(`Error geocoding address: ${property.address}`);
     }
 }
