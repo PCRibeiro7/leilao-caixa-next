@@ -115,7 +115,7 @@ async function geocodeProperties(properties: Property[], batchSize = 1): Promise
             console.log(`Geocoding property ${index + 1} of ${properties.length}`);
         }
 
-        promiseArray.push(fetchNominatinGeocodeData(property));
+        promiseArray.push(fetchGeocodeMapsGeocodeData(property));
 
         if (index % batchSize === 0) {
             const currentGeocodedProperties = await Promise.all(promiseArray);
@@ -212,9 +212,6 @@ async function fetchNominatinGeocodeData(
     property: Property,
     attemptCount: number = 0
 ): Promise<GeocodedProperty | undefined> {
-    if(attemptCount === 3){
-        return await fetchGeocodeMapsGeocodeData(property);
-    }
     if (attemptCount > 4) {
         appendFileSync(
             "failed-geocoding.txt",
@@ -269,7 +266,8 @@ async function fetchNominatinGeocodeData(
         if (error instanceof AxiosError) {
             console.error(error.response?.data);
         }
-        throw new Error(`Error geocoding address: ${property.address}`);
+        console.log(`Error geocoding address: ${property.address}`, property, attemptCount);
+        // throw new Error(`Error geocoding address: ${property.address}`);
     }
 }
 
@@ -277,6 +275,9 @@ async function fetchGeocodeMapsGeocodeData(
     property: Property,
     attemptCount: number = 0
 ): Promise<GeocodedProperty | undefined> {
+    if(attemptCount === 3){
+        return await fetchNominatinGeocodeData(property);
+    }
     if (attemptCount > 4) {
         appendFileSync(
             "failed-geocoding.txt",
@@ -324,8 +325,8 @@ async function fetchGeocodeMapsGeocodeData(
         if (error instanceof AxiosError) {
             console.error(error.response?.data);
         }
-        // console.log(property, attemptCount);
-        throw new Error(`Error geocoding address: ${property.address}`);
+        console.log(`Error geocoding address: ${property.address}`, property, attemptCount);
+        // throw new Error(`Error geocoding address: ${property.address}`);
     }
 }
 
