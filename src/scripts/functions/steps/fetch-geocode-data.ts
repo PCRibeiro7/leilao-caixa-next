@@ -10,7 +10,12 @@ import {
     deleteProperties,
     fetchAllProperties,
 } from "@/services/properties";
-import { GeocodedProperty, GeocodePrecision, GeocodeProvider, Property } from "@/types/Property";
+import {
+    GeocodedProperty,
+    GeocodePrecision,
+    GeocodeProvider,
+    Property,
+} from "@/types/Property";
 import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
 import axios, { AxiosError } from "axios";
 import "dotenv/config";
@@ -155,7 +160,7 @@ async function geocodeProperties(
     properties: Property[],
     batchSize = 1
 ): Promise<void> {
-    let promiseArray: Promise<GeocodedProperty | undefined>[] = [];
+    let batch: Promise<GeocodedProperty | undefined>[] = [];
 
     for (const [index, property] of properties.entries()) {
         if (index % 100 === 0) {
@@ -164,36 +169,30 @@ async function geocodeProperties(
             );
         }
 
-        promiseArray.push(fetchGoogleMapsGeocodeData(property));
+        batch.push(fetchGoogleMapsGeocodeData(property));
 
-        if (index % batchSize === 0) {
-            const currentGeocodedProperties = await Promise.all(promiseArray);
-            for (const geocodedProperty of currentGeocodedProperties) {
-                if (geocodedProperty) {
-                    await uploadProperty(geocodedProperty);
+        const isBatchFull = (index + 1) % batchSize === 0;
+        const isLast = index === properties.length - 1;
+        if (isBatchFull || isLast) {
+            const results = await Promise.all(batch);
+            for (const geocoded of results) {
+                if (geocoded) {
+                    await uploadProperty(geocoded);
                 }
             }
-            promiseArray = [];
-        }
-
-        if (index === properties.length - 1) {
-            const currentGeocodedProperties = await Promise.all(promiseArray);
-            for (const geocodedProperty of currentGeocodedProperties) {
-                if (geocodedProperty) {
-                    await uploadProperty(geocodedProperty);
-                }
-            }
+            batch = [];
         }
     }
 }
 
+// Basic street normalization (kept intentionally conservative to avoid over-stripping)
 const removeUnnecessaryInfoFromStreet = (street: string): string => {
-    street = street
+    let cleaned = street
         .split("N ")[0]
         .split("ANTIGA ")[0]
         .split("QUADRA ")[0]
         .split("ANT ")[0];
-    for (const prefix of [
+    const prefixes = [
         "R",
         "Rua",
         "Av",
@@ -209,12 +208,14 @@ const removeUnnecessaryInfoFromStreet = (street: string): string => {
         "Estr",
         "Estrada",
         "Apto",
-    ]) {
-        street = street.replaceAll(".", "");
-        street = street.replaceAll(` ${prefix.toUpperCase()} `, "");
-        street = street.replaceAll(`,${prefix.toUpperCase()} `, "");
+    ];
+    cleaned = cleaned.replaceAll(".", "");
+    for (const prefix of prefixes) {
+        const upper = prefix.toUpperCase();
+        cleaned = cleaned.replaceAll(` ${upper} `, " ");
+        cleaned = cleaned.replaceAll(`,${upper} `, ",");
     }
-    return street;
+    return cleaned.trim();
 };
 
 const getFullState = (state: string): string => {
@@ -253,14 +254,12 @@ const formatAddress = (
                 county: property.neighborhood,
             };
         }
-        case 2: {
-            const street = removeUnnecessaryInfoFromStreet(property.street);
+        case 2:
             return {
-                street: street,
+                street: removeUnnecessaryInfoFromStreet(property.street),
                 city: property.city,
                 state: property.state,
             };
-        }
         case 3:
             return {
                 county: property.neighborhood,
@@ -277,6 +276,43 @@ const formatAddress = (
     }
 };
 
+// Build a complete address string (filters out undefined pieces so we don't send literal 'undefined')
+const buildFullAddressString = (address: NominatinAddress): string => {
+    return [address.street, address.county, address.city, address.state]
+        .filter(Boolean)
+        .join(", ");
+};
+
+// Small helper to add jitter depending on precision to avoid overlapping markers
+const applyJitter = (lat: number, lng: number, precision: GeocodePrecision) => {
+    const isLowPrecision = [
+        GeocodePrecision.city,
+        GeocodePrecision.neighborhood,
+    ].includes(precision);
+    const divisor = isLowPrecision ? 10 : 1000;
+    return {
+        latitude: lat + (Math.random() - 0.5) / divisor,
+        longitude: lng + (Math.random() - 0.5) / divisor,
+    };
+};
+
+const buildGeocodedProperty = (
+    property: Property,
+    lat: number,
+    lng: number,
+    precision: GeocodePrecision,
+    provider: GeocodeProvider
+): GeocodedProperty => {
+    const jittered = applyJitter(lat, lng, precision);
+    return {
+        ...property,
+        latitude: jittered.latitude,
+        longitude: jittered.longitude,
+        geocodePrecision: precision,
+        geocodeProvider: provider,
+    };
+};
+
 const randomUserAgent = `Leilao-Caixa-App-${Math.random()
     .toString(36)
     .substring(7)}`;
@@ -286,6 +322,7 @@ async function fetchGoogleMapsGeocodeData(
     attemptCount: number = 0
 ): Promise<GeocodedProperty | undefined> {
     if (attemptCount === 1) {
+        // Fallback chain preserved from original recursive design
         return await fetchRadarGeocodeData(property);
     }
     if (attemptCount > 4) {
@@ -298,13 +335,11 @@ async function fetchGoogleMapsGeocodeData(
         console.warn(
             `Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`
         );
-        throw new Error(
-            `Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`
-        );
+        return undefined; // Don't throw to allow other properties to proceed
     }
+
     const address = formatAddress(property, attemptCount);
     try {
-
         const boundingBox = mapStateAndCityToBoundingBox
             .get(property.state)
             ?.get(property.city);
@@ -312,7 +347,7 @@ async function fetchGoogleMapsGeocodeData(
             `https://maps.googleapis.com/maps/api/geocode/json`,
             {
                 params: {
-                    address: `${address.street}, ${address.county}, ${address.city}, ${address.state}`,
+                    address: buildFullAddressString(address),
                     key: process.env.GOOGLE_MAPS_API_KEY,
                     components: `country:BR|administrative_area:${address.state}|locality:${address.city}`,
                     ...(boundingBox
@@ -332,36 +367,23 @@ async function fetchGoogleMapsGeocodeData(
             const latitude = parseFloat(location.lat);
             const longitude = parseFloat(location.lng);
             const precision = mapAttemptCountToPrecision[attemptCount];
-            return {
-                ...property,
-                latitude: [
-                    GeocodePrecision.city,
-                    GeocodePrecision.neighborhood,
-                ].includes(precision)
-                    ? latitude + (Math.random() - 0.5) / 10
-                    : latitude + (Math.random() - 0.5) / 1000,
-                longitude: [
-                    GeocodePrecision.city,
-                    GeocodePrecision.neighborhood,
-                ].includes(precision)
-                    ? longitude + (Math.random() - 0.5) / 10
-                    : longitude + (Math.random() - 0.5) / 1000,
-                geocodePrecision: precision,
-                geocodeProvider: GeocodeProvider.GoogleMaps,
-            };
-        } else {
-            return await fetchGoogleMapsGeocodeData(property, attemptCount + 1);
+            return buildGeocodedProperty(
+                property,
+                latitude,
+                longitude,
+                precision,
+                GeocodeProvider.GoogleMaps
+            );
         }
+        return await fetchGoogleMapsGeocodeData(property, attemptCount + 1);
     } catch (error) {
         if (error instanceof AxiosError) {
             console.error(error.response?.data);
         }
         console.log(
-            `Error geocoding address: ${property.address}`,
-            property,
-            attemptCount
+            `Error geocoding address (Google Maps): ${property.address}`,
+            { attemptCount }
         );
-        // throw new Error(`Error geocoding address: ${property.address}`);
     }
 }
 
@@ -377,28 +399,23 @@ async function fetchNominatinGeocodeData(
             { encoding: "latin1" }
         );
         console.warn(
-            `Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`
+            `Geocoding failed (Nominatim) for address: ${property.address}, ${property.city}, ${property.state}`
         );
-        throw new Error(
-            `Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`
-        );
+        return undefined;
     }
     const address = formatAddress(property, attemptCount);
     try {
+        const viewboxCandidate = mapStateAndCityToBoundingBox
+            .get(property.state)
+            ?.get(property.city);
         const response = await axios.get(
             `https://nominatim.openstreetmap.org/search`,
             {
                 params: {
                     ...address,
-                    ...(mapStateAndCityToBoundingBox.has(property.state) &&
-                    mapStateAndCityToBoundingBox
-                        .get(property.state)
-                        ?.get(property.city)?.length
+                    ...(viewboxCandidate?.length
                         ? {
-                              viewbox: mapStateAndCityToBoundingBox
-                                  .get(property.state)
-                                  ?.get(property.city)
-                                  ?.join(","),
+                              viewbox: viewboxCandidate.join(","),
                               bounded: 1,
                           }
                         : {}),
@@ -411,7 +428,6 @@ async function fetchNominatinGeocodeData(
             }
         );
 
-        // sleep for ~1 second to avoid rate limiting
         await new Promise((resolve) =>
             setTimeout(resolve, (Math.random() + 1) * 1000)
         );
@@ -421,36 +437,23 @@ async function fetchNominatinGeocodeData(
             const latitude = parseFloat(location.lat);
             const longitude = parseFloat(location.lon);
             const precision = mapAttemptCountToPrecision[attemptCount];
-            return {
-                ...property,
-                latitude: [
-                    GeocodePrecision.city,
-                    GeocodePrecision.neighborhood,
-                ].includes(precision)
-                    ? latitude + (Math.random() - 0.5) / 10
-                    : latitude + (Math.random() - 0.5) / 1000,
-                longitude: [
-                    GeocodePrecision.city,
-                    GeocodePrecision.neighborhood,
-                ].includes(precision)
-                    ? longitude + (Math.random() - 0.5) / 10
-                    : longitude + (Math.random() - 0.5) / 1000,
-                geocodePrecision: precision,
-                geocodeProvider: GeocodeProvider.Nominatim,
-            };
-        } else {
-            return await fetchNominatinGeocodeData(property, attemptCount + 1);
+            return buildGeocodedProperty(
+                property,
+                latitude,
+                longitude,
+                precision,
+                GeocodeProvider.Nominatim
+            );
         }
+        return await fetchNominatinGeocodeData(property, attemptCount + 1);
     } catch (error) {
         if (error instanceof AxiosError) {
             console.error(error.response?.data);
         }
         console.log(
-            `Error geocoding address: ${property.address}`,
-            property,
-            attemptCount
+            `Error geocoding address (Nominatim): ${property.address}`,
+            { attemptCount }
         );
-        // throw new Error(`Error geocoding address: ${property.address}`);
     }
 }
 
@@ -469,11 +472,9 @@ async function fetchRadarGeocodeData(
             { encoding: "latin1" }
         );
         console.warn(
-            `Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`
+            `Geocoding failed (Radar) for address: ${property.address}, ${property.city}, ${property.state}`
         );
-        throw new Error(
-            `Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`
-        );
+        return undefined;
     }
     try {
         const response = await axios.get(
@@ -492,7 +493,6 @@ async function fetchRadarGeocodeData(
             }
         );
 
-        // sleep for ~1 second to avoid rate limiting
         await new Promise((resolve) =>
             setTimeout(resolve, (Math.random() + 1) * 1000)
         );
@@ -502,36 +502,22 @@ async function fetchRadarGeocodeData(
             const latitude = parseFloat(location.latitude);
             const longitude = parseFloat(location.longitude);
             const precision = mapAttemptCountToPrecision[attemptCount];
-            return {
-                ...property,
-                latitude: [
-                    GeocodePrecision.city,
-                    GeocodePrecision.neighborhood,
-                ].includes(precision)
-                    ? latitude + (Math.random() - 0.5) / 10
-                    : latitude + (Math.random() - 0.5) / 1000,
-                longitude: [
-                    GeocodePrecision.city,
-                    GeocodePrecision.neighborhood,
-                ].includes(precision)
-                    ? longitude + (Math.random() - 0.5) / 10
-                    : longitude + (Math.random() - 0.5) / 1000,
-                geocodePrecision: precision,
-                geocodeProvider: GeocodeProvider.Radar,
-            };
-        } else {
-            return await fetchRadarGeocodeData(property, attemptCount + 1);
+            return buildGeocodedProperty(
+                property,
+                latitude,
+                longitude,
+                precision,
+                GeocodeProvider.Radar
+            );
         }
+        return await fetchRadarGeocodeData(property, attemptCount + 1);
     } catch (error) {
         if (error instanceof AxiosError) {
             console.error(error.response?.data);
         }
-        console.log(
-            `Error geocoding address: ${property.address}`,
-            property,
-            attemptCount
-        );
-        // throw new Error(`Error geocoding address: ${property.address}`);
+        console.log(`Error geocoding address (Radar): ${property.address}`, {
+            attemptCount,
+        });
     }
 }
 
@@ -550,11 +536,9 @@ async function fetchGeocodeMapsGeocodeData(
             { encoding: "latin1" }
         );
         console.warn(
-            `Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`
+            `Geocoding failed (GeocodeMaps) for address: ${property.address}, ${property.city}, ${property.state}`
         );
-        throw new Error(
-            `Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`
-        );
+        return undefined;
     }
     const address = formatAddress(property, attemptCount);
     try {
@@ -569,7 +553,6 @@ async function fetchGeocodeMapsGeocodeData(
             },
         });
 
-        // sleep for ~1 second to avoid rate limiting
         await new Promise((resolve) =>
             setTimeout(resolve, (Math.random() + 1) * 1000)
         );
@@ -579,39 +562,23 @@ async function fetchGeocodeMapsGeocodeData(
             const latitude = parseFloat(location.lat);
             const longitude = parseFloat(location.lon);
             const precision = mapAttemptCountToPrecision[attemptCount];
-            return {
-                ...property,
-                latitude: [
-                    GeocodePrecision.city,
-                    GeocodePrecision.neighborhood,
-                ].includes(precision)
-                    ? latitude + (Math.random() - 0.5) / 10
-                    : latitude + (Math.random() - 0.5) / 1000,
-                longitude: [
-                    GeocodePrecision.city,
-                    GeocodePrecision.neighborhood,
-                ].includes(precision)
-                    ? longitude + (Math.random() - 0.5) / 10
-                    : longitude + (Math.random() - 0.5) / 1000,
-                geocodePrecision: precision,
-                geocodeProvider: GeocodeProvider.GeocodeMaps,
-            };
-        } else {
-            return await fetchGeocodeMapsGeocodeData(
+            return buildGeocodedProperty(
                 property,
-                attemptCount + 1
+                latitude,
+                longitude,
+                precision,
+                GeocodeProvider.GeocodeMaps
             );
         }
+        return await fetchGeocodeMapsGeocodeData(property, attemptCount + 1);
     } catch (error) {
         if (error instanceof AxiosError) {
             console.error(error.response?.data);
         }
         console.log(
-            `Error geocoding address: ${property.address}`,
-            property,
-            attemptCount
+            `Error geocoding address (GeocodeMaps): ${property.address}`,
+            { attemptCount }
         );
-        // throw new Error(`Error geocoding address: ${property.address}`);
     }
 }
 
