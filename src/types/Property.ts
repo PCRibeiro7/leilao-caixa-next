@@ -40,8 +40,16 @@ export enum GeocodePrecision {
     city = "city",
 }
 
+export enum GeocodeProvider {
+    GoogleMaps = "GoogleMaps",
+    Nominatim = "Nominatim",
+    Radar = "Radar",
+    GeocodeMaps = "GeocodeMaps",
+}
+
 export interface GeocodedProperty extends Property {
     latitude: number;
     longitude: number;
     geocodePrecision: GeocodePrecision;
+    geocodeProvider: GeocodeProvider;
 }
