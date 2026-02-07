@@ -212,10 +212,15 @@ export default function Filter(props: FilterProps) {
         );
 
         const availableCreatedAtDates = Array.from(
-            new Set(allProperties.map((property) => moment(property.createdAt).format("DD/MM/YYYY")))
-        )
-            .filter((i) => i)
-            .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+            new Set(
+                allProperties
+                    .sort((a, b) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0))
+                    .map((property) =>
+                        moment(property.createdAt).format("DD/MM/YYYY"),
+                    ),
+            ),
+        ).filter((i) => i);
+            
         const availableSellingTypes = Array.from(new Set(allProperties.map((property) => property.sellingType))).filter(
             (i) => i
         );
