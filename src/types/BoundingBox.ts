@@ -1,9 +1,9 @@
 export interface BoundingBox {
     state: string;
     city: string;
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
+    longitude1: number;
+    latitude1: number;
+    longitude2: number;
+    latitude2: number;
     createdAt: string;
 }

@@ -36,12 +36,19 @@ type NominatinAddress = {
     state: string;
 };
 
-type Coordinates<T> = [T, T, T, T];
+type CoordinatesArray<T> = [T, T, T, T];
+
+type Coordinates = {
+    latitude1: number;
+    longitude1: number;
+    latitude2: number;
+    longitude2: number;
+}
 
 // state -> city -> bounding box
 const mapStateAndCityToBoundingBox = new Map<
     string,
-    Map<string, Coordinates<number> | undefined>
+    Map<string, Coordinates | undefined>
 >();
 
 async function fetchGeocodeData(): Promise<void> {
@@ -87,7 +94,7 @@ async function fetchGeocodeData(): Promise<void> {
         if (!mapStateAndCityToBoundingBox.has(property.state)) {
             mapStateAndCityToBoundingBox.set(
                 property.state,
-                new Map<string, Coordinates<number>>()
+                new Map<string, Coordinates>()
             );
         }
 
@@ -115,12 +122,12 @@ async function fetchGeocodeData(): Promise<void> {
 
     for (const boundingBox of cachedBoundingBoxes) {
         const cityMap = mapStateAndCityToBoundingBox.get(boundingBox.state);
-        cityMap?.set(boundingBox.city, [
-            boundingBox.x1,
-            boundingBox.y1,
-            boundingBox.x2,
-            boundingBox.y2,
-        ]);
+        cityMap?.set(boundingBox.city, {
+            longitude1: boundingBox.longitude1,
+            latitude1: boundingBox.latitude1,
+            longitude2: boundingBox.longitude2,
+            latitude2: boundingBox.latitude2,
+        });
     }
     console.log(
         `Cached Bounding Boxes Fetched Successfully. Total Cached: ${cachedBoundingBoxes.length}`
@@ -343,6 +350,11 @@ async function fetchGoogleMapsGeocodeData(
         const boundingBox = mapStateAndCityToBoundingBox
             .get(property.state)
             ?.get(property.city);
+        if(!boundingBox) {
+            throw new Error(`No bounding box found for city: ${property.city}`);
+        }
+
+        const bounds = `${boundingBox.latitude1},${boundingBox.longitude1}|${boundingBox.latitude2},${boundingBox.longitude2}`;
         const response = await axios.get(
             `https://maps.googleapis.com/maps/api/geocode/json`,
             {
@@ -350,11 +362,7 @@ async function fetchGoogleMapsGeocodeData(
                     address: buildFullAddressString(address),
                     key: process.env.GOOGLE_MAPS_API_KEY,
                     components: `country:BR|administrative_area:${address.state}|locality:${address.city}`,
-                    ...(boundingBox
-                        ? {
-                              locationbias: `rect=${boundingBox[1]},${boundingBox[0]}|${boundingBox[3]},${boundingBox[2]}`,
-                          }
-                        : {}),
+                    bounds,
                 },
                 headers: {
                     "User-Agent": randomUserAgent,
@@ -367,6 +375,17 @@ async function fetchGoogleMapsGeocodeData(
             const latitude = parseFloat(location.lat);
             const longitude = parseFloat(location.lng);
             const precision = mapAttemptCountToPrecision[attemptCount];
+
+            if(latitude < boundingBox!.latitude1 || latitude > boundingBox!.latitude2) {
+                debugger;
+                throw new Error(`Latitude ${latitude} out of bounds for city: ${property.city}`);
+            }
+
+            if(longitude < boundingBox!.longitude1 || longitude > boundingBox!.longitude2) {
+                debugger;
+                throw new Error(`Longitude ${longitude} out of bounds for city: ${property.city}`);
+            }
+
             return buildGeocodedProperty(
                 property,
                 latitude,
@@ -413,9 +432,9 @@ async function fetchNominatinGeocodeData(
             {
                 params: {
                     ...address,
-                    ...(viewboxCandidate?.length
+                    ...(viewboxCandidate
                         ? {
-                              viewbox: viewboxCandidate.join(","),
+                              viewbox: `${viewboxCandidate.longitude1},${viewboxCandidate.latitude1},${viewboxCandidate.longitude2},${viewboxCandidate.latitude2}`,
                               bounded: 1,
                           }
                         : {}),
@@ -612,28 +631,28 @@ async function fetchBoundingBoxFromNominatim(state: string, city: string) {
 
         if (response.data.length > 0) {
             const location = response.data[0];
-            const boundingBox: Coordinates<string> = location.boundingbox;
+            const boundingBox: CoordinatesArray<string> = location.boundingbox;
             const boundingBoxNumbers = boundingBox.map((value) =>
                 parseFloat(value)
-            ) as Coordinates<number>;
-            const orderedBoundingBox: Coordinates<number> = [
-                boundingBoxNumbers[2],
-                boundingBoxNumbers[0],
-                boundingBoxNumbers[3],
-                boundingBoxNumbers[1],
-            ];
+            ) as CoordinatesArray<number>;
+            const boundingBoxCoordinates: Coordinates = {
+                latitude1: boundingBoxNumbers[0],
+                longitude1: boundingBoxNumbers[2],
+                latitude2: boundingBoxNumbers[1],
+                longitude2: boundingBoxNumbers[3],
+            };
             const cityMap =
                 mapStateAndCityToBoundingBox.get(state) ||
-                new Map<string, Coordinates<number>>();
+                new Map<string, Coordinates>();
             mapStateAndCityToBoundingBox.set(state, cityMap);
-            cityMap.set(city, orderedBoundingBox);
+            cityMap.set(city, boundingBoxCoordinates);
             await addBoundingBox({
                 state,
                 city,
-                x1: orderedBoundingBox[0],
-                y1: orderedBoundingBox[1],
-                x2: orderedBoundingBox[2],
-                y2: orderedBoundingBox[3],
+                latitude1: boundingBoxCoordinates.latitude1,
+                longitude1: boundingBoxCoordinates.longitude1,
+                latitude2: boundingBoxCoordinates.latitude2,
+                longitude2: boundingBoxCoordinates.longitude2,
                 createdAt: new Date().toISOString(),
             });
         } else {
