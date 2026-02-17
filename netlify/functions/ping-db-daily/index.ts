@@ -7,7 +7,7 @@ export const handler = schedule("@daily", async (event: HandlerEvent) => {
     const eventBody = JSON.parse(event.body || "{}");
     console.log(`Next function run at ${eventBody?.next_run}.`);
 
-    fetchAllProperties();
+    await fetchAllProperties();
 
     return {
         statusCode: 200,
