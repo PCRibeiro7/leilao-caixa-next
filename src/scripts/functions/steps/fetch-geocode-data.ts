@@ -377,13 +377,11 @@ async function fetchGoogleMapsGeocodeData(
             const precision = mapAttemptCountToPrecision[attemptCount];
 
             if(latitude < boundingBox!.latitude1 || latitude > boundingBox!.latitude2) {
-                debugger;
-                throw new Error(`Latitude ${latitude} out of bounds for city: ${property.city}`);
+                console.log(`Latitude ${latitude} out of bounds for city: ${property.city}`);
             }
 
             if(longitude < boundingBox!.longitude1 || longitude > boundingBox!.longitude2) {
-                debugger;
-                throw new Error(`Longitude ${longitude} out of bounds for city: ${property.city}`);
+                console.log(`Longitude ${longitude} out of bounds for city: ${property.city}`);
             }
 
             return buildGeocodedProperty(
