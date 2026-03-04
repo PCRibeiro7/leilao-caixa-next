@@ -70,6 +70,7 @@ async function parseProperties(): Promise<void> {
                             "Preço",
                             "Valor de avaliação",
                             "Desconto",
+                            "Financiamento",
                             "Descrição",
                             "Modalidade de venda",
                             "Link de acesso",
