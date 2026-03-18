@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
+import { FileObject } from "@supabase/storage-js";
 import axios from "axios";
 import { decode } from "base64-arraybuffer";
 import "dotenv/config";
@@ -45,13 +46,26 @@ export async function deletePhoto(photoIds: string[]) {
 }
 
 export async function listFiles() {
-    const { data, error } = await supabase.storage.from(PHOTO_BUCKET_NAME).list("", {
-        limit: 100000,
-    });
+    const PAGE_SIZE = 1000;
+    const allFiles: FileObject[] = [];
+    let offset = 0;
 
-    if (error) {
-        console.log("Failed to list files");
+    while (true) {
+        const { data, error } = await supabase.storage
+            .from(PHOTO_BUCKET_NAME)
+            .list("", { limit: PAGE_SIZE, offset });
+
+        if (error) {
+            console.log("Failed to list files");
+            break;
+        }
+
+        if (!data || data.length === 0) break;
+
+        allFiles.push(...data);
+        if (data.length < PAGE_SIZE) break;
+        offset += PAGE_SIZE;
     }
 
-    return data;
+    return allFiles;
 }
