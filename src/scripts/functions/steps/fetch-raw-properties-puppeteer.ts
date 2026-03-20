@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { PROPERTIES_RAW_PATH } from "@/consts/filePaths";
 import "dotenv/config";
-import { existsSync, statSync, writeFileSync } from "fs";
+import { writeFileSync } from "fs";
 
 import chromium from "@sparticuz/chromium";
 import puppeteerCore from "puppeteer-core";
@@ -16,29 +16,27 @@ const CHROME_UA =
 
 const url = "https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_RJ.csv";
 
-/** Wait until the file exists and its size stabilizes (extraction complete) */
-async function waitForBinary(path: string, timeout = 10000): Promise<void> {
-    const start = Date.now();
-    let lastSize = -1;
-    while (Date.now() - start < timeout) {
-        if (existsSync(path)) {
-            const size = statSync(path).size;
-            if (size > 0 && size === lastSize) return;
-            lastSize = size;
+async function launchBrowser(opts: Parameters<typeof puppeteer.launch>[0], retries = 3) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            return await puppeteer.launch(opts);
+        } catch (err: unknown) {
+            const isETXTBSY = err instanceof Error && "code" in err && (err as NodeJS.ErrnoException).code === "ETXTBSY";
+            if (!isETXTBSY || i === retries - 1) throw err;
+            console.log(`ETXTBSY on attempt ${i + 1}, retrying in 1s...`);
+            await new Promise((r) => setTimeout(r, 1000));
         }
-        await new Promise((r) => setTimeout(r, 200));
     }
+    throw new Error("Failed to launch browser");
 }
 
 async function downloadFile(): Promise<void> {
     const isServerless = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.NETLIFY;
 
-    // Ensure chromium binary is fully extracted before launching
     const executablePath = isServerless ? await chromium.executablePath() : undefined;
-    if (executablePath) await waitForBinary(executablePath);
 
-    const browser = await puppeteer.launch({
-        headless: true,
+    const browser = await launchBrowser({
+        headless: isServerless ? chromium.headless : true,
         args: [...chromium.args, "--disable-blink-features=AutomationControlled", `--user-agent=${CHROME_UA}`],
         executablePath,
         channel: isServerless ? undefined : "chrome",
