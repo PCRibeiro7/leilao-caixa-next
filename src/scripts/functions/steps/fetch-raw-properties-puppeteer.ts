@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { PROPERTIES_RAW_PATH } from "@/consts/filePaths";
+import { execSync } from "child_process";
 import "dotenv/config";
 import { writeFileSync } from "fs";
 
-import chromium from "@sparticuz/chromium-min";
+import chromium from "@sparticuz/chromium";
 import puppeteerCore from "puppeteer-core";
 import { addExtra } from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
@@ -14,17 +15,19 @@ puppeteer.use(StealthPlugin());
 const CHROME_UA =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
 
-const CHROMIUM_REMOTE_URL =
-    "https://github.com/Sparticuz/chromium/releases/download/v130.0.0/chromium-v130.0.0-pack.tar";
-
 const url = "https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_RJ.csv";
 
 async function downloadFile(): Promise<void> {
     const isServerless = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.NETLIFY;
 
-    const executablePath = isServerless
-        ? await chromium.executablePath(CHROMIUM_REMOTE_URL)
-        : undefined;
+    let executablePath: string | undefined;
+    if (isServerless) {
+        const originalPath = await chromium.executablePath();
+        // Copy to a new inode to avoid ETXTBSY (kernel keeps original busy after extraction)
+        const runPath = "/tmp/chromium-run";
+        execSync(`rm -f ${runPath} && cp ${originalPath} ${runPath} && chmod 755 ${runPath} && sync`);
+        executablePath = runPath;
+    }
 
     const browser = await puppeteer.launch({
         headless: true,
