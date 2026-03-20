@@ -6,7 +6,6 @@ import Filter from "@/components/filter";
 import MapContainer from "@/components/map/map-container";
 import PropertiesTable from "@/components/properties-table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import useFetchProperties from "@/hooks/useFetchProperties";
 import { GeocodedProperty } from "@/types/Property";
 import { Row } from "@tanstack/react-table";
@@ -42,17 +41,18 @@ export default function Page() {
     };
 
     return (
-        <div className="w-[100%] min-h-[100%] bg-muted pt-4">
-            <Card className="m-4 mt-0">
-                <CardHeader className="flex-row justify-between align-top">
-                    <CardTitle>Mapa de Imóveis:</CardTitle>
-                    <Button asChild className="!mt-0">
+        <div className="w-full min-h-full bg-zinc-50 dark:bg-zinc-950">
+            {/* Map section */}
+            <div className="border-b border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-center justify-between px-5 py-3">
+                    <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Mapa</h2>
+                    <Button variant="outline" size="sm" asChild className="gap-2 rounded-lg">
                         <Link href="/">
-                            <MapIcon /> Ampliar Mapa
+                            <MapIcon className="w-4 h-4" /> Ampliar Mapa
                         </Link>
                     </Button>
-                </CardHeader>
-                <CardContent className="w-[100%] h-[50dvh]">
+                </div>
+                <div className="w-full h-[40dvh]">
                     <MapContainer
                         properties={properties}
                         showLegend={false}
@@ -60,13 +60,17 @@ export default function Page() {
                         setMap={setMap}
                         selectedProperty={selectedProperty}
                     />
-                </CardContent>
-            </Card>
-            <Card className="m-4">
-                <CardHeader className="flex-row justify-between align-top">
+                </div>
+            </div>
+
+            {/* Table section */}
+            <div className="px-5 py-4">
+                <div className="flex items-center justify-between mb-4">
                     <div>
-                        <CardTitle>Lista de Imóveis:</CardTitle>
-                        <CardDescription>{properties.length} imóveis encontrados para o filtro atual</CardDescription>
+                        <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Lista de Imóveis</h2>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            <span className="font-semibold text-zinc-700 dark:text-zinc-300">{properties.length.toLocaleString("pt-BR")}</span> imóveis encontrados
+                        </p>
                     </div>
                     <Filter
                         allProperties={allProperties}
@@ -74,11 +78,9 @@ export default function Page() {
                         setProperties={setProperties}
                         buttonClassName="!mt-0"
                     />
-                </CardHeader>
-                <CardContent>
-                    <PropertiesTable properties={properties} onRowClick={handleRowClick} />
-                </CardContent>
-            </Card>
+                </div>
+                <PropertiesTable properties={properties} onRowClick={handleRowClick} />
+            </div>
         </div>
     );
 }

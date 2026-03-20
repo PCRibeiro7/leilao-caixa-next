@@ -47,16 +47,17 @@ export function DataTable<TData, TValue>({ columns, data, onRowClick }: DataTabl
     });
 
     return (
-        <div className="rounded-md border">
-            <div className="h-[63vh] relative overflow-auto">
+        <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+            <div className="h-[55vh] overflow-auto">
                 <Table>
-                    <TableHeader className="sticky top-0 bg-secondary">
+                    <TableHeader className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-900">
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
+                            <TableRow key={headerGroup.id} className="border-b border-zinc-200 dark:border-zinc-800 hover:bg-transparent">
                                 {headerGroup.headers.map((header) => {
                                     return (
                                         <TableHead
                                             key={header.id}
+                                            className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider"
                                             style={{
                                                 minWidth: header.column.columnDef.size,
                                                 maxWidth: header.column.columnDef.size,
@@ -78,11 +79,12 @@ export function DataTable<TData, TValue>({ columns, data, onRowClick }: DataTabl
                                     key={row.id}
                                     data-state={row.getIsSelected() && "selected"}
                                     onClick={() => onRowClick?.(row)}
-                                    className="cursor-pointer"
+                                    className="cursor-pointer text-sm hover:bg-blue-50/50 dark:hover:bg-zinc-800/50 transition-colors"
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell
                                             key={cell.id}
+                                            className="py-2.5"
                                             style={{
                                                 minWidth: cell.column.columnDef.size,
                                                 maxWidth: cell.column.columnDef.size,
@@ -95,77 +97,75 @@ export function DataTable<TData, TValue>({ columns, data, onRowClick }: DataTabl
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
+                                <TableCell colSpan={columns.length} className="h-24 text-center text-zinc-500">
                                     Sem Resultados.
                                 </TableCell>
                             </TableRow>
                         )}
                     </TableBody>
                 </Table>
-                <div className="flex items-center justify-between px-2">
-                    <div className="flex items-center space-x-6 lg:space-x-8">
-                        <div className="flex items-center space-x-2">
-                            <p className="text-sm font-medium">Linhas por página</p>
-                            <Select
-                                value={`${table.getState().pagination.pageSize}`}
-                                onValueChange={(value) => {
-                                    table.setPageSize(Number(value));
-                                }}
-                            >
-                                <SelectTrigger className="h-8 w-[70px]">
-                                    <SelectValue placeholder={table.getState().pagination.pageSize} />
-                                </SelectTrigger>
-                                <SelectContent side="top">
-                                    {[50, 100, 500].map((pageSize) => (
-                                        <SelectItem key={pageSize} value={`${pageSize}`}>
-                                            {pageSize}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                            Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Button
-                                variant="outline"
-                                className="hidden h-8 w-8 p-0 lg:flex"
-                                onClick={() => table.setPageIndex(0)}
-                                disabled={!table.getCanPreviousPage()}
-                            >
-                                <span className="sr-only">Ir para primeira página</span>
-                                <DoubleArrowLeftIcon className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className="h-8 w-8 p-0"
-                                onClick={() => table.previousPage()}
-                                disabled={!table.getCanPreviousPage()}
-                            >
-                                <span className="sr-only">Ir para página anterior</span>
-                                <ChevronLeftIcon className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className="h-8 w-8 p-0"
-                                onClick={() => table.nextPage()}
-                                disabled={!table.getCanNextPage()}
-                            >
-                                <span className="sr-only">Ir para próxima pagina</span>
-                                <ChevronRightIcon className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className="hidden h-8 w-8 p-0 lg:flex"
-                                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                                disabled={!table.getCanNextPage()}
-                            >
-                                <span className="sr-only">Ir para última page</span>
-                                <DoubleArrowRightIcon className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
+            </div>
+            <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+                <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                    <span>Linhas por página</span>
+                    <Select
+                        value={`${table.getState().pagination.pageSize}`}
+                        onValueChange={(value) => {
+                            table.setPageSize(Number(value));
+                        }}
+                    >
+                        <SelectTrigger className="h-8 w-[70px]">
+                            <SelectValue placeholder={table.getState().pagination.pageSize} />
+                        </SelectTrigger>
+                        <SelectContent side="top">
+                            {[50, 100, 500].map((pageSize) => (
+                                <SelectItem key={pageSize} value={`${pageSize}`}>
+                                    {pageSize}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">
+                    Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
+                </span>
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 hidden lg:flex"
+                        onClick={() => table.setPageIndex(0)}
+                        disabled={!table.getCanPreviousPage()}
+                    >
+                        <DoubleArrowLeftIcon className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => table.previousPage()}
+                        disabled={!table.getCanPreviousPage()}
+                    >
+                        <ChevronLeftIcon className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => table.nextPage()}
+                        disabled={!table.getCanNextPage()}
+                    >
+                        <ChevronRightIcon className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 hidden lg:flex"
+                        onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                        disabled={!table.getCanNextPage()}
+                    >
+                        <DoubleArrowRightIcon className="h-4 w-4" />
+                    </Button>
                 </div>
             </div>
         </div>
