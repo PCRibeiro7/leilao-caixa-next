@@ -1,9 +1,10 @@
-import { PROPERTIES_PATH, PROPERTIES_RAW_PATH } from "@/consts/filePaths";
+import { PROPERTIES_FILENAME, PROPERTIES_RAW_FILENAME } from "@/consts/filePaths";
+import { downloadTmpFile, uploadTmpFile } from "@/services/tmpStorage";
 import { Property, PropertyType } from "@/types/Property";
 import csv from "csv-parser";
 import "dotenv/config";
-import { appendFileSync, createReadStream } from "fs";
 import moment from "moment";
+import { Readable } from "stream";
 
 function cleanString(input: string): string {
     return input.replace(/[^a-z0-9 ,.?!]/gi, "");
@@ -55,11 +56,16 @@ const mapPropertyTypeToEnum = (propertyType: string): PropertyType => {
 };
 
 async function parseProperties(): Promise<void> {
-    const filePath = PROPERTIES_RAW_PATH;
+    const csvContent = await downloadTmpFile(PROPERTIES_RAW_FILENAME);
+    if (!csvContent) {
+        throw new Error("CSV file not found in storage");
+    }
+
+    const properties: string[] = [];
 
     const promise = new Promise<void>((resolve, reject) => {
         try {
-            createReadStream(filePath, { encoding: "latin1" })
+            Readable.from(csvContent)
                 .pipe(
                     csv({
                         separator: ";",
@@ -121,11 +127,12 @@ async function parseProperties(): Promise<void> {
                         bedrooms: bedrooms,
                         createdAt: moment().toISOString(),
                     };
-                    appendFileSync(PROPERTIES_PATH, JSON.stringify(property) + "\n", { encoding: "latin1" });
+                    properties.push(JSON.stringify(property));
                 })
                 .on("end", async () => {
                     console.log("CSV file successfully processed");
-                    console.log(`Properties Generated Successfully: ${filePath}`);
+                    await uploadTmpFile(PROPERTIES_FILENAME, properties.join("\n") + "\n");
+                    console.log(`Properties Generated Successfully: ${properties.length} properties`);
                     resolve();
                 })
                 .on("error", (error) => {

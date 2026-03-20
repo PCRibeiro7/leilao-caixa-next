@@ -1,7 +1,7 @@
-import { PROPERTIES_RAW_PATH } from "@/consts/filePaths";
+import { PROPERTIES_RAW_FILENAME } from "@/consts/filePaths";
+import { uploadTmpFile } from "@/services/tmpStorage";
 import "dotenv/config";
 import axios from "axios";
-import { writeFileSync } from "fs";
 
 const SCRAPE_DO_TOKEN = process.env.SCRAPE_DO_TOKEN;
 
@@ -28,8 +28,8 @@ async function fetchRawPropertiesScrapeDo(): Promise<void> {
         // Remove the first 4 header lines from Caixa CSV
         csvContent = csvContent.split("\n").slice(4).join("\n");
 
-        writeFileSync(PROPERTIES_RAW_PATH, csvContent, { encoding: "latin1" });
-        console.log(`[scrape.do] CSV for ${state} written to ${PROPERTIES_RAW_PATH} (${buffer.length} bytes)`);
+        await uploadTmpFile(PROPERTIES_RAW_FILENAME, csvContent);
+        console.log(`[scrape.do] CSV for ${state} uploaded to storage (${buffer.length} bytes)`);
     }
 }
 

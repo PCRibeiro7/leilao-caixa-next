@@ -1,4 +1,4 @@
-import { PROPERTIES_PATH } from "@/consts/filePaths";
+import { PROPERTIES_FILENAME } from "@/consts/filePaths";
 import { addBoundingBox, fetchBoundingBoxes, FetchBoundingBoxFilter } from "@/services/boundingBoxes";
 import { deletePhoto, getImage, uploadPhoto } from "@/services/photos";
 import { addProperty, deleteProperties, fetchAllProperties } from "@/services/properties";
@@ -36,7 +36,7 @@ type Coordinates = {
 const mapStateAndCityToBoundingBox = new Map<string, Map<string, Coordinates | undefined>>();
 
 async function fetchGeocodeData(): Promise<void> {
-    const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH) || [];
+    const properties = (await readJsonlFileAsJsonArray<Property>(PROPERTIES_FILENAME)) || [];
     console.log(`Total Properties: ${properties.length}`);
 
     const geocodedProperties = await fetchAllProperties();

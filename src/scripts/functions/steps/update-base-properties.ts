@@ -1,4 +1,4 @@
-import { PROPERTIES_PATH } from "@/consts/filePaths";
+import { PROPERTIES_FILENAME } from "@/consts/filePaths";
 import { getImage, listFiles, uploadPhoto } from "@/services/photos";
 import { Property } from "@/types/Property";
 import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
@@ -7,7 +7,7 @@ import safetyCheck from "./safety-check";
 import { updateProperty } from "@/services/properties";
 
 async function setBaseProperties(): Promise<void> {
-    const properties = readJsonlFileAsJsonArray<Property>(PROPERTIES_PATH) || [];
+    const properties = (await readJsonlFileAsJsonArray<Property>(PROPERTIES_FILENAME)) || [];
 
     const shouldUpdatePhotos = await safetyCheck("Are you sure you want to update the photos?", "return");
 

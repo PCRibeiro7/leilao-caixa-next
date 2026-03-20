@@ -1,18 +1,8 @@
-import { PROPERTIES_PATH, PROPERTIES_RAW_PATH, TMP_PATH } from "@/consts/filePaths";
-import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "fs";
+import { PROPERTIES_FILENAME, PROPERTIES_RAW_FILENAME } from "@/consts/filePaths";
+import { deleteTmpFiles } from "@/services/tmpStorage";
 
-const cleanupProperties = () => {
-    if (!existsSync(TMP_PATH)) {
-        mkdirSync(TMP_PATH);
-    }
-
-    if (existsSync(PROPERTIES_RAW_PATH)) {
-        unlinkSync(PROPERTIES_RAW_PATH);
-    }
-
-    if (existsSync(PROPERTIES_PATH)) {
-        writeFileSync(PROPERTIES_PATH, "", { encoding: "latin1" });
-    }
+const cleanupProperties = async () => {
+    await deleteTmpFiles([PROPERTIES_RAW_FILENAME, PROPERTIES_FILENAME]);
 };
 
 export default cleanupProperties;

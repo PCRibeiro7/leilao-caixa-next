@@ -1,42 +1,39 @@
-import { PROPERTIES_RAW_PATH } from "@/consts/filePaths";
+import { PROPERTIES_RAW_FILENAME } from "@/consts/filePaths";
+import { uploadTmpFile } from "@/services/tmpStorage";
 import axios from "axios";
-import { appendFileSync } from "fs";
 import { Stream } from "stream";
 
 async function fetchRawPropertiesLocal(): Promise<void> {
     const states = ["RJ"];
-    const promises = [];
+    let allCsvContent = "";
+
     for (const state of states) {
         const url = `https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_${state}.csv`;
-        const outputPath = PROPERTIES_RAW_PATH;
-        const promise = new Promise<void>(async (resolve, reject) => {
+
+        const csvContent = await new Promise<string>(async (resolve, reject) => {
             try {
                 console.log(`[local] Fetching CSV for state ${state}...`);
                 const response = await axios.get<Stream>(url, { responseType: "stream" });
 
-                // Read the stream response
-                let csvContent = "";
+                let content = "";
                 response.data.on("data", (chunk: Buffer) => {
-                    csvContent += chunk.toString("latin1");
+                    content += chunk.toString("latin1");
                 });
 
                 response.data.on("end", () => {
-                    // remove the first 4 lines of the csv file
-                    csvContent = csvContent.split("\n").slice(4).join("\n");
-                    appendFileSync(outputPath, csvContent, { encoding: "latin1" });
-                    console.log(`[local] CSV for ${state} written to ${outputPath} (${csvContent.length} bytes)`);
-                    resolve();
+                    content = content.split("\n").slice(4).join("\n");
+                    resolve(content);
                 });
             } catch (error) {
                 console.error(`[local] Error fetching CSV for state ${state}:`, error);
                 reject(error);
             }
         });
-        promises.push(promise);
+        allCsvContent += csvContent;
     }
-    for (const promise of promises) {
-        await promise;
-    }
+
+    await uploadTmpFile(PROPERTIES_RAW_FILENAME, allCsvContent);
+    console.log(`[local] CSV uploaded to storage (${allCsvContent.length} bytes)`);
 }
 
 export default fetchRawPropertiesLocal;

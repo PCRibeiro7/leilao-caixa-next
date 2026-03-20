@@ -1,14 +1,10 @@
-import { existsSync, readFileSync } from "fs";
+import { downloadTmpFile } from "@/services/tmpStorage";
 
-function readJsonlFileAsJsonArray<T>(jsonlFilePath: string) {
-    if (!existsSync(jsonlFilePath)) {
-        return;
-    }
-
-    const content = readFileSync(jsonlFilePath, { encoding: "latin1" });
+async function readJsonlFileAsJsonArray<T>(fileName: string) {
+    const content = await downloadTmpFile(fileName);
 
     if (!content) {
-        return [];
+        return;
     }
 
     const json = content

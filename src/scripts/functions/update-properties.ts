@@ -5,7 +5,7 @@ import parseProperties from "./steps/parse-properties";
 import fetchGeocodeData from "./steps/fetch-geocode-data";
 
 export default async function updateProperties() {
-    cleanupProperties();
+    await cleanupProperties();
     if (process.env.ENV === "prod") {
         await fetchRawPropertiesScrapeDo();
     } else {
