@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { PROPERTIES_RAW_PATH } from "@/consts/filePaths";
 import "dotenv/config";
-import { writeFileSync } from "fs";
+import { chmodSync, copyFileSync, existsSync, writeFileSync } from "fs";
 
 import chromium from "@sparticuz/chromium";
 import puppeteerCore from "puppeteer-core";
@@ -16,26 +16,26 @@ const CHROME_UA =
 
 const url = "https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_RJ.csv";
 
-async function launchBrowser(opts: Parameters<typeof puppeteer.launch>[0], retries = 3) {
-    for (let i = 0; i < retries; i++) {
-        try {
-            return await puppeteer.launch(opts);
-        } catch (err: unknown) {
-            const isETXTBSY = err instanceof Error && "code" in err && (err as NodeJS.ErrnoException).code === "ETXTBSY";
-            if (!isETXTBSY || i === retries - 1) throw err;
-            console.log(`ETXTBSY on attempt ${i + 1}, retrying in 1s...`);
-            await new Promise((r) => setTimeout(r, 1000));
-        }
+/**
+ * Copy the chromium binary to a fresh path to avoid ETXTBSY.
+ * The kernel keeps the original file busy during/after extraction.
+ */
+async function getExecutablePath(): Promise<string> {
+    const originalPath = await chromium.executablePath();
+    const copyPath = "/tmp/chromium-copy";
+    if (!existsSync(copyPath)) {
+        copyFileSync(originalPath, copyPath);
+        chmodSync(copyPath, 0o755);
     }
-    throw new Error("Failed to launch browser");
+    return copyPath;
 }
 
 async function downloadFile(): Promise<void> {
     const isServerless = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.NETLIFY;
 
-    const executablePath = isServerless ? await chromium.executablePath() : undefined;
+    const executablePath = isServerless ? await getExecutablePath() : undefined;
 
-    const browser = await launchBrowser({
+    const browser = await puppeteer.launch({
         headless: isServerless ? chromium.headless : true,
         args: [...chromium.args, "--disable-blink-features=AutomationControlled", `--user-agent=${CHROME_UA}`],
         executablePath,
