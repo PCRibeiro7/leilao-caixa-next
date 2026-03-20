@@ -1,0 +1,138 @@
+/* Leaflet popup overrides */
+.custom-popup .leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.custom-popup .leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 260px !important;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #374151;
+}
+
+.custom-popup .leaflet-popup-content p {
+  margin: 0 !important;
+}
+
+.custom-popup .leaflet-popup-content a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.custom-popup .leaflet-popup-tip {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Popup card layout */
+.popup-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.popup-card__img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  display: block;
+}
+
+.popup-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+}
+
+.popup-card__address {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.popup-card__location {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.popup-card__price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+.popup-card__price {
+  font-size: 15px;
+  font-weight: 700;
+  color: #15803d;
+}
+
+.popup-card__discount {
+  font-size: 11px;
+  font-weight: 600;
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.popup-card__details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.popup-card__details span {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.popup-card__selling {
+  font-size: 11px;
+  color: #6b7280;
+  font-style: italic;
+  margin: 0;
+}
+
+.popup-card__links {
+  display: flex;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.popup-card__link {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff !important;
+  padding: 6px 0;
+  border-radius: 6px;
+  text-decoration: none !important;
+  transition: opacity 0.15s;
+}
+
+.popup-card__link:hover {
+  opacity: 0.85;
+}
+
+.popup-card__link--caixa {
+  background: #2563eb;
+}
+
+.popup-card__link--maps {
+  background: #4b5563;
+}
