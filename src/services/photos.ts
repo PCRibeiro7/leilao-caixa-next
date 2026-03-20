@@ -16,12 +16,12 @@ export async function getImage(caixaId: string, retryCount = 0): Promise<string 
         });
         const base64 = Buffer.from(response.data).toString("base64");
         return base64;
-    } catch {
+    } catch(error) {
         if (retryCount === 0) {
-            console.log(`Retrying to fetch image for property: ${caixaId}`, imageUrl);
+            console.log(`Retrying to fetch image for property: ${caixaId}`, imageUrl, error);
             return getImage(caixaId, 1);
         }
-        console.error(`Error fetching image for property: ${caixaId}`, imageUrl);
+        console.error(`Error fetching image for property: ${caixaId}`, imageUrl, error);
     }
 }
 
