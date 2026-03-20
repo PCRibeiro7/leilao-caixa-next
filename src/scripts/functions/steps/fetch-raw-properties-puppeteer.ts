@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { PROPERTIES_RAW_PATH } from "@/consts/filePaths";
 import "dotenv/config";
-import { chmodSync, copyFileSync, existsSync, writeFileSync } from "fs";
+import { writeFileSync } from "fs";
 
-import chromium from "@sparticuz/chromium";
+import chromium from "@sparticuz/chromium-min";
 import puppeteerCore from "puppeteer-core";
 import { addExtra } from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
@@ -14,29 +14,20 @@ puppeteer.use(StealthPlugin());
 const CHROME_UA =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
 
-const url = "https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_RJ.csv";
+const CHROMIUM_REMOTE_URL =
+    "https://github.com/nicholasgasior/chromium-binaries-for-lambda/releases/download/v130.0.0/chromium-v130.0.0-pack.tar";
 
-/**
- * Copy the chromium binary to a fresh path to avoid ETXTBSY.
- * The kernel keeps the original file busy during/after extraction.
- */
-async function getExecutablePath(): Promise<string> {
-    const originalPath = await chromium.executablePath();
-    const copyPath = "/tmp/chromium-copy";
-    if (!existsSync(copyPath)) {
-        copyFileSync(originalPath, copyPath);
-        chmodSync(copyPath, 0o755);
-    }
-    return copyPath;
-}
+const url = "https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_RJ.csv";
 
 async function downloadFile(): Promise<void> {
     const isServerless = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.NETLIFY;
 
-    const executablePath = isServerless ? await getExecutablePath() : undefined;
+    const executablePath = isServerless
+        ? await chromium.executablePath(CHROMIUM_REMOTE_URL)
+        : undefined;
 
     const browser = await puppeteer.launch({
-        headless: isServerless ? chromium.headless : true,
+        headless: true,
         args: [...chromium.args, "--disable-blink-features=AutomationControlled", `--user-agent=${CHROME_UA}`],
         executablePath,
         channel: isServerless ? undefined : "chrome",
