@@ -38,7 +38,7 @@ async function downloadFile(): Promise<void> {
     if (executablePath) await waitForBinary(executablePath);
 
     const browser = await puppeteer.launch({
-        headless: chromium.headless,
+        headless: true,
         args: [...chromium.args, "--disable-blink-features=AutomationControlled", `--user-agent=${CHROME_UA}`],
         executablePath,
         channel: isServerless ? undefined : "chrome",
