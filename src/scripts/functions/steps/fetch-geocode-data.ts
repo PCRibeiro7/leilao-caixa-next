@@ -34,7 +34,7 @@ type Coordinates = {
 // state -> city -> bounding box
 const mapStateAndCityToBoundingBox = new Map<string, Map<string, Coordinates | undefined>>();
 
-async function fetchGeocodeData(): Promise<void> {
+async function fetchGeocodeData(maxProperties?: number): Promise<{ remaining: number }> {
     const properties = (await readJsonlFileAsJsonArray<Property>(PROPERTIES_FILENAME)) || [];
     console.log(`Total Properties: ${properties.length}`);
 
@@ -60,7 +60,7 @@ async function fetchGeocodeData(): Promise<void> {
 
     if (newProperties.length === 0) {
         console.log(`No new properties found. Exiting...`);
-        return;
+        return { remaining: 0 };
     }
 
     const fetchBoundingBoxesFilter: FetchBoundingBoxFilter = [];
@@ -103,9 +103,16 @@ async function fetchGeocodeData(): Promise<void> {
     }
     console.log(`New Bounded Boxes Fetched Successfully`);
 
-    await geocodeProperties(newProperties);
+    const propertiesToProcess = maxProperties != null
+        ? newProperties.slice(0, maxProperties)
+        : newProperties;
 
-    console.log(`Geocoded Properties Generated Successfully`);
+    await geocodeProperties(propertiesToProcess);
+
+    const remaining = newProperties.length - propertiesToProcess.length;
+    console.log(`Geocoded Properties Generated Successfully. Remaining: ${remaining}`);
+
+    return { remaining };
 }
 
 async function removeProperties(caixaIds: string[]): Promise<void> {
