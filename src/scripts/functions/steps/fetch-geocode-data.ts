@@ -290,31 +290,17 @@ const buildFullAddressString = (address: NominatinAddress): string => {
         .join(", ");
 };
 
-// Small helper to add jitter depending on precision to avoid overlapping markers
-const applyJitter = (lat: number, lng: number, precision: GeocodePrecision) => {
-    const isLowPrecision = [
-        GeocodePrecision.city,
-        GeocodePrecision.neighborhood,
-    ].includes(precision);
-    const divisor = isLowPrecision ? 10 : 1000;
-    return {
-        latitude: lat + (Math.random() - 0.5) / divisor,
-        longitude: lng + (Math.random() - 0.5) / divisor,
-    };
-};
-
-const buildGeocodedProperty = (
+    const buildGeocodedProperty = (
     property: Property,
     lat: number,
     lng: number,
     precision: GeocodePrecision,
     provider: GeocodeProvider
 ): GeocodedProperty => {
-    const jittered = applyJitter(lat, lng, precision);
     return {
         ...property,
-        latitude: jittered.latitude,
-        longitude: jittered.longitude,
+        latitude: lat,
+        longitude: lng,
         geocodePrecision: precision,
         geocodeProvider: provider,
     };
