@@ -2,7 +2,7 @@
 import { PROPERTIES_RAW_PATH } from "@/consts/filePaths";
 import { execSync } from "child_process";
 import "dotenv/config";
-import { writeFileSync } from "fs";
+import { closeSync, openSync, writeFileSync } from "fs";
 
 import chromium from "@sparticuz/chromium";
 import puppeteerCore from "puppeteer-core";
@@ -22,11 +22,11 @@ async function downloadFile(): Promise<void> {
 
     let executablePath: string | undefined;
     if (isServerless) {
-        const originalPath = await chromium.executablePath();
-        // Copy to a new inode to avoid ETXTBSY (kernel keeps original busy after extraction)
-        const runPath = "/tmp/chromium-run";
-        execSync(`rm -f ${runPath} && cp ${originalPath} ${runPath} && chmod 755 ${runPath} && sync`);
-        executablePath = runPath;
+        executablePath = await chromium.executablePath();
+        // Force all pending writes to flush: open read-only, fsync, close
+        const fd = openSync(executablePath, "r");
+        execSync("sync");
+        closeSync(fd);
     }
 
     const browser = await puppeteer.launch({
