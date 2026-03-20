@@ -1,4 +1,4 @@
-import fetchRawProperties from "@/scripts/functions/steps/fetch-raw-properties";
+import fetchRawProperties from "@/scripts/functions/steps/fetch-raw-properties-puppeteer";
 import { HandlerEvent } from "@netlify/functions";
 
 // To learn about scheduled functions and supported cron extensions,
