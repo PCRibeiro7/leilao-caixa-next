@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { PROPERTIES_RAW_PATH } from "@/consts/filePaths";
 import "dotenv/config";
-import { writeFileSync } from "fs";
+import { existsSync, statSync, writeFileSync } from "fs";
 
 import chromium from "@sparticuz/chromium";
 import puppeteerCore from "puppeteer-core";
@@ -16,11 +16,26 @@ const CHROME_UA =
 
 const url = "https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_RJ.csv";
 
+/** Wait until the file exists and its size stabilizes (extraction complete) */
+async function waitForBinary(path: string, timeout = 10000): Promise<void> {
+    const start = Date.now();
+    let lastSize = -1;
+    while (Date.now() - start < timeout) {
+        if (existsSync(path)) {
+            const size = statSync(path).size;
+            if (size > 0 && size === lastSize) return;
+            lastSize = size;
+        }
+        await new Promise((r) => setTimeout(r, 200));
+    }
+}
+
 async function downloadFile(): Promise<void> {
     const isServerless = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.NETLIFY;
 
     // Ensure chromium binary is fully extracted before launching
     const executablePath = isServerless ? await chromium.executablePath() : undefined;
+    if (executablePath) await waitForBinary(executablePath);
 
     const browser = await puppeteer.launch({
         headless: chromium.headless,
