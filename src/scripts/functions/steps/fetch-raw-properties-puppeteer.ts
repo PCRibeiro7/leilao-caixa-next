@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { PROPERTIES_RAW_PATH } from "@/consts/filePaths";
-import { execSync } from "child_process";
 import "dotenv/config";
-import { closeSync, openSync, writeFileSync } from "fs";
+import { writeFileSync } from "fs";
 
 import chromium from "@sparticuz/chromium";
 import puppeteerCore from "puppeteer-core";
@@ -20,14 +19,7 @@ const url = "https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_RJ.csv";
 async function downloadFile(): Promise<void> {
     const isServerless = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.NETLIFY;
 
-    let executablePath: string | undefined;
-    if (isServerless) {
-        executablePath = await chromium.executablePath();
-        // Force all pending writes to flush: open read-only, fsync, close
-        const fd = openSync(executablePath, "r");
-        execSync("sync");
-        closeSync(fd);
-    }
+    const executablePath = isServerless ? await chromium.executablePath() : undefined;
 
     const browser = await puppeteer.launch({
         headless: true,
