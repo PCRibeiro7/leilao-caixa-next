@@ -19,10 +19,13 @@ const url = "https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_RJ.csv";
 async function downloadFile(): Promise<void> {
     const isServerless = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.NETLIFY;
 
+    // Ensure chromium binary is fully extracted before launching
+    const executablePath = isServerless ? await chromium.executablePath() : undefined;
+
     const browser = await puppeteer.launch({
-        headless: true,
+        headless: chromium.headless,
         args: [...chromium.args, "--disable-blink-features=AutomationControlled", `--user-agent=${CHROME_UA}`],
-        executablePath: isServerless ? await chromium.executablePath() : undefined,
+        executablePath,
         channel: isServerless ? undefined : "chrome",
     });
 
