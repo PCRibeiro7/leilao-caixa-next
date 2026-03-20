@@ -6,8 +6,8 @@ import fetchGeocodeData from "@/scripts/functions/steps/fetch-geocode-data";
 import { getPipelineState, setPipelineState, PipelineStep } from "@/services/pipelineState";
 import { HandlerEvent, schedule } from "@netlify/functions";
 
-const GEOCODE_BATCH_SIZE = 2;
-const COOLDOWN_HOURS = 23;
+const GEOCODE_BATCH_SIZE = 5000;
+const COOLDOWN_HOURS = 6;
 
 // Runs every 5 minutes; each invocation executes one pipeline step
 // to stay within the 10-second Netlify function timeout.
