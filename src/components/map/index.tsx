@@ -25,18 +25,21 @@ const defaults = {
     zoom: 8,
 };
 
+const pinSvg = (color: string) =>
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="24" height="36"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="${color}"/><circle cx="12" cy="12" r="5" fill="white"/></svg>`;
+
 const selectedMarkerIcon = new DivIcon({
-    html: "",
+    html: pinSvg("#c0392b"),
     className: "custom-marker custom-marker--selected",
-    iconSize: new Point(40, 40),
-    iconAnchor: new Point(20, 20),
+    iconSize: new Point(30, 45),
+    iconAnchor: new Point(15, 45),
 });
 
 const defaultMarkerIcon = new DivIcon({
-    html: "",
+    html: pinSvg("#3388ff"),
     className: "custom-marker custom-marker--default",
-    iconSize: new Point(24, 24),
-    iconAnchor: new Point(12, 12),
+    iconSize: new Point(24, 36),
+    iconAnchor: new Point(12, 36),
 });
 
 const createClusterCustomIcon = (cluster: { getChildCount: () => number }): DivIcon => {
