@@ -15,7 +15,7 @@ const CHROME_UA =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
 
 const CHROMIUM_REMOTE_URL =
-    "https://github.com/nicholasgasior/chromium-binaries-for-lambda/releases/download/v130.0.0/chromium-v130.0.0-pack.tar";
+    "https://github.com/Sparticuz/chromium/releases/download/v130.0.0/chromium-v130.0.0-pack.tar";
 
 const url = "https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_RJ.csv";
 
