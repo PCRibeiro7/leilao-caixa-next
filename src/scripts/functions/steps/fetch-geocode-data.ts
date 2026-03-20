@@ -6,7 +6,6 @@ import { GeocodedProperty, GeocodePrecision, GeocodeProvider, Property } from "@
 import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
 import axios, { AxiosError } from "axios";
 import "dotenv/config";
-import { appendFileSync } from "fs";
 
 const mapAttemptCountToPrecision: Record<number, GeocodePrecision> = {
     0: GeocodePrecision.address,
@@ -258,11 +257,6 @@ async function fetchGoogleMapsGeocodeData(
         return await fetchRadarGeocodeData(property);
     }
     if (attemptCount > 4) {
-        appendFileSync(
-            "failed-geocoding.txt",
-            `FULL: ${property.address}, ${property.city}, ${property.state}` + "\n",
-            { encoding: "latin1" },
-        );
         console.warn(`Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`);
         return undefined; // Don't throw to allow other properties to proceed
     }
@@ -317,11 +311,6 @@ async function fetchNominatinGeocodeData(
     attemptCount: number = 0,
 ): Promise<GeocodedProperty | undefined> {
     if (attemptCount > 4) {
-        appendFileSync(
-            "failed-geocoding.txt",
-            `FULL: ${property.address}, ${property.city}, ${property.state}` + "\n",
-            { encoding: "latin1" },
-        );
         console.warn(
             `Geocoding failed (Nominatim) for address: ${property.address}, ${property.city}, ${property.state}`,
         );
@@ -373,11 +362,6 @@ async function fetchRadarGeocodeData(
         return await fetchGeocodeMapsGeocodeData(property);
     }
     if (attemptCount > 4) {
-        appendFileSync(
-            "failed-geocoding.txt",
-            `FULL: ${property.address}, ${property.city}, ${property.state}` + "\n",
-            { encoding: "latin1" },
-        );
         console.warn(`Geocoding failed (Radar) for address: ${property.address}, ${property.city}, ${property.state}`);
         return undefined;
     }
@@ -421,11 +405,6 @@ async function fetchGeocodeMapsGeocodeData(
         return await fetchNominatinGeocodeData(property);
     }
     if (attemptCount > 4) {
-        appendFileSync(
-            "failed-geocoding.txt",
-            `FULL: ${property.address}, ${property.city}, ${property.state}` + "\n",
-            { encoding: "latin1" },
-        );
         console.warn(
             `Geocoding failed (GeocodeMaps) for address: ${property.address}, ${property.city}, ${property.state}`,
         );
