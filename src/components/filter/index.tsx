@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import useBreakpoints from "@/hooks/useBreakPoints";
 import { GeocodedProperty, GeocodePrecision, PropertyType } from "@/types/Property";
 import ToArray from "@/utils/enumToArray";
-import { Separator } from "@radix-ui/react-select";
 import moment from "moment";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";
@@ -262,32 +261,45 @@ export default function Filter(props: FilterProps) {
                     Filtrar Imóveis
                 </Button>
             </DrawerTrigger>
-            <DrawerContent className={isMd ? "h-screen top-0 right-0 left-auto mt-0 w-[500px] rounded-none" : ""}>
-                <DrawerHeader>
-                    <DrawerTitle> Filtrar imóveis:</DrawerTitle>
-                    <DrawerDescription>{properties.length} imóveis encontrados para o filtro atual</DrawerDescription>
+            <DrawerContent className={isMd ? "h-screen top-0 right-0 left-auto mt-0 w-[460px] rounded-none border-l border-zinc-200 dark:border-zinc-800" : ""}>
+                <DrawerHeader className="pb-2">
+                    <DrawerTitle className="text-xl font-bold">Filtrar imóveis</DrawerTitle>
+                    <DrawerDescription className="flex items-center gap-2">
+                        <span className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                            {properties.length.toLocaleString("pt-BR")}
+                        </span>
+                        <span>imóveis encontrados</span>
+                    </DrawerDescription>
                 </DrawerHeader>
-                <div className="space-y-2 m-4 items-end">
-                    <MoneyInput
-                        label="Preço Mínimo"
-                        value={filters.minPrice}
-                        onChange={(value) => handleMoneyInputFilterChange("minPrice", value)}
-                    />
-                    <MoneyInput
-                        label="Preço Máximo"
-                        value={filters.maxPrice}
-                        onChange={(event) => handleMoneyInputFilterChange("maxPrice", event)}
-                    />
-                    <div>
-                        <Label>Desconto Mínimo:</Label>
-                        <Input
-                            type="number"
-                            value={filters.minDiscount.toString()}
-                            onChange={(event) => handleInputFilterChange("minDiscount", event)}
-                            startAdornment="%"
-                        />
+                <div className="space-y-4 px-4 pb-4 overflow-y-auto flex-1">
+                    <div className="space-y-3">
+                        <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Preço e desconto</p>
+                        <div className="grid grid-cols-2 gap-3">
+                            <MoneyInput
+                                label="Preço Mínimo"
+                                value={filters.minPrice}
+                                onChange={(value) => handleMoneyInputFilterChange("minPrice", value)}
+                            />
+                            <MoneyInput
+                                label="Preço Máximo"
+                                value={filters.maxPrice}
+                                onChange={(event) => handleMoneyInputFilterChange("maxPrice", event)}
+                            />
+                        </div>
+                        <div>
+                            <Label>Desconto Mínimo:</Label>
+                            <Input
+                                type="number"
+                                value={filters.minDiscount.toString()}
+                                onChange={(event) => handleInputFilterChange("minDiscount", event)}
+                                startAdornment="%"
+                            />
+                        </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="h-px bg-zinc-200 dark:bg-zinc-800" />
+                    <div className="space-y-3">
+                        <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Localização</p>
+                        <div className="grid grid-cols-3 gap-2">
                         <DropdownMenuCheckboxes
                             availableOptions={initialFilters.state.map((state) => ({
                                 label: state,
@@ -318,7 +330,11 @@ export default function Filter(props: FilterProps) {
                             title="Bairro"
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    </div>
+                    <div className="h-px bg-zinc-200 dark:bg-zinc-800" />
+                    <div className="space-y-3">
+                        <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Categoria e precisão</p>
+                        <div className="grid grid-cols-2 gap-2">
                         <DropdownMenuCheckboxes
                             availableOptions={initialFilters.sellingType.map((sellingType) => ({
                                 label: sellingType,
@@ -367,25 +383,19 @@ export default function Filter(props: FilterProps) {
                             title="Criado em"
                         />
                     </div>
+                    </div>
                 </div>
-                <DrawerFooter className="flex items-center">
-                    <Separator className="w-5/6 self-center " />
-                    <Button
-                        className="mt-5 h-9 w-full self-center"
-                        onClick={() => {
-                            setIsFilterDrawerOpen(false);
-                        }}
-                    >
-                        Aplicar Filtros
-                    </Button>
-                    <Button variant={"outline"} className="h-9 w-full self-center" onClick={resetFilters}>
-                        Limpar filtros
-                    </Button>
-                    <DrawerClose className="w-full" asChild>
-                        <Button variant="destructive" className="w-full">
-                            Cancelar
+                <DrawerFooter className="border-t border-zinc-200 dark:border-zinc-800 pt-4">
+                    <div className="flex gap-3 w-full">
+                        <Button variant={"outline"} className="flex-1 h-10" onClick={resetFilters}>
+                            Limpar filtros
                         </Button>
-                    </DrawerClose>
+                        <DrawerClose className="flex-1" asChild>
+                            <Button className="w-full h-10">
+                                Aplicar Filtros
+                            </Button>
+                        </DrawerClose>
+                    </div>
                 </DrawerFooter>
             </DrawerContent>
         </Drawer>

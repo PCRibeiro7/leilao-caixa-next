@@ -26,18 +26,32 @@ export default function Page() {
     }
 
     return (
-        <div className="w-[100%] h-[100%] overflow-y-clip relative">
+        <div className="w-full h-full overflow-y-clip relative">
             <MapContainer properties={properties} showLegend={false} map={map} setMap={setMap} />
-            <Button className="fixed top-0 right-0 z-10 m-[4px] md:m-[10px]" asChild>
-                <Link href="/table">
-                    <TableIcon /> Ver em Tabela
-                </Link>
-            </Button>
+
+            {/* Top bar */}
+            <div className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-3 py-2 md:px-4 md:py-3 pointer-events-none">
+                <div className="pointer-events-auto bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-xl shadow-lg px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-200 border border-white/30 dark:border-zinc-700/50 ml-10">
+                    <span className="font-bold text-zinc-900 dark:text-white">{properties.length.toLocaleString("pt-BR")}</span>{" "}
+                    imóveis
+                </div>
+                <Button
+                    className="pointer-events-auto bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md shadow-lg border border-white/30 dark:border-zinc-700/50 text-zinc-700 dark:text-zinc-200 hover:bg-white/95 dark:hover:bg-zinc-800/95 rounded-xl h-9 px-4 gap-2"
+                    variant="ghost"
+                    asChild
+                >
+                    <Link href="/table">
+                        <TableIcon className="w-4 h-4" /> Ver em Tabela
+                    </Link>
+                </Button>
+            </div>
+
+            {/* Filter button */}
             <Filter
                 allProperties={allProperties}
                 properties={properties}
                 setProperties={setProperties}
-                buttonClassName="md:w-1/4 m-[4px] md:m-[10px] text-base fixed bottom-0 md:mr-auto md:ml-auto left-0 right-0 z-10"
+                buttonClassName="fixed bottom-4 left-1/2 -translate-x-1/2 z-10 md:w-auto px-8 py-3 text-base rounded-full shadow-xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100 transition-all"
             />
         </div>
     );
