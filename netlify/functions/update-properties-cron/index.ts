@@ -1,4 +1,4 @@
-import fetchRawProperties from "@/scripts/functions/steps/fetch-raw-properties-puppeteer";
+import fetchRawPropertiesScrapeDo from "@/scripts/functions/steps/fetch-raw-properties-scrape-do";
 import { HandlerEvent } from "@netlify/functions";
 
 // To learn about scheduled functions and supported cron extensions,
@@ -8,7 +8,7 @@ export const handler = async (event: HandlerEvent) => {
     const eventBody = JSON.parse(event.body || "{}");
     console.log(`Next function run at ${eventBody?.next_run}.`);
 
-    await fetchRawProperties();
+    await fetchRawPropertiesScrapeDo();
 
     return {
         statusCode: 200,

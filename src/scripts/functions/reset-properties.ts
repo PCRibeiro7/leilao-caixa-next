@@ -1,6 +1,7 @@
 import cleanupProperties from "./steps/cleanup-properties";
 import deleteAllProperties from "./steps/cleanup-geocoded-properties";
-import fetchRawProperties from "./steps/fetch-raw-properties";
+import fetchRawPropertiesLocal from "./steps/fetch-raw-properties-local";
+import fetchRawPropertiesScrapeDo from "./steps/fetch-raw-properties-scrape-do";
 import parseProperties from "./steps/parse-properties";
 import fetchGeocodeData from "./steps/fetch-geocode-data";
 import safetyCheck from "./steps/safety-check";
@@ -11,7 +12,11 @@ export default async function resetProperties(shouldSafetyCheck = true) {
     }
     cleanupProperties();
     await deleteAllProperties();
-    await fetchRawProperties();
+    if (process.env.ENV === "prod") {
+        await fetchRawPropertiesScrapeDo();
+    } else {
+        await fetchRawPropertiesLocal();
+    }
     await parseProperties();
     await fetchGeocodeData();
 }
