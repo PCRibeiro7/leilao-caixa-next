@@ -51,9 +51,7 @@ export async function listFiles() {
     let offset = 0;
 
     while (true) {
-        const { data, error } = await supabase.storage
-            .from(PHOTO_BUCKET_NAME)
-            .list("", { limit: PAGE_SIZE, offset });
+        const { data, error } = await supabase.storage.from(PHOTO_BUCKET_NAME).list("", { limit: PAGE_SIZE, offset });
 
         if (error) {
             console.log("Failed to list files");

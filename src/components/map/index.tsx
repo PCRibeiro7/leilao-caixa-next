@@ -129,7 +129,6 @@ const MainMap = (props: MapProps) => {
                                 refsMap.delete(property.caixaId);
                             };
                         }}
-
                     >
                         <PropertyPopup property={property} />
                     </Marker>

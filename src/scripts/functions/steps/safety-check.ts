@@ -11,7 +11,7 @@ function askQuestion(query: string): Promise<string> {
         rl.question(query, (ans) => {
             rl.close();
             resolve(ans);
-        })
+        }),
     );
 }
 

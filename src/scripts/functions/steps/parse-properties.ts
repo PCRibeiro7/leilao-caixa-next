@@ -13,7 +13,9 @@ function getPropertyNumber(fullAddress: string): number | undefined {
     const addressWithoutDotsAndCommas = fullAddress.replace(/\.|,/g, "");
 
     const numberAsString =
-        addressWithoutDotsAndCommas.indexOf(" N ") !== -1 ? addressWithoutDotsAndCommas.split(" N ")[1].split(" ")[0].trim() : undefined;
+        addressWithoutDotsAndCommas.indexOf(" N ") !== -1
+            ? addressWithoutDotsAndCommas.split(" N ")[1].split(" ")[0].trim()
+            : undefined;
 
     let number: number | undefined = undefined;
     if (numberAsString) {
@@ -75,7 +77,7 @@ async function parseProperties(): Promise<void> {
                             "Modalidade de venda",
                             "Link de acesso",
                         ],
-                    })
+                    }),
                 )
                 .on("pipe", () => {
                     console.log("CSV file is being processed");
@@ -147,7 +149,7 @@ function parseLocaleNumber(stringNumber: string, locale: string) {
     return parseFloat(
         stringNumber
             .replace(new RegExp("\\" + thousandSeparator, "g"), "")
-            .replace(new RegExp("\\" + decimalSeparator), ".")
+            .replace(new RegExp("\\" + decimalSeparator), "."),
     );
 }
 

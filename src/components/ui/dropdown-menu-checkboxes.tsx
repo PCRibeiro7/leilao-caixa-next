@@ -42,7 +42,7 @@ export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
     const [search, setSearch] = useState("");
 
     const filteredAvailableOptions = availableOptions.filter((option) =>
-        search ? option.label.toLowerCase().includes(search.toLowerCase()) : true
+        search ? option.label.toLowerCase().includes(search.toLowerCase()) : true,
     );
 
     const visibleOptions = filteredAvailableOptions.slice(0, MAX_VISIBLE_OPTIONS);

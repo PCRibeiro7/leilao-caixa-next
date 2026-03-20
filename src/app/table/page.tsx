@@ -69,7 +69,10 @@ export default function Page() {
                     <div>
                         <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Lista de Imóveis</h2>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                            <span className="font-semibold text-zinc-700 dark:text-zinc-300">{properties.length.toLocaleString("pt-BR")}</span> imóveis encontrados
+                            <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+                                {properties.length.toLocaleString("pt-BR")}
+                            </span>{" "}
+                            imóveis encontrados
                         </p>
                     </div>
                     <Filter

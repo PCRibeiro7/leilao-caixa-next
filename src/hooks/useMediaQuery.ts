@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
  * Inspired by https://usehooks.com/useMedia/
  * https://gist.github.com/gragland/ed8cac563f5df71d78f4a1fefa8c5633
  */
-export default function useMediaQuery(query:string) {
+export default function useMediaQuery(query: string) {
     const [matches, setMatches] = useState(false);
     useEffect(
         () => {
@@ -16,7 +16,7 @@ export default function useMediaQuery(query:string) {
             mediaQuery.addEventListener("change", handler);
             return () => mediaQuery.removeEventListener("change", handler);
         },
-        [query] // Empty array ensures effect is only run on mount and unmount
+        [query], // Empty array ensures effect is only run on mount and unmount
     );
     return matches;
 }

@@ -24,30 +24,21 @@ export default function PropertyPopup({ property }: PropertyPopupProps) {
                 <div className="popup-card__body">
                     <p className="popup-card__address">{property.address}</p>
                     <p className="popup-card__location">
-                        {property.neighborhood}, {property.city} &ndash;{" "}
-                        {property.state}
+                        {property.neighborhood}, {property.city} &ndash; {property.state}
                     </p>
 
                     <div className="popup-card__price-row">
-                        <span className="popup-card__price">
-                            {property.priceAsCurrency}
-                        </span>
-                        <span className="popup-card__discount">
-                            -{property.discount}%
-                        </span>
+                        <span className="popup-card__price">{property.priceAsCurrency}</span>
+                        <span className="popup-card__discount">-{property.discount}%</span>
                     </div>
 
                     <div className="popup-card__details">
                         <span>{property.type}</span>
-                        {property.bedrooms ? (
-                            <span>{property.bedrooms} quartos</span>
-                        ) : null}
+                        {property.bedrooms ? <span>{property.bedrooms} quartos</span> : null}
                         <span>{getArea(property)} m&sup2;</span>
                     </div>
 
-                    <p className="popup-card__selling">
-                        {property.sellingType}
-                    </p>
+                    <p className="popup-card__selling">{property.sellingType}</p>
 
                     <div className="popup-card__links">
                         <a
@@ -60,9 +51,7 @@ export default function PropertyPopup({ property }: PropertyPopupProps) {
                         </a>
                         <a
                             href={`https://maps.google.com/?q=${
-                                property.number
-                                    ? `${property.street}, ${property.number}`
-                                    : property.address
+                                property.number ? `${property.street}, ${property.number}` : property.address
                             } - ${property.city}, ${property.state}`}
                             target="_blank"
                             rel="noopener noreferrer"

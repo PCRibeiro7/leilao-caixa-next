@@ -32,7 +32,9 @@ export default function Page() {
             {/* Top bar */}
             <div className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-3 py-2 md:px-4 md:py-3 pointer-events-none">
                 <div className="pointer-events-auto bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-xl shadow-lg px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-200 border border-white/30 dark:border-zinc-700/50 ml-10">
-                    <span className="font-bold text-zinc-900 dark:text-white">{properties.length.toLocaleString("pt-BR")}</span>{" "}
+                    <span className="font-bold text-zinc-900 dark:text-white">
+                        {properties.length.toLocaleString("pt-BR")}
+                    </span>{" "}
                     imóveis
                 </div>
                 <Button

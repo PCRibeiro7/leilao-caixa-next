@@ -52,7 +52,10 @@ export function DataTable<TData, TValue>({ columns, data, onRowClick }: DataTabl
                 <Table>
                     <TableHeader className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-900">
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id} className="border-b border-zinc-200 dark:border-zinc-800 hover:bg-transparent">
+                            <TableRow
+                                key={headerGroup.id}
+                                className="border-b border-zinc-200 dark:border-zinc-800 hover:bg-transparent"
+                            >
                                 {headerGroup.headers.map((header) => {
                                     return (
                                         <TableHead

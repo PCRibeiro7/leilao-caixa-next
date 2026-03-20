@@ -15,7 +15,7 @@ export default function MapContainer(props: MapProps) {
                 ),
                 ssr: false,
             }),
-        []
+        [],
     );
 
     return <Map {...props} />;

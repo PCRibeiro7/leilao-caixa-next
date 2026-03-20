@@ -172,7 +172,7 @@ export default function Filter(props: FilterProps) {
 
             setProperties(filteredProperties);
         },
-        [allProperties, setProperties]
+        [allProperties, setProperties],
     );
 
     useEffect(() => {
@@ -180,10 +180,10 @@ export default function Filter(props: FilterProps) {
             new Set(
                 allProperties
                     .filter(
-                        (property) => filters.state.includes(property.state) && filters.city.includes(property.city)
+                        (property) => filters.state.includes(property.state) && filters.city.includes(property.city),
                     )
-                    .map((property) => property.neighborhood)
-            )
+                    .map((property) => property.neighborhood),
+            ),
         )
             .filter((i) => i)
             .sort((a, b) => a.localeCompare(b));
@@ -195,8 +195,8 @@ export default function Filter(props: FilterProps) {
             new Set(
                 allProperties
                     .filter((property) => filters.state.includes(property.state))
-                    .map((property) => property.city)
-            )
+                    .map((property) => property.city),
+            ),
         )
             .filter((i) => i)
             .sort((a, b) => a.localeCompare(b));
@@ -207,21 +207,19 @@ export default function Filter(props: FilterProps) {
         const maxPrice = Math.max(...allProperties.map((property) => property.price).filter((i) => i));
         const minPrice = Math.min(...allProperties.map((property) => property.price).filter((i) => i));
         const minDiscount = Math.min(
-            ...allProperties.map((property) => property.discount || 0).filter((i) => i !== undefined)
+            ...allProperties.map((property) => property.discount || 0).filter((i) => i !== undefined),
         );
 
         const availableCreatedAtDates = Array.from(
             new Set(
                 allProperties
                     .sort((a, b) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0))
-                    .map((property) =>
-                        moment(property.createdAt).format("DD/MM/YYYY"),
-                    ),
+                    .map((property) => moment(property.createdAt).format("DD/MM/YYYY")),
             ),
         ).filter((i) => i);
-            
+
         const availableSellingTypes = Array.from(new Set(allProperties.map((property) => property.sellingType))).filter(
-            (i) => i
+            (i) => i,
         );
         const availableStates = Array.from(new Set(allProperties.map((property) => property.state)))
             .filter((i) => i)
@@ -261,7 +259,13 @@ export default function Filter(props: FilterProps) {
                     Filtrar Imóveis
                 </Button>
             </DrawerTrigger>
-            <DrawerContent className={isMd ? "h-screen top-0 right-0 left-auto mt-0 w-[460px] rounded-none border-l border-zinc-200 dark:border-zinc-800" : ""}>
+            <DrawerContent
+                className={
+                    isMd
+                        ? "h-screen top-0 right-0 left-auto mt-0 w-[460px] rounded-none border-l border-zinc-200 dark:border-zinc-800"
+                        : ""
+                }
+            >
                 <DrawerHeader className="pb-2">
                     <DrawerTitle className="text-xl font-bold">Filtrar imóveis</DrawerTitle>
                     <DrawerDescription className="flex items-center gap-2">
@@ -273,7 +277,9 @@ export default function Filter(props: FilterProps) {
                 </DrawerHeader>
                 <div className="space-y-4 px-4 pb-4 overflow-y-auto flex-1">
                     <div className="space-y-3">
-                        <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Preço e desconto</p>
+                        <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                            Preço e desconto
+                        </p>
                         <div className="grid grid-cols-2 gap-3">
                             <MoneyInput
                                 label="Preço Mínimo"
@@ -298,91 +304,99 @@ export default function Filter(props: FilterProps) {
                     </div>
                     <div className="h-px bg-zinc-200 dark:bg-zinc-800" />
                     <div className="space-y-3">
-                        <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Localização</p>
+                        <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                            Localização
+                        </p>
                         <div className="grid grid-cols-3 gap-2">
-                        <DropdownMenuCheckboxes
-                            availableOptions={initialFilters.state.map((state) => ({
-                                label: state,
-                                checked: filters.state.includes(state),
-                            }))}
-                            onCheckedChange={(label, checked) => handleCheckboxFilterChange("state", label, checked)}
-                            toggleAll={() => handleCheckboxFilterToggle("state")}
-                            title="Estado"
-                        />
-                        <DropdownMenuCheckboxes
-                            availableOptions={availableCities.map((city) => ({
-                                label: city,
-                                checked: filters.city.includes(city),
-                            }))}
-                            onCheckedChange={(label, checked) => handleCheckboxFilterChange("city", label, checked)}
-                            toggleAll={() => handleCheckboxFilterToggle("city")}
-                            title="Cidade"
-                        />
-                        <DropdownMenuCheckboxes
-                            availableOptions={availableNeighborhoods.map((neighborhood) => ({
-                                label: neighborhood,
-                                checked: filters.neighborhood.includes(neighborhood),
-                            }))}
-                            onCheckedChange={(label, checked) =>
-                                handleCheckboxFilterChange("neighborhood", label, checked)
-                            }
-                            toggleAll={() => handleCheckboxFilterToggle("neighborhood")}
-                            title="Bairro"
-                        />
-                    </div>
+                            <DropdownMenuCheckboxes
+                                availableOptions={initialFilters.state.map((state) => ({
+                                    label: state,
+                                    checked: filters.state.includes(state),
+                                }))}
+                                onCheckedChange={(label, checked) =>
+                                    handleCheckboxFilterChange("state", label, checked)
+                                }
+                                toggleAll={() => handleCheckboxFilterToggle("state")}
+                                title="Estado"
+                            />
+                            <DropdownMenuCheckboxes
+                                availableOptions={availableCities.map((city) => ({
+                                    label: city,
+                                    checked: filters.city.includes(city),
+                                }))}
+                                onCheckedChange={(label, checked) => handleCheckboxFilterChange("city", label, checked)}
+                                toggleAll={() => handleCheckboxFilterToggle("city")}
+                                title="Cidade"
+                            />
+                            <DropdownMenuCheckboxes
+                                availableOptions={availableNeighborhoods.map((neighborhood) => ({
+                                    label: neighborhood,
+                                    checked: filters.neighborhood.includes(neighborhood),
+                                }))}
+                                onCheckedChange={(label, checked) =>
+                                    handleCheckboxFilterChange("neighborhood", label, checked)
+                                }
+                                toggleAll={() => handleCheckboxFilterToggle("neighborhood")}
+                                title="Bairro"
+                            />
+                        </div>
                     </div>
                     <div className="h-px bg-zinc-200 dark:bg-zinc-800" />
                     <div className="space-y-3">
-                        <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Categoria e precisão</p>
+                        <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                            Categoria e precisão
+                        </p>
                         <div className="grid grid-cols-2 gap-2">
-                        <DropdownMenuCheckboxes
-                            availableOptions={initialFilters.sellingType.map((sellingType) => ({
-                                label: sellingType,
-                                checked: filters.sellingType.includes(sellingType),
-                            }))}
-                            onCheckedChange={(label, checked) =>
-                                handleCheckboxFilterChange("sellingType", label, checked)
-                            }
-                            toggleAll={() => handleCheckboxFilterToggle("sellingType")}
-                            title="Tipo de Venda"
-                        />
-                        <DropdownMenuCheckboxes
-                            availableOptions={initialFilters.type.map((type) => ({
-                                label: type,
-                                checked: filters.type.includes(type),
-                            }))}
-                            onCheckedChange={(label, checked) => handleCheckboxFilterChange("type", label, checked)}
-                            toggleAll={() => handleCheckboxFilterToggle("type")}
-                            title="Tipo de Imóvel"
-                        />
-                        <DropdownMenuCheckboxes
-                            availableOptions={(ToArray(GeocodePrecision) as GeocodePrecision[]).map((precision) => ({
-                                label: precision,
-                                display: mapGeocodePrecisionToDisplay[precision],
-                                checked: filters.geocodePrecision.includes(precision),
-                                icon: {
-                                    style: { background: mapGeocodePrecisionToColor[precision] },
-                                    className: `rounded-full w-[18px] h-[18px] float-left mr-2 `,
-                                },
-                            }))}
-                            onCheckedChange={(label, checked) =>
-                                handleCheckboxFilterChange("geocodePrecision", label, checked)
-                            }
-                            toggleAll={() => handleCheckboxFilterToggle("geocodePrecision")}
-                            title="Precisão"
-                        />
-                        <DropdownMenuCheckboxes
-                            availableOptions={initialFilters.createdAtDate.map((createdAtDate) => ({
-                                label: createdAtDate,
-                                checked: filters.createdAtDate.includes(createdAtDate),
-                            }))}
-                            onCheckedChange={(label, checked) =>
-                                handleCheckboxFilterChange("createdAtDate", label, checked)
-                            }
-                            toggleAll={() => handleCheckboxFilterToggle("createdAtDate")}
-                            title="Criado em"
-                        />
-                    </div>
+                            <DropdownMenuCheckboxes
+                                availableOptions={initialFilters.sellingType.map((sellingType) => ({
+                                    label: sellingType,
+                                    checked: filters.sellingType.includes(sellingType),
+                                }))}
+                                onCheckedChange={(label, checked) =>
+                                    handleCheckboxFilterChange("sellingType", label, checked)
+                                }
+                                toggleAll={() => handleCheckboxFilterToggle("sellingType")}
+                                title="Tipo de Venda"
+                            />
+                            <DropdownMenuCheckboxes
+                                availableOptions={initialFilters.type.map((type) => ({
+                                    label: type,
+                                    checked: filters.type.includes(type),
+                                }))}
+                                onCheckedChange={(label, checked) => handleCheckboxFilterChange("type", label, checked)}
+                                toggleAll={() => handleCheckboxFilterToggle("type")}
+                                title="Tipo de Imóvel"
+                            />
+                            <DropdownMenuCheckboxes
+                                availableOptions={(ToArray(GeocodePrecision) as GeocodePrecision[]).map(
+                                    (precision) => ({
+                                        label: precision,
+                                        display: mapGeocodePrecisionToDisplay[precision],
+                                        checked: filters.geocodePrecision.includes(precision),
+                                        icon: {
+                                            style: { background: mapGeocodePrecisionToColor[precision] },
+                                            className: `rounded-full w-[18px] h-[18px] float-left mr-2 `,
+                                        },
+                                    }),
+                                )}
+                                onCheckedChange={(label, checked) =>
+                                    handleCheckboxFilterChange("geocodePrecision", label, checked)
+                                }
+                                toggleAll={() => handleCheckboxFilterToggle("geocodePrecision")}
+                                title="Precisão"
+                            />
+                            <DropdownMenuCheckboxes
+                                availableOptions={initialFilters.createdAtDate.map((createdAtDate) => ({
+                                    label: createdAtDate,
+                                    checked: filters.createdAtDate.includes(createdAtDate),
+                                }))}
+                                onCheckedChange={(label, checked) =>
+                                    handleCheckboxFilterChange("createdAtDate", label, checked)
+                                }
+                                toggleAll={() => handleCheckboxFilterToggle("createdAtDate")}
+                                title="Criado em"
+                            />
+                        </div>
                     </div>
                 </div>
                 <DrawerFooter className="border-t border-zinc-200 dark:border-zinc-800 pt-4">
@@ -391,9 +405,7 @@ export default function Filter(props: FilterProps) {
                             Limpar filtros
                         </Button>
                         <DrawerClose className="flex-1" asChild>
-                            <Button className="w-full h-10">
-                                Aplicar Filtros
-                            </Button>
+                            <Button className="w-full h-10">Aplicar Filtros</Button>
                         </DrawerClose>
                     </div>
                 </DrawerFooter>

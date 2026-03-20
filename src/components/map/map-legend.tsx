@@ -16,7 +16,7 @@ function Legend({ map }: Props) {
             legend.onAdd = () => {
                 const div = DomUtil.create(
                     "div",
-                    "bg-white px-2 py-1.5 rounded-[5px] text-left leading-[18px] text-[#555] flex flex-col space-y-1 !ml-[4px] md:!ml-[10px] !mb-[44px] md:!mb-[10px] "
+                    "bg-white px-2 py-1.5 rounded-[5px] text-left leading-[18px] text-[#555] flex flex-col space-y-1 !ml-[4px] md:!ml-[10px] !mb-[44px] md:!mb-[10px] ",
                 );
                 const geocodePrecisions = ToArray(GeocodePrecision) as GeocodePrecision[];
                 const content = geocodePrecisions.map(
@@ -25,7 +25,7 @@ function Legend({ map }: Props) {
                         mapGeocodePrecisionToColor[precision] +
                         '" class="rounded-full w-[18px] h-[18px] float-left mr-2"></i> ' +
                         mapGeocodePrecisionToDisplay[precision] +
-                        "</div>"
+                        "</div>",
                 );
                 div.innerHTML = '<p class="text-md font-bold mb-2">Precisão da Localização:</p>' + content.join("");
 

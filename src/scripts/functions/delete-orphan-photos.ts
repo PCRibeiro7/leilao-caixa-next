@@ -1,5 +1,3 @@
-
-
 import { deletePhoto, listFiles } from "@/services/photos";
 import { fetchAllProperties } from "@/services/properties";
 
