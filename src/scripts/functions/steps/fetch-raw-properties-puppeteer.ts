@@ -98,5 +98,3 @@ async function downloadFile(): Promise<void> {
 }
 
 export default downloadFile;
-
-downloadFile();
