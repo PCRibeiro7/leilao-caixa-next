@@ -29,25 +29,46 @@ async function downloadFile(): Promise<void> {
     const [page] = await browser.pages();
     await page.setUserAgent(CHROME_UA);
 
-    // First visit the download page to establish session cookies
+    // Visit the download page
     await page.goto("https://venda-imoveis.caixa.gov.br/sistema/download-lista.asp", {
         waitUntil: "networkidle2",
     });
 
-    // Fetch the CSV from within the page context (session cookies are inherited)
-    // Using page.goto would fail with ERR_ABORTED since the server sends it as a download
-    const csvContent = await page.evaluate(async (csvUrl: string) => {
-        const response = await fetch(csvUrl, { credentials: "include" });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return await response.text();
-    }, url);
+    // Interact with the form to establish a valid session
+    await page.select("#cmb_estado", "RJ");
+
+    // Set up response listener BEFORE clicking
+    const csvResponsePromise = page.waitForResponse(
+        (res) => res.url().includes("Lista_imoveis") && res.url().endsWith(".csv"),
+        { timeout: 10000 },
+    );
+
+    await page.click("#btn_next1");
+
+    let csvContent: string;
+    try {
+        const csvResponse = await csvResponsePromise;
+        const csvBuffer = await csvResponse.buffer();
+        csvContent = csvBuffer.toString("latin1");
+    } catch {
+        console.log("Failed to capture CSV response, falling back to page fetch method.");
+        // If waitForResponse times out, the button may have triggered a navigation
+        // or the download works differently — fall back to fetch from page context
+        csvContent = await page.evaluate(async (csvUrl: string) => {
+            const response = await fetch(csvUrl, { credentials: "include" });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return await response.text();
+        }, url);
+    }
 
     const parsedCsv = csvContent.split("\n").slice(4).join("\n");
 
-    console.log(parsedCsv);
+    // console.log(parsedCsv);
     writeFileSync(PROPERTIES_RAW_PATH, parsedCsv, { encoding: "latin1" });
 
     return browser.close();
 }
 
 export default downloadFile;
+
+downloadFile();
