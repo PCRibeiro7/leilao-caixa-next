@@ -27,7 +27,7 @@ export default function Page() {
 
     return (
         <div className="w-[100%] h-[100%] overflow-y-clip relative">
-            <MapContainer properties={properties} showLegend={true} map={map} setMap={setMap} />
+            <MapContainer properties={properties} showLegend={false} map={map} setMap={setMap} />
             <Button className="fixed top-0 right-0 z-10 m-[4px] md:m-[10px]" asChild>
                 <Link href="/table">
                     <TableIcon /> Ver em Tabela
