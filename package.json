@@ -10,7 +10,6 @@
         "lint": "next lint",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "delete-orphan-photos": "tsx ./src/scripts/run-delete-orphan-photos.ts",
         "update-base-properties": "tsx ./src/scripts/run-update-base-properties.ts",
         "update-properties": "tsx ./src/scripts/run-update-properties.ts",
         "reset-properties": "tsx ./src/scripts/run-reset-properties.ts"

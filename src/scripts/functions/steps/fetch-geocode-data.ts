@@ -1,6 +1,5 @@
 import { PROPERTIES_FILENAME } from "@/consts/filePaths";
 import { addBoundingBox, fetchBoundingBoxes, FetchBoundingBoxFilter } from "@/services/boundingBoxes";
-import { deletePhoto, getImage, uploadPhoto } from "@/services/photos";
 import { addProperty, deleteProperties, fetchAllProperties } from "@/services/properties";
 import { GeocodedProperty, GeocodePrecision, GeocodeProvider, Property } from "@/types/Property";
 import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
@@ -48,7 +47,7 @@ async function fetchGeocodeData(maxProperties?: number): Promise<{ remaining: nu
 
     if (geocodedPropertiesToRemove.length > 0) {
         console.log(`Removing properties`);
-        await removeProperties(geocodedPropertiesToRemove.map((property) => property.caixaId));
+        await deleteProperties(geocodedPropertiesToRemove.map((property) => property.caixaId));
     }
 
     const newProperties = properties.filter((property) => {
@@ -115,19 +114,6 @@ async function fetchGeocodeData(maxProperties?: number): Promise<{ remaining: nu
     return { remaining };
 }
 
-async function removeProperties(caixaIds: string[]): Promise<void> {
-    await Promise.all([deletePhoto(caixaIds), deleteProperties(caixaIds)]);
-}
-
-async function uploadProperty(geocodedProperty: GeocodedProperty): Promise<void> {
-    await addProperty(geocodedProperty);
-
-    const base64 = await getImage(geocodedProperty.caixaId);
-    if (base64) {
-        await uploadPhoto(geocodedProperty.caixaId, base64);
-    }
-}
-
 async function geocodeProperties(properties: Property[], batchSize = 1): Promise<void> {
     let batch: Promise<GeocodedProperty | undefined>[] = [];
 
@@ -144,7 +130,7 @@ async function geocodeProperties(properties: Property[], batchSize = 1): Promise
             const results = await Promise.all(batch);
             for (const geocoded of results) {
                 if (geocoded) {
-                    await uploadProperty(geocoded);
+                    await addProperty(geocoded);
                 }
             }
             batch = [];

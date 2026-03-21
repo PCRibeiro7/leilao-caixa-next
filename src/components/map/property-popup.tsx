@@ -10,12 +10,19 @@ type PropertyPopupProps = {
 };
 
 export default function PropertyPopup({ property }: PropertyPopupProps) {
+    const getImageSrc = (propertyId: string, retryCount: number) => {
+        const imageId = `${propertyId}${21 + retryCount}`.padStart(15, "0");
+        const imageUrl = `https://venda-imoveis.caixa.gov.br/fotos/F${imageId}.jpg`;
+
+        return imageUrl;
+    };
+
     return (
         <Popup className="custom-popup" minWidth={260} maxWidth={260}>
             <div className="popup-card">
                 <Image
                     alt="foto-imovel"
-                    src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${property.caixaId}.jpg`}
+                    src={getImageSrc(property.caixaId, 0)}
                     className="popup-card__img"
                     width={260}
                     height={150}
