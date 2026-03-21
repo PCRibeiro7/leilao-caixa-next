@@ -3,8 +3,9 @@ import { uploadTmpFile } from "@/services/tmpStorage";
 import axios from "axios";
 import { Stream } from "stream";
 
-async function fetchRawPropertiesLocal(): Promise<void> {
-    const states = ["RJ"];
+const CAIXA_CSV_HEADER_LINES = 4;
+
+export async function fetchCsvDirect(states: string[]): Promise<void> {
     let allCsvContent = "";
 
     for (const state of states) {
@@ -21,7 +22,7 @@ async function fetchRawPropertiesLocal(): Promise<void> {
                 });
 
                 response.data.on("end", () => {
-                    content = content.split("\n").slice(4).join("\n");
+                    content = content.split("\n").slice(CAIXA_CSV_HEADER_LINES).join("\n");
                     resolve(content);
                 });
             } catch (error) {
@@ -35,5 +36,3 @@ async function fetchRawPropertiesLocal(): Promise<void> {
     await uploadTmpFile(PROPERTIES_RAW_FILENAME, allCsvContent);
     console.log(`[local] CSV uploaded to storage (${allCsvContent.length} bytes)`);
 }
-
-export default fetchRawPropertiesLocal;

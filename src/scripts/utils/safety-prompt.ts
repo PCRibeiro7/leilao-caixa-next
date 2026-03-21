@@ -15,7 +15,7 @@ function askQuestion(query: string): Promise<string> {
     );
 }
 
-const safetyCheck = async (question: string, errorType: "abort" | "return") => {
+const safetyPrompt = async (question: string, errorType: "abort" | "return") => {
     const ans = await askQuestion(`${question} (Y/N): `);
     if (!["y", "yes"].includes(ans.toLowerCase())) {
         console.log("Script aborted");
@@ -29,4 +29,4 @@ const safetyCheck = async (question: string, errorType: "abort" | "return") => {
     return true;
 };
 
-export default safetyCheck;
+export default safetyPrompt;

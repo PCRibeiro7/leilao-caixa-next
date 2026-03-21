@@ -1,8 +1,7 @@
-import cleanupProperties from "@/scripts/functions/steps/cleanup-properties";
-import fetchRawPropertiesLocal from "@/scripts/functions/steps/fetch-raw-properties-local";
-import fetchRawPropertiesScrapeDo from "@/scripts/functions/steps/fetch-raw-properties-scrape-do";
-import parseProperties from "@/scripts/functions/steps/parse-properties";
-import fetchGeocodeData from "@/scripts/functions/steps/fetch-geocode-data";
+import cleanupTmpFiles from "@/scripts/steps/cleanup-tmp-files";
+import fetchRawCsv from "@/scripts/steps/fetch-raw-csv";
+import parseCsvToProperties from "@/scripts/steps/parse-csv-to-properties";
+import geocodeProperties from "@/scripts/steps/geocode-properties";
 import { getPipelineState, setPipelineState, PipelineStep } from "@/services/pipelineState";
 import { HandlerEvent, schedule } from "@netlify/functions";
 
@@ -32,39 +31,35 @@ export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
                 }
                 console.log("Starting pipeline: cleanup");
                 await setPipelineState(PipelineStep.CLEANUP);
-                await cleanupProperties();
+                await cleanupTmpFiles();
                 await setPipelineState(PipelineStep.FETCH);
                 console.log("Cleanup done. Next: fetch");
                 break;
             }
 
             case PipelineStep.CLEANUP: {
-                await cleanupProperties();
+                await cleanupTmpFiles();
                 await setPipelineState(PipelineStep.FETCH);
                 console.log("Cleanup done. Next: fetch");
                 break;
             }
 
             case PipelineStep.FETCH: {
-                if (process.env.ENV === "prod") {
-                    await fetchRawPropertiesScrapeDo();
-                } else {
-                    await fetchRawPropertiesLocal();
-                }
+                await fetchRawCsv();
                 await setPipelineState(PipelineStep.PARSE);
                 console.log("Fetch done. Next: parse");
                 break;
             }
 
             case PipelineStep.PARSE: {
-                await parseProperties();
+                await parseCsvToProperties();
                 await setPipelineState(PipelineStep.GEOCODE);
                 console.log("Parse done. Next: geocode");
                 break;
             }
 
             case PipelineStep.GEOCODE: {
-                const { remaining } = await fetchGeocodeData(GEOCODE_BATCH_SIZE);
+                const { remaining } = await geocodeProperties(GEOCODE_BATCH_SIZE);
                 if (remaining > 0) {
                     console.log(`Geocoded batch. ${remaining} properties remaining.`);
                 } else {

@@ -10,9 +10,9 @@
         "lint": "next lint",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "update-base-properties": "tsx ./src/scripts/run-update-base-properties.ts",
-        "update-properties": "tsx ./src/scripts/run-update-properties.ts",
-        "reset-properties": "tsx ./src/scripts/run-reset-properties.ts"
+        "update-base-properties": "tsx ./src/scripts/cli/update-base-properties.ts",
+        "update-properties": "tsx ./src/scripts/cli/update-properties.ts",
+        "reset-properties": "tsx ./src/scripts/cli/reset-properties.ts"
     },
     "dependencies": {
         "@netlify/functions": "^2.8.2",
