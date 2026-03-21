@@ -10,7 +10,7 @@ const GEOCODE_BATCH_SIZE = 5000;
 const COOLDOWN_HOURS = 6;
 
 // Runs every 5 minutes; each invocation executes one pipeline step
-// to stay within the 10-second Netlify function timeout.
+// to stay within the 30-second Netlify function timeout.
 export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
     const eventBody = JSON.parse(event.body || "{}");
     console.log(`Next function run at ${eventBody?.next_run}.`);
