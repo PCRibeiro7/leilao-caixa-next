@@ -89,8 +89,14 @@ const MainMap = (props: MapProps) => {
 
     if (properties.length === 0) {
         return (
-            <div className="flex justify-center items-center h-[100%]">
-                <p className="text-2xl text-center">Nenhum imóvel encontrado para o filtro selecionado</p>
+            <div className="flex flex-col justify-center items-center h-[100%] gap-4 bg-zinc-50 dark:bg-zinc-950 px-6">
+                <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400 dark:text-zinc-500"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+                </div>
+                <div className="text-center">
+                    <p className="text-lg font-semibold text-zinc-700 dark:text-zinc-200">Nenhum imóvel encontrado</p>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Tente ajustar os filtros para ver mais resultados</p>
+                </div>
             </div>
         );
     }
