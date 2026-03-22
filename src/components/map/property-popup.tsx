@@ -1,32 +1,42 @@
 "use client";
 import { GeocodedProperty } from "@/types/Property";
 import Image from "next/image";
+import { useState } from "react";
 import { Popup } from "react-leaflet";
 import { getArea } from "../properties-table/columns";
 import "./property-popup.css";
+
+const FALLBACK_IMAGE = "/placeholder-property.svg";
+const MAX_RETRIES = 2;
 
 type PropertyPopupProps = {
     property: GeocodedProperty;
 };
 
 export default function PropertyPopup({ property }: PropertyPopupProps) {
-    const getImageSrc = (propertyId: string, retryCount: number) => {
-        const imageId = `${propertyId}${21 + retryCount}`.padStart(15, "0");
-        const imageUrl = `https://venda-imoveis.caixa.gov.br/fotos/F${imageId}.jpg`;
+    const [retryCount, setRetryCount] = useState(0);
 
-        return imageUrl;
+    const getImageSrc = (propertyId: string, retry: number) => {
+        const imageId = `${propertyId}${21 + retry}`.padStart(15, "0");
+        return `https://venda-imoveis.caixa.gov.br/fotos/F${imageId}.jpg`;
     };
+
+    const imageSrc =
+        retryCount > MAX_RETRIES
+            ? FALLBACK_IMAGE
+            : getImageSrc(property.caixaId, retryCount);
 
     return (
         <Popup className="custom-popup" minWidth={260} maxWidth={260}>
             <div className="popup-card">
                 <Image
                     alt="foto-imovel"
-                    src={getImageSrc(property.caixaId, 0)}
+                    src={imageSrc}
                     className="popup-card__img"
                     width={260}
                     height={150}
                     unoptimized
+                    onError={() => setRetryCount((c) => c + 1)}
                 />
                 <div className="popup-card__body">
                     <p className="popup-card__address">{property.address}</p>
