@@ -17,128 +17,66 @@ type GeocoderFn = (
     property: Property,
     attemptCount: number,
     boundingBox?: Coordinates,
-) => Promise<{ lat: number; lng: number } | null | 'exhausted'>;
+) => Promise<{ lat: number; lng: number } | null | "exhausted">;
 
-interface GeocoderLink {
+interface GeocoderStep {
     provider: GeocodeProvider;
     geocode: GeocoderFn;
-    nextOnFail: GeocoderLink | null;
-    nextAttemptOnFail: number | null;
+    maxAttempts: number;
 }
 
-// Build the fallback chain:
-// GoogleMaps (attempt 0) → GoogleMaps (attempt 1) → Radar → Radar → GeocodeMaps → GeocodeMaps → GeocodeMaps → Nominatim (attempt 3) → Nominatim (attempt 4)
-// The chain mirrors the original recursive fallback logic exactly.
-
-const nominatimLink4: GeocoderLink = {
-    provider: GeocodeProvider.Nominatim,
-    geocode: fetchNominatimGeocode,
-    nextOnFail: null,
-    nextAttemptOnFail: null,
-};
-
-const nominatimLink3: GeocoderLink = {
-    provider: GeocodeProvider.Nominatim,
-    geocode: fetchNominatimGeocode,
-    nextOnFail: nominatimLink4,
-    nextAttemptOnFail: 4,
-};
-
-const geocodeMapsLink3: GeocoderLink = {
-    provider: GeocodeProvider.GeocodeMaps,
-    geocode: fetchGeocodeMapsGeocode,
-    nextOnFail: nominatimLink3,
-    nextAttemptOnFail: 3,
-};
-
-const radarLink3: GeocoderLink = {
-    provider: GeocodeProvider.Radar,
-    geocode: fetchRadarGeocode,
-    nextOnFail: geocodeMapsLink3,
-    nextAttemptOnFail: 3,
-};
-
-const radarLink2: GeocoderLink = {
-    provider: GeocodeProvider.Radar,
-    geocode: fetchRadarGeocode,
-    nextOnFail: radarLink3,
-    nextAttemptOnFail: 3,
-};
-
-const radarLink1: GeocoderLink = {
-    provider: GeocodeProvider.Radar,
-    geocode: fetchRadarGeocode,
-    nextOnFail: radarLink2,
-    nextAttemptOnFail: 2,
-};
-
-const googleLink1: GeocoderLink = {
-    provider: GeocodeProvider.GoogleMaps,
-    geocode: fetchGoogleMapsGeocode,
-    nextOnFail: radarLink1,
-    nextAttemptOnFail: 1,
-};
-
-const googleLink0: GeocoderLink = {
-    provider: GeocodeProvider.GoogleMaps,
-    geocode: fetchGoogleMapsGeocode,
-    nextOnFail: googleLink1,
-    nextAttemptOnFail: 1,
-};
+// Providers are tried in order. Each provider gets up to maxAttempts tries
+// (with increasing address simplification) before moving to the next.
+const GEOCODER_CHAIN: GeocoderStep[] = [
+    { provider: GeocodeProvider.GoogleMaps, geocode: fetchGoogleMapsGeocode, maxAttempts: 3 },
+    { provider: GeocodeProvider.GeocodeMaps, geocode: fetchGeocodeMapsGeocode, maxAttempts: 3 },
+    { provider: GeocodeProvider.Nominatim, geocode: fetchNominatimGeocode, maxAttempts: 3 },
+    { provider: GeocodeProvider.Radar, geocode: fetchRadarGeocode, maxAttempts: 3 },
+];
 
 const exhaustedProviders = new Set<GeocodeProvider>();
+
+function isWithinBounds(lat: number, lng: number, box: Coordinates): boolean {
+    return (
+        lat >= box.latitude1 &&
+        lat <= box.latitude2 &&
+        lng >= box.longitude1 &&
+        lng <= box.longitude2
+    );
+}
 
 export async function resolveGeocode(
     property: Property,
     boundingBox?: Coordinates,
 ): Promise<{ lat: number; lng: number; precision: GeocodePrecision; provider: GeocodeProvider } | undefined> {
-    let current: GeocoderLink | null = googleLink0;
-    let attemptCount = 0;
+    for (const step of GEOCODER_CHAIN) {
+        if (exhaustedProviders.has(step.provider)) continue;
 
-    while (current) {
-        if (exhaustedProviders.has(current.provider)) {
-            if (current.nextAttemptOnFail != null) {
-                attemptCount = current.nextAttemptOnFail;
+        for (let attempt = 0; attempt < step.maxAttempts; attempt++) {
+            const result = await step.geocode(property, attempt, boundingBox);
+
+            if (result === "exhausted") {
+                exhaustedProviders.add(step.provider);
+                console.log(`Provider ${step.provider} marked as exhausted for the rest of this execution.`);
+                break;
             }
-            current = current.nextOnFail;
-            continue;
-        }
 
-        const result = await current.geocode(property, attemptCount, boundingBox);
+            if (!result) continue;
 
-        if (result === 'exhausted') {
-            exhaustedProviders.add(current.provider);
-            console.log(`Provider ${current.provider} marked as exhausted for the rest of this execution.`);
-            if (current.nextAttemptOnFail != null) {
-                attemptCount = current.nextAttemptOnFail;
-            }
-            current = current.nextOnFail;
-            continue;
-        }
-
-        if (result) {
-            if (boundingBox) {
-                if (result.lat < boundingBox.latitude1 || result.lat > boundingBox.latitude2) {
-                    console.log(`Latitude ${result.lat} out of bounds for city: ${property.city}`);
-                }
-                if (result.lng < boundingBox.longitude1 || result.lng > boundingBox.longitude2) {
-                    console.log(`Longitude ${result.lng} out of bounds for city: ${property.city}`);
-                }
+            if (boundingBox && !isWithinBounds(result.lat, result.lng, boundingBox)) {
+                console.log(
+                    `Result out of bounds for city: ${property.city} (lat: ${result.lat}, lng: ${result.lng}). Trying next attempt/provider.`,
+                );
+                continue;
             }
 
             return {
                 lat: result.lat,
                 lng: result.lng,
-                precision: mapAttemptCountToPrecision[attemptCount],
-                provider: current.provider,
+                precision: mapAttemptCountToPrecision[attempt],
+                provider: step.provider,
             };
         }
-
-        // Move to next in chain
-        if (current.nextAttemptOnFail != null) {
-            attemptCount = current.nextAttemptOnFail;
-        }
-        current = current.nextOnFail;
     }
 
     console.warn(`Geocoding failed for address: ${property.address}, ${property.city}, ${property.state}`);
