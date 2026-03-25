@@ -1,4 +1,3 @@
-import cleanupTmpFiles from "@/scripts/steps/cleanup-tmp-files";
 import deleteAllGeocodedProperties from "@/scripts/steps/delete-all-properties";
 import fetchRawCsv from "@/scripts/steps/fetch-raw-csv";
 import parseCsvToProperties from "@/scripts/steps/parse-csv-to-properties";
@@ -9,7 +8,6 @@ export default async function resetPropertiesPipeline(shouldSafetyCheck = true) 
     if (shouldSafetyCheck) {
         await safetyPrompt("Are you sure you want to DELETE all properties?", "abort");
     }
-    await cleanupTmpFiles();
     await deleteAllGeocodedProperties();
     await fetchRawCsv();
     await parseCsvToProperties();

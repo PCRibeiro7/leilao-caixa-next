@@ -27,13 +27,3 @@ export async function downloadTmpFile(fileName: string): Promise<string | undefi
     const buffer = Buffer.from(await data.arrayBuffer());
     return buffer.toString("latin1");
 }
-
-export async function deleteTmpFiles(fileNames: string[]): Promise<void> {
-    if (fileNames.length === 0) return;
-
-    const { error } = await supabase.storage.from(BUCKET_NAME).remove(fileNames);
-
-    if (error) {
-        console.log(`Failed to delete files: ${error.message}`);
-    }
-}

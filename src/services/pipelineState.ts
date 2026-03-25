@@ -4,7 +4,6 @@ const PIPELINE_STATE_FILENAME = "pipeline-state.json";
 
 export enum PipelineStep {
     IDLE = "idle",
-    CLEANUP = "cleanup",
     FETCH = "fetch",
     PARSE = "parse",
     GEOCODE = "geocode",

@@ -1,4 +1,3 @@
-import cleanupTmpFiles from "@/scripts/steps/cleanup-tmp-files";
 import fetchRawCsv from "@/scripts/steps/fetch-raw-csv";
 import parseCsvToProperties from "@/scripts/steps/parse-csv-to-properties";
 import geocodeProperties from "@/scripts/steps/geocode-properties";
@@ -29,18 +28,8 @@ export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
                     );
                     break;
                 }
-                console.log("Starting pipeline: cleanup");
-                await setPipelineState(PipelineStep.CLEANUP);
-                await cleanupTmpFiles();
                 await setPipelineState(PipelineStep.FETCH);
-                console.log("Cleanup done. Next: fetch");
-                break;
-            }
-
-            case PipelineStep.CLEANUP: {
-                await cleanupTmpFiles();
-                await setPipelineState(PipelineStep.FETCH);
-                console.log("Cleanup done. Next: fetch");
+                console.log("Idle done. Next: fetch");
                 break;
             }
 
