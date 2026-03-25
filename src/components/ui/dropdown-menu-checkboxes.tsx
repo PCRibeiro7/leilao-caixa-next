@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, useRef, useState } from "react";
+import { CSSProperties, useCallback, useRef, useState } from "react";
 import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
 
 import { Button } from "@/components/ui/button";
@@ -31,10 +31,9 @@ type DropdownMenuCheckboxesProps = {
     toggleAll?: () => void;
 };
 
-const MAX_VISIBLE_OPTIONS = 20;
-
 export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
     const { title, availableOptions, onCheckedChange, toggleAll } = props;
+    const [visibleOptionsCount, setVisibleOptionsCount] = useState(20);
 
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -45,7 +44,21 @@ export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
         search ? option.label.toLowerCase().includes(search.toLowerCase()) : true,
     );
 
-    const visibleOptions = filteredAvailableOptions.slice(0, MAX_VISIBLE_OPTIONS);
+    const visibleOptions = filteredAvailableOptions.slice(0, visibleOptionsCount);
+
+    const handleScroll = useCallback(
+        (e: React.UIEvent<HTMLDivElement>) => {
+            const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+            const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+            
+            const hiddenOptions = filteredAvailableOptions.length - visibleOptionsCount;
+
+            if (distanceFromBottom < 50 && hiddenOptions > 0) {
+                setVisibleOptionsCount((prev) => prev + 20);
+            }
+        },
+        [filteredAvailableOptions.length, visibleOptionsCount],
+    );
 
     return (
         <DropdownMenu open={isOpen}>
@@ -54,7 +67,13 @@ export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
                     {title}
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" onInteractOutside={() => setIsOpen(false)}>
+            <DropdownMenuContent
+                className="w-56"
+                onInteractOutside={() => {
+                    setIsOpen(false);
+                    setVisibleOptionsCount(20);
+                }}
+            >
                 <DropdownMenuLabel>
                     <Button className="w-full" variant={"outline"} onClick={toggleAll}>
                         {availableOptions.find((option) => option.checked) ? "Desabilitar Todos" : "Habilitar Todos"}
@@ -71,7 +90,7 @@ export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
                     />
                 </div>
                 <DropdownMenuSeparator />
-                <div className="max-h-[40dvh] overflow-y-auto">
+                <div className="max-h-[40dvh] overflow-y-auto" onScroll={handleScroll}>
                     {visibleOptions.map((option) => (
                         <DropdownMenuCheckboxItem
                             className="cursor-pointer"
@@ -83,11 +102,6 @@ export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
                             {option.display || option.label}
                         </DropdownMenuCheckboxItem>
                     ))}
-                    {filteredAvailableOptions.length > MAX_VISIBLE_OPTIONS && (
-                        <DropdownMenuLabel className="text-center" onClick={() => inputRef.current?.focus()}>
-                            ...
-                        </DropdownMenuLabel>
-                    )}
                     {filteredAvailableOptions.length === 0 && (
                         <DropdownMenuLabel className="text-center">Nenhum resultado encontrado</DropdownMenuLabel>
                     )}
