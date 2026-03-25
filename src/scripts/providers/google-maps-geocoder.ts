@@ -8,7 +8,7 @@ export async function fetchGoogleMapsGeocode(
     property: Property,
     attemptCount: number,
     boundingBox?: Coordinates,
-): Promise<{ lat: number; lng: number } | null> {
+): Promise<{ lat: number; lng: number } | null | 'exhausted'> {
     const address = formatAddress(property, attemptCount);
     if (!boundingBox) {
         console.log(`No bounding box for Google Maps geocoding: ${property.city}`);
@@ -17,7 +17,7 @@ export async function fetchGoogleMapsGeocode(
     if (!canMakeGoogleGeocodeRequest()) {
         const { count, limit } = getGoogleGeocodeUsage();
         console.log(`Google Geocoding monthly limit reached (${count}/${limit}). Skipping.`);
-        return null;
+        return 'exhausted';
     }
     try {
         incrementGoogleGeocodeCount();

@@ -42,7 +42,11 @@ export async function syncGoogleGeocodeUsage(): Promise<void> {
 
     const client = new MetricServiceClient();
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    // Google resets monthly quotas at midnight Pacific Time (America/Los_Angeles)
+    const utcRef = new Date(now.toLocaleString("en-US", { timeZone: "UTC" }));
+    const ptRef = new Date(now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+    const ptOffsetMs = ptRef.getTime() - utcRef.getTime();
+    const startOfMonth = new Date(Date.UTC(ptRef.getFullYear(), ptRef.getMonth(), 1) - ptOffsetMs);
 
     const [timeSeries] = await client.listTimeSeries({
         name: `projects/${projectId}`,

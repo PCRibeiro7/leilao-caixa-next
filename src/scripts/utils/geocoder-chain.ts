@@ -17,7 +17,7 @@ type GeocoderFn = (
     property: Property,
     attemptCount: number,
     boundingBox?: Coordinates,
-) => Promise<{ lat: number; lng: number } | null>;
+) => Promise<{ lat: number; lng: number } | null | 'exhausted'>;
 
 interface GeocoderLink {
     provider: GeocodeProvider;
@@ -86,6 +86,8 @@ const googleLink0: GeocoderLink = {
     nextAttemptOnFail: 1,
 };
 
+const exhaustedProviders = new Set<GeocodeProvider>();
+
 export async function resolveGeocode(
     property: Property,
     boundingBox?: Coordinates,
@@ -94,7 +96,25 @@ export async function resolveGeocode(
     let attemptCount = 0;
 
     while (current) {
+        if (exhaustedProviders.has(current.provider)) {
+            if (current.nextAttemptOnFail != null) {
+                attemptCount = current.nextAttemptOnFail;
+            }
+            current = current.nextOnFail;
+            continue;
+        }
+
         const result = await current.geocode(property, attemptCount, boundingBox);
+
+        if (result === 'exhausted') {
+            exhaustedProviders.add(current.provider);
+            console.log(`Provider ${current.provider} marked as exhausted for the rest of this execution.`);
+            if (current.nextAttemptOnFail != null) {
+                attemptCount = current.nextAttemptOnFail;
+            }
+            current = current.nextOnFail;
+            continue;
+        }
 
         if (result) {
             if (boundingBox) {
