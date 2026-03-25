@@ -15,6 +15,7 @@
         "reset-properties": "tsx ./src/scripts/cli/reset-properties.ts"
     },
     "dependencies": {
+        "@google-cloud/monitoring": "^5.3.1",
         "@netlify/functions": "^2.8.2",
         "@radix-ui/react-dialog": "^1.1.2",
         "@radix-ui/react-dropdown-menu": "^2.1.2",

@@ -5,6 +5,7 @@ import { GeocodedProperty, Property } from "@/types/Property";
 import readJsonlFileAsJsonArray from "@/utils/readJsonFile";
 import { Coordinates } from "@/scripts/providers/geocoder-common";
 import { resolveGeocode } from "@/scripts/utils/geocoder-chain";
+import { syncGoogleGeocodeUsage } from "@/scripts/utils/google-geocode-usage";
 import axios from "axios";
 import "dotenv/config";
 
@@ -43,6 +44,7 @@ export default async function geocodeProperties(maxProperties?: number): Promise
     }
 
     await loadBoundingBoxes(newProperties);
+    await syncGoogleGeocodeUsage();
 
     const propertiesToProcess = maxProperties != null ? newProperties.slice(0, maxProperties) : newProperties;
 
