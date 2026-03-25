@@ -20,6 +20,7 @@ export async function fetchGoogleMapsGeocode(
         return null;
     }
     try {
+        incrementGoogleGeocodeCount();
         const bounds = `${boundingBox.latitude1},${boundingBox.longitude1}|${boundingBox.latitude2},${boundingBox.longitude2}`;
         const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
             params: {
@@ -34,7 +35,6 @@ export async function fetchGoogleMapsGeocode(
         });
 
         if (response.data.results.length > 0) {
-            incrementGoogleGeocodeCount();
             const location = response.data.results[0].geometry.location;
             return {
                 lat: parseFloat(location.lat),
