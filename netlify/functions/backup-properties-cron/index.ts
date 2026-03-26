@@ -3,7 +3,7 @@ import { createClient } from "@/utils/supabase/client";
 import { schedule } from "@netlify/functions";
 
 const BUCKET_NAME = "properties-backups";
-const RETENTION_DAYS = 7;
+const RETENTION_DAYS = 3;
 
 // Runs once a day at 03:00 UTC
 export const handler = schedule("0 3 * * *", async () => {
