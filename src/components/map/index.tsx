@@ -6,11 +6,11 @@ import { DivIcon, Map as IMap, Marker as LeafletMarker, Point } from "leaflet";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet/dist/leaflet.css";
-import "./map.css";
 import { useEffect, useRef } from "react";
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import Legend from "./map-legend";
+import "./map.css";
 import PropertyPopup from "./property-popup";
 
 export interface MapProps {
@@ -41,6 +41,14 @@ const defaultMarkerIcon = new DivIcon({
     iconSize: new Point(24, 36),
     iconAnchor: new Point(12, 36),
 });
+
+function calculateCenter(properties: GeocodedProperty[]): [number, number] {
+    const avgLatitude = properties.reduce((sum, p) => sum + p.latitude, 0) / properties.length;
+    const avgLongitude = properties.reduce((sum, p) => sum + p.longitude, 0) / properties.length;
+    return [avgLatitude, avgLongitude];
+}
+
+const DEFAULT_CENTER: [number, number] = [0, 0];
 
 const createClusterCustomIcon = (cluster: { getChildCount: () => number }): DivIcon => {
     const count = cluster.getChildCount();
@@ -87,15 +95,39 @@ const MainMap = (props: MapProps) => {
         }
     }, [map, selectedProperty]);
 
+    const mapCenterRef = useRef<[number, number] | null>(null);
+    if (!mapCenterRef.current && properties.length > 0) {
+        mapCenterRef.current = calculateCenter(properties);
+    }
+    const mapCenter = mapCenterRef.current ?? DEFAULT_CENTER;
+
     if (properties.length === 0) {
         return (
             <div className="flex flex-col justify-center items-center h-[100%] gap-4 bg-zinc-50 dark:bg-zinc-950 px-6">
                 <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400 dark:text-zinc-500"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="28"
+                        height="28"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-zinc-400 dark:text-zinc-500"
+                    >
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.3-4.3" />
+                        <path d="M11 8v6" />
+                        <path d="M8 11h6" />
+                    </svg>
                 </div>
                 <div className="text-center">
                     <p className="text-lg font-semibold text-zinc-700 dark:text-zinc-200">Nenhum imóvel encontrado</p>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Tente ajustar os filtros para ver mais resultados</p>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                        Tente ajustar os filtros para ver mais resultados
+                    </p>
                 </div>
             </div>
         );
@@ -103,7 +135,7 @@ const MainMap = (props: MapProps) => {
 
     return (
         <MapContainer
-            center={[properties[0].latitude, properties[0].longitude]}
+            center={mapCenter}
             zoom={defaults.zoom}
             className="h-[100%] w-[100%] z-[1]"
             preferCanvas={true}
