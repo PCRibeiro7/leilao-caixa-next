@@ -37,12 +37,7 @@ const GEOCODER_CHAIN: GeocoderStep[] = [
 const exhaustedProviders = new Set<GeocodeProvider>();
 
 function isWithinBounds(lat: number, lng: number, box: Coordinates): boolean {
-    return (
-        lat >= box.latitude1 &&
-        lat <= box.latitude2 &&
-        lng >= box.longitude1 &&
-        lng <= box.longitude2
-    );
+    return lat >= box.latitude1 && lat <= box.latitude2 && lng >= box.longitude1 && lng <= box.longitude2;
 }
 
 export async function resolveGeocode(

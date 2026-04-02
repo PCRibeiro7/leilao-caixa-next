@@ -12,9 +12,7 @@ export async function fetchCsvScrapeDo(states: string[]): Promise<void> {
     }
 
     for (const state of states) {
-        const targetUrl = encodeURIComponent(
-            `https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_${state}.csv`,
-        );
+        const targetUrl = encodeURIComponent(`https://venda-imoveis.caixa.gov.br/listaweb/Lista_imoveis_${state}.csv`);
         const apiUrl = `https://api.scrape.do/?token=${token}&url=${targetUrl}`;
 
         console.log(`[scrape.do] Fetching CSV for state ${state}...`);

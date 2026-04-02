@@ -30,8 +30,7 @@ export function parseCsvRow(data: Record<string, string>): Property {
     const propertyLandArea = Number(descriptionArray[3].trim().split(" ")[0]);
 
     const descriptionEnd = descriptionArray.slice(4).join("");
-    const bedroomsString =
-        descriptionEnd.indexOf("qto") !== -1 ? descriptionEnd.split("qto")[0].trim() : undefined;
+    const bedroomsString = descriptionEnd.indexOf("qto") !== -1 ? descriptionEnd.split("qto")[0].trim() : undefined;
 
     let bedrooms: number | undefined = undefined;
     if (bedroomsString) {

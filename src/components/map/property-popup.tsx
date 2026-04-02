@@ -21,10 +21,7 @@ export default function PropertyPopup({ property }: PropertyPopupProps) {
         return `https://venda-imoveis.caixa.gov.br/fotos/F${imageId}.jpg`;
     };
 
-    const imageSrc =
-        retryCount > MAX_RETRIES
-            ? FALLBACK_IMAGE
-            : getImageSrc(property.caixaId, retryCount);
+    const imageSrc = retryCount > MAX_RETRIES ? FALLBACK_IMAGE : getImageSrc(property.caixaId, retryCount);
 
     return (
         <Popup className="custom-popup" minWidth={260} maxWidth={260}>

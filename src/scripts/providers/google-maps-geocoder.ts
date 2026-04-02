@@ -2,13 +2,17 @@ import { Property } from "@/types/Property";
 import { buildFullAddressString, formatAddress } from "@/scripts/parsers/address";
 import axios, { AxiosError } from "axios";
 import { Coordinates, randomUserAgent } from "@/scripts/providers/geocoder-common";
-import { canMakeGoogleGeocodeRequest, incrementGoogleGeocodeCount, getGoogleGeocodeUsage } from "@/scripts/utils/google-geocode-usage";  
+import {
+    canMakeGoogleGeocodeRequest,
+    incrementGoogleGeocodeCount,
+    getGoogleGeocodeUsage,
+} from "@/scripts/utils/google-geocode-usage";
 
 export async function fetchGoogleMapsGeocode(
     property: Property,
     attemptCount: number,
     boundingBox?: Coordinates,
-): Promise<{ lat: number; lng: number } | null | 'exhausted'> {
+): Promise<{ lat: number; lng: number } | null | "exhausted"> {
     const address = formatAddress(property, attemptCount);
     if (!boundingBox) {
         console.log(`No bounding box for Google Maps geocoding: ${property.city}`);
@@ -17,7 +21,7 @@ export async function fetchGoogleMapsGeocode(
     if (!canMakeGoogleGeocodeRequest()) {
         const { count, limit } = getGoogleGeocodeUsage();
         console.log(`Google Geocoding monthly limit reached (${count}/${limit}). Skipping.`);
-        return 'exhausted';
+        return "exhausted";
     }
     try {
         incrementGoogleGeocodeCount();

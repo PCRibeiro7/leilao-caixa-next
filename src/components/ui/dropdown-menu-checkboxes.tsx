@@ -50,7 +50,7 @@ export function DropdownMenuCheckboxes(props: DropdownMenuCheckboxesProps) {
         (e: React.UIEvent<HTMLDivElement>) => {
             const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
             const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-            
+
             const hiddenOptions = filteredAvailableOptions.length - visibleOptionsCount;
 
             if (distanceFromBottom < 50 && hiddenOptions > 0) {

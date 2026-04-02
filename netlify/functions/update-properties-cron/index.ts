@@ -25,8 +25,7 @@ export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
     try {
         switch (state.currentStep) {
             case PipelineStep.IDLE: {
-                const hoursSinceUpdate =
-                    (Date.now() - new Date(state.updatedAt).getTime()) / (1000 * 60 * 60);
+                const hoursSinceUpdate = (Date.now() - new Date(state.updatedAt).getTime()) / (1000 * 60 * 60);
                 if (hoursSinceUpdate < COOLDOWN_HOURS) {
                     console.log(
                         `Pipeline completed ${hoursSinceUpdate.toFixed(1)}h ago. ` +
