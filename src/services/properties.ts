@@ -1,7 +1,7 @@
 import { GeocodedProperty, Property } from "@/types/Property";
-import { createClient } from "@/utils/supabase/client";
+import { createAdminClient } from "@/utils/supabase/admin";
 
-const supabase = createClient();
+const supabase = createAdminClient();
 const PROPERTIES_TABLE_NAME = "properties";
 
 export async function fetchAllProperties() {

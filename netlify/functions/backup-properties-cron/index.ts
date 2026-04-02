@@ -1,5 +1,5 @@
 import { fetchAllProperties } from "@/services/properties";
-import { createClient } from "@/utils/supabase/client";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { schedule } from "@netlify/functions";
 
 const BUCKET_NAME = "properties-backups";
@@ -7,7 +7,7 @@ const RETENTION_DAYS = 3;
 
 // Runs once a day at 03:00 UTC
 export const handler = schedule("0 3 * * *", async () => {
-    const supabase = createClient();
+    const supabase = createAdminClient();
 
     console.log("Starting daily properties backup...");
 

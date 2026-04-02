@@ -1,7 +1,7 @@
-import { createClient } from "@/utils/supabase/client";
+import { createAdminClient } from "@/utils/supabase/admin";
 import "dotenv/config";
 
-const supabase = createClient();
+const supabase = createAdminClient();
 const BUCKET_NAME = "tmp-files";
 
 export async function uploadTmpFile(fileName: string, content: string): Promise<void> {

@@ -1,7 +1,7 @@
 import { BoundingBox } from "@/types/BoundingBox";
-import { createClient } from "@/utils/supabase/client";
+import { createAdminClient } from "@/utils/supabase/admin";
 
-const supabase = createClient();
+const supabase = createAdminClient();
 const BOUNDING_BOX_TABLE_NAME = "boundingBoxes";
 
 export type FetchBoundingBoxFilter = { state: string; city: string }[];
