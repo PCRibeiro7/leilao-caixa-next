@@ -5,17 +5,11 @@ import { getPipelineState, setPipelineState, PipelineStep } from "@/services/pip
 import { HandlerEvent, schedule } from "@netlify/functions";
 
 const GEOCODE_BATCH_SIZE = 5000;
-const COOLDOWN_HOURS = 6;
+const COOLDOWN_HOURS = 24;
 
 // Runs every 5 minutes; each invocation executes one pipeline step
 // to stay within the 30-second Netlify function timeout.
 export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
-    // Pause job until April 2026 — remove this block to resume
-    if (new Date() < new Date("2026-04-01")) {
-        console.log("Job paused until April 2026");
-        return { statusCode: 200 };
-    }
-
     const eventBody = JSON.parse(event.body || "{}");
     console.log(`Next function run at ${eventBody?.next_run}.`);
 
