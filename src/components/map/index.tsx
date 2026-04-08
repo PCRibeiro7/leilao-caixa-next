@@ -6,7 +6,7 @@ import { DivIcon, Map as IMap, Marker as LeafletMarker, Point } from "leaflet";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import Legend from "./map-legend";
@@ -19,10 +19,11 @@ export interface MapProps {
     map: IMap | null;
     setMap: (map: IMap) => void;
     selectedProperty?: SelectedProperty;
+    loading?: boolean;
 }
 
 const defaults = {
-    zoom: 8,
+    zoom: 4,
 };
 
 const pinSvg = (color: string) =>
@@ -48,7 +49,7 @@ function calculateCenter(properties: GeocodedProperty[]): [number, number] {
     return [avgLatitude, avgLongitude];
 }
 
-const DEFAULT_CENTER: [number, number] = [0, 0];
+const DEFAULT_CENTER: [number, number] = [-14.235, -51.9253]; // Centro do Brasil
 
 const createClusterCustomIcon = (cluster: { getChildCount: () => number }): DivIcon => {
     const count = cluster.getChildCount();
@@ -70,8 +71,32 @@ const createClusterCustomIcon = (cluster: { getChildCount: () => number }): DivI
 };
 
 const MainMap = (props: MapProps) => {
-    const { properties, showLegend, map, setMap, selectedProperty } = props;
+    const { properties, showLegend, map, setMap, selectedProperty, loading } = props;
     const itemsRef = useRef<Map<string, LeafletMarker>>(new Map());
+    const [rendering, setRendering] = useState(false);
+    const prevPropertiesRef = useRef(properties);
+
+    // Mark as rendering when properties change
+    if (properties !== prevPropertiesRef.current) {
+        prevPropertiesRef.current = properties;
+        if (properties.length > 0) {
+            setRendering(true);
+        }
+    }
+
+    // Clear rendering after markers are painted
+    useEffect(() => {
+        if (!rendering || properties.length === 0) return;
+        // Double rAF ensures the browser has committed and painted the frame
+        const id = requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                setRendering(false);
+            });
+        });
+        return () => cancelAnimationFrame(id);
+    }, [rendering, properties]);
+
+    const showOverlay = loading || rendering;
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -95,13 +120,15 @@ const MainMap = (props: MapProps) => {
         }
     }, [map, selectedProperty]);
 
-    const mapCenterRef = useRef<[number, number] | null>(null);
-    if (!mapCenterRef.current && properties.length > 0) {
-        mapCenterRef.current = calculateCenter(properties);
-    }
-    const mapCenter = mapCenterRef.current ?? DEFAULT_CENTER;
+    const hasFittedRef = useRef(false);
+    useEffect(() => {
+        if (!map || properties.length === 0) return;
+        const center = calculateCenter(properties);
+        map.setView(center, 8, { animate: hasFittedRef.current });
+        hasFittedRef.current = true;
+    }, [map, properties]);
 
-    if (properties.length === 0) {
+    if (!showOverlay && properties.length === 0) {
         return (
             <div className="flex flex-col justify-center items-center h-[100%] gap-4 bg-zinc-50 dark:bg-zinc-950 px-6">
                 <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
@@ -134,8 +161,15 @@ const MainMap = (props: MapProps) => {
     }
 
     return (
-        <MapContainer
-            center={mapCenter}
+        <div className="relative h-[100%] w-[100%]">
+            {showOverlay && (
+                <div className="absolute inset-0 z-[2] flex flex-col items-center justify-center bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-[2px]">
+                    <div className="w-10 h-10 rounded-full border-[3px] border-zinc-200 dark:border-zinc-700 border-t-zinc-600 dark:border-t-zinc-300 animate-spin" />
+                    <p className="mt-3 text-sm font-medium text-zinc-500 dark:text-zinc-400">Carregando imóveis...</p>
+                </div>
+            )}
+            <MapContainer
+            center={DEFAULT_CENTER}
             zoom={defaults.zoom}
             className="h-[100%] w-[100%] z-[1]"
             preferCanvas={true}
@@ -168,11 +202,12 @@ const MainMap = (props: MapProps) => {
                             };
                         }}
                     >
-                        <PropertyPopup property={property} />
+                        <PropertyPopup caixaId={property.caixaId} />
                     </Marker>
                 ))}
             </MarkerClusterGroup>
         </MapContainer>
+        </div>
     );
 };
 

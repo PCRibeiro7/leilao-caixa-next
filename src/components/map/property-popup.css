@@ -145,3 +145,52 @@
 .popup-card__link--maps {
     background: linear-gradient(135deg, #6b7280, #4b5563);
 }
+
+/* Skeleton loading state */
+@keyframes popup-shimmer {
+    0% { background-position: -260px 0; }
+    100% { background-position: 260px 0; }
+}
+
+.popup-skeleton__img {
+    width: 100%;
+    height: 150px;
+    background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+    background-size: 520px 100%;
+    animation: popup-shimmer 1.4s infinite ease-in-out;
+}
+
+.popup-skeleton__body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+}
+
+.popup-skeleton__line {
+    border-radius: 4px;
+    background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+    background-size: 520px 100%;
+    animation: popup-shimmer 1.4s infinite ease-in-out;
+}
+
+.popup-skeleton__line--title {
+    height: 14px;
+    width: 85%;
+}
+
+.popup-skeleton__line--subtitle {
+    height: 11px;
+    width: 60%;
+}
+
+.popup-skeleton__line--price {
+    height: 16px;
+    width: 45%;
+    margin-top: 2px;
+}
+
+.popup-skeleton__line--details {
+    height: 11px;
+    width: 70%;
+}

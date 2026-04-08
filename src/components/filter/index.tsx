@@ -5,14 +5,13 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import useBreakpoints from "@/hooks/useBreakPoints";
-import { GeocodedProperty, GeocodePrecision, PropertyType } from "@/types/Property";
+import { GeocodePrecision, PropertyType } from "@/types/Property";
+import { FilterOptions, PropertyFilters } from "@/types/PropertyFilters";
 import ToArray from "@/utils/enumToArray";
-import moment from "moment";
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { Button } from "../ui/button";
 import {
     Drawer,
-    DrawerClose,
     DrawerContent,
     DrawerDescription,
     DrawerFooter,
@@ -45,23 +44,11 @@ type CheckboxFilters = {
 type Filters = InputFilters & MoneyInputFilters & CheckboxFilters;
 
 type FilterProps = {
-    allProperties: GeocodedProperty[];
-    properties: GeocodedProperty[];
-    setProperties: (properties: GeocodedProperty[]) => void;
+    filterOptions: FilterOptions;
+    onFiltersChange: (filters: PropertyFilters) => void;
+    propertyCount: number;
+    loading?: boolean;
     buttonClassName?: string;
-};
-
-const defaultFilters: Filters = {
-    minDiscount: 0,
-    minPrice: 0,
-    maxPrice: 0,
-    createdAtDate: [],
-    sellingType: [],
-    type: [],
-    state: [],
-    city: [],
-    neighborhood: [],
-    geocodePrecision: [],
 };
 
 export const mapGeocodePrecisionToDisplay: Record<GeocodePrecision, string> = {
@@ -79,16 +66,91 @@ export const mapGeocodePrecisionToColor: Record<GeocodePrecision, string> = {
 };
 
 export default function Filter(props: FilterProps) {
-    const { allProperties, properties, setProperties, buttonClassName } = props;
+    const { filterOptions, onFiltersChange, propertyCount, loading, buttonClassName } = props;
 
     const { isMd } = useBreakpoints();
 
-    const [initialFilters, setInitialFilters] = useState<Filters>(defaultFilters);
-    const [filters, setFilters] = useState<Filters>(initialFilters);
-    const [availableCities, setAvailableCities] = useState<string[]>(initialFilters.city);
-    const [availableNeighborhoods, setAvailableNeighborhoods] = useState<string[]>(initialFilters.neighborhood);
+    const initialFilters: Filters = useMemo(
+        () => ({
+            maxPrice: filterOptions.maxPrice,
+            minDiscount: filterOptions.minDiscount,
+            minPrice: filterOptions.minPrice,
+            createdAtDate: filterOptions.createdAtDates,
+            sellingType: filterOptions.sellingTypes,
+            type: ToArray(PropertyType) as string[],
+            state: filterOptions.states,
+            city: filterOptions.cities.map((c) => c.city),
+            neighborhood: filterOptions.neighborhoods.map((n) => n.neighborhood),
+            geocodePrecision: (ToArray(GeocodePrecision) as GeocodePrecision[]).filter(
+                (i) => i !== GeocodePrecision.city,
+            ),
+        }),
+        [filterOptions],
+    );
 
+    const [filters, setFilters] = useState<Filters>(initialFilters);
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+    const [hasInitialized, setHasInitialized] = useState(false);
+
+    useEffect(() => {
+        setFilters(initialFilters);
+        if (!hasInitialized) {
+            onFiltersChange({
+                minPrice: initialFilters.minPrice,
+                maxPrice: initialFilters.maxPrice,
+                minDiscount: initialFilters.minDiscount,
+                sellingType: [],
+                type: [],
+                state: [],
+                city: [],
+                neighborhood: [],
+                geocodePrecision: [],
+                createdAtDate: [],
+            });
+            setHasInitialized(true);
+        }
+    }, [initialFilters, hasInitialized, onFiltersChange]);
+
+    const availableCities = useMemo(
+        () =>
+            [
+                ...new Set(
+                    filterOptions.cities
+                        .filter((c) => filters.state.includes(c.state))
+                        .map((c) => c.city),
+                ),
+            ].sort((a, b) => a.localeCompare(b)),
+        [filterOptions.cities, filters.state],
+    );
+
+    const availableNeighborhoods = useMemo(
+        () =>
+            [
+                ...new Set(
+                    filterOptions.neighborhoods
+                        .filter((n) => filters.state.includes(n.state) && filters.city.includes(n.city))
+                        .map((n) => n.neighborhood),
+                ),
+            ].sort((a, b) => a.localeCompare(b)),
+        [filterOptions.neighborhoods, filters.state, filters.city],
+    );
+
+    // Cascade: prune cities/neighborhoods when their parent is deselected
+    useEffect(() => {
+        const availableCitySet = new Set(availableCities);
+        const prunedCities = filters.city.filter((c) => availableCitySet.has(c));
+        if (prunedCities.length !== filters.city.length) {
+            setFilters((prev) => ({ ...prev, city: prunedCities }));
+        }
+    }, [availableCities, filters.city]);
+
+    useEffect(() => {
+        const availableNeighborhoodSet = new Set(availableNeighborhoods);
+        const prunedNeighborhoods = filters.neighborhood.filter((n) => availableNeighborhoodSet.has(n));
+        if (prunedNeighborhoods.length !== filters.neighborhood.length) {
+            setFilters((prev) => ({ ...prev, neighborhood: prunedNeighborhoods }));
+        }
+    }, [availableNeighborhoods, filters.neighborhood]);
 
     function resetFilters() {
         setFilters(initialFilters);
@@ -133,124 +195,34 @@ export default function Filter(props: FilterProps) {
         setFilters((oldFilter) => ({ ...oldFilter, [filterName]: newFilter }));
     }
 
-    const applyFilter = useCallback(
-        (filters: Filters) => {
-            const filteredProperties = allProperties.filter((property) => {
-                const price = property.price;
-                const discount = property.discount || 0;
-                const createdAtDate = moment(property.createdAt).format("DD/MM/YYYY");
-                const sellingType = property.sellingType;
-                const state = property.state;
-                const city = property.city;
-                const geocodePrecision = property.geocodePrecision;
+    function buildApiFilters(f: Filters): PropertyFilters {
+        const selectedNeighborhoods = new Set(f.neighborhood);
+        const allAvailableSelected = availableNeighborhoods.every((n) => selectedNeighborhoods.has(n));
 
-                const isAboveMinPrice = price >= filters.minPrice;
-                const isBelowMaxPrice = price <= filters.maxPrice;
-                const isAboveMinDiscount = discount >= filters.minDiscount;
-
-                const isMatchingCreatedAtDateFilter = filters.createdAtDate.includes(createdAtDate);
-                const isMatchingSellingTypeFilter = filters.sellingType.includes(sellingType);
-                const isMatchingTypeFilter = filters.type.includes(property.type);
-                const isMatchingStateFilter = filters.state.includes(state);
-                const isMatchingCityFilter = filters.city.includes(city);
-                const isMatchingNeighborhoodFilter = filters.neighborhood.includes(property.neighborhood);
-                const isMatchingGeocodePrecisionFilter = filters.geocodePrecision.includes(geocodePrecision);
-
-                return (
-                    isAboveMinPrice &&
-                    isBelowMaxPrice &&
-                    isAboveMinDiscount &&
-                    isMatchingCreatedAtDateFilter &&
-                    isMatchingSellingTypeFilter &&
-                    isMatchingTypeFilter &&
-                    isMatchingStateFilter &&
-                    isMatchingCityFilter &&
-                    isMatchingNeighborhoodFilter &&
-                    isMatchingGeocodePrecisionFilter
-                );
-            });
-
-            setProperties(filteredProperties);
-        },
-        [allProperties, setProperties],
-    );
-
-    useEffect(() => {
-        const newAvailableNeighborhoods = Array.from(
-            new Set(
-                allProperties
-                    .filter(
-                        (property) => filters.state.includes(property.state) && filters.city.includes(property.city),
-                    )
-                    .map((property) => property.neighborhood),
-            ),
-        )
-            .filter((i) => i)
-            .sort((a, b) => a.localeCompare(b));
-        setAvailableNeighborhoods(newAvailableNeighborhoods);
-    }, [filters.state, filters.city, allProperties]);
-
-    useEffect(() => {
-        const newAvailableCities = Array.from(
-            new Set(
-                allProperties
-                    .filter((property) => filters.state.includes(property.state))
-                    .map((property) => property.city),
-            ),
-        )
-            .filter((i) => i)
-            .sort((a, b) => a.localeCompare(b));
-        setAvailableCities(newAvailableCities);
-    }, [filters.state, allProperties]);
-
-    useEffect(() => {
-        const maxPrice = Math.max(...allProperties.map((property) => property.price).filter((i) => i));
-        const minPrice = Math.min(...allProperties.map((property) => property.price).filter((i) => i));
-        const minDiscount = Math.min(
-            ...allProperties.map((property) => property.discount || 0).filter((i) => i !== undefined),
-        );
-
-        const availableCreatedAtDates = Array.from(
-            new Set(
-                allProperties
-                    .sort((a, b) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0))
-                    .map((property) => moment(property.createdAt).format("DD/MM/YYYY")),
-            ),
-        ).filter((i) => i);
-
-        const availableSellingTypes = Array.from(new Set(allProperties.map((property) => property.sellingType))).filter(
-            (i) => i,
-        );
-        const availableStates = Array.from(new Set(allProperties.map((property) => property.state)))
-            .filter((i) => i)
-            .sort((a, b) => a.localeCompare(b));
-        const availableCities = Array.from(new Set(allProperties.map((property) => property.city)))
-            .filter((i) => i)
-            .sort((a, b) => a.localeCompare(b));
-        const availableNeighborhoods = Array.from(new Set(allProperties.map((property) => property.neighborhood)))
-            .filter((i) => i)
-            .sort((a, b) => a.localeCompare(b));
-
-        const initialFilters: Filters = {
-            maxPrice: maxPrice,
-            minDiscount: minDiscount,
-            minPrice: minPrice,
-            createdAtDate: availableCreatedAtDates,
-            sellingType: availableSellingTypes,
-            type: ToArray(PropertyType),
-            state: availableStates,
-            city: availableCities,
-            neighborhood: availableNeighborhoods,
-            geocodePrecision: ToArray(GeocodePrecision).filter((i) => i !== GeocodePrecision.city),
+        return {
+            minPrice: f.minPrice,
+            maxPrice: f.maxPrice,
+            minDiscount: f.minDiscount,
+            sellingType: f.sellingType.length === initialFilters.sellingType.length ? [] : f.sellingType,
+            type: f.type.length === initialFilters.type.length ? [] : f.type,
+            state: f.state.length === initialFilters.state.length ? [] : f.state,
+            city: f.city.length === availableCities.length ? [] : f.city,
+            neighborhood: allAvailableSelected ? [] : f.neighborhood,
+            geocodePrecision: f.geocodePrecision.length === initialFilters.geocodePrecision.length ? [] : f.geocodePrecision.map(String),
+            createdAtDate: f.createdAtDate.length === initialFilters.createdAtDate.length ? [] : f.createdAtDate,
         };
-        setInitialFilters(initialFilters);
-        setFilters(initialFilters);
-        applyFilter(initialFilters);
-    }, [allProperties, applyFilter]);
+    }
 
-    useEffect(() => {
-        applyFilter(filters);
-    }, [filters, applyFilter]);
+    function handleApplyFilters() {
+        onFiltersChange(buildApiFilters(filters));
+        setIsFilterDrawerOpen(false);
+    }
+
+    function handleResetFilters() {
+        resetFilters();
+        onFiltersChange(buildApiFilters(initialFilters));
+        setIsFilterDrawerOpen(false);
+    }
 
     return (
         <Drawer direction={isMd ? "right" : "bottom"} open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
@@ -270,7 +242,7 @@ export default function Filter(props: FilterProps) {
                     <DrawerTitle className="text-xl font-bold">Filtrar imóveis</DrawerTitle>
                     <DrawerDescription className="flex items-center gap-2">
                         <span className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                            {properties.length.toLocaleString("pt-BR")}
+                            {loading ? "..." : propertyCount.toLocaleString("pt-BR")}
                         </span>
                         <span>imóveis encontrados</span>
                     </DrawerDescription>
@@ -401,12 +373,12 @@ export default function Filter(props: FilterProps) {
                 </div>
                 <DrawerFooter className="border-t border-zinc-200 dark:border-zinc-800 pt-4">
                     <div className="flex gap-3 w-full">
-                        <Button variant={"outline"} className="flex-1 h-10" onClick={resetFilters}>
+                        <Button variant={"outline"} className="flex-1 h-10" onClick={handleResetFilters}>
                             Limpar filtros
                         </Button>
-                        <DrawerClose className="flex-1" asChild>
-                            <Button className="w-full h-10">Aplicar Filtros</Button>
-                        </DrawerClose>
+                        <Button className="flex-1 h-10" onClick={handleApplyFilters} disabled={loading}>
+                            {loading ? "Carregando..." : "Aplicar Filtros"}
+                        </Button>
                     </div>
                 </DrawerFooter>
             </DrawerContent>
