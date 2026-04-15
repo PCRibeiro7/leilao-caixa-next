@@ -4,13 +4,11 @@
 
 import Filter from "@/components/filter";
 import MapContainer from "@/components/map/map-container";
-import { Button } from "@/components/ui/button";
 import useFetchFilterOptions from "@/hooks/useFetchFilterOptions";
 import useFetchProperties from "@/hooks/useFetchProperties";
 import { PropertyFilters } from "@/types/PropertyFilters";
 import { Map } from "leaflet";
-import { Building2, Loader2, MapPin, Table2 } from "lucide-react";
-import Link from "next/link";
+import { Building2, Loader2, MapPin } from "lucide-react";
 import { useCallback, useState } from "react";
 
 export default function Page() {
