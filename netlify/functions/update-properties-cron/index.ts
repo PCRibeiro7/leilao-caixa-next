@@ -10,6 +10,7 @@ import { HandlerEvent, schedule } from "@netlify/functions";
 
 const GEOCODE_BATCH_SIZE = 5000;
 const COOLDOWN_HOURS = 24;
+const DEADLINE_MS = 25_000; // Return early before the 30s Netlify timeout
 
 // Runs every 5 minutes; each invocation executes one pipeline step
 // to stay within the 30-second Netlify function timeout.
@@ -25,7 +26,11 @@ export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
     }
     console.log(`Current pipeline step: ${state.currentStep}`);
 
-    try {
+    const deadline = new Promise<"timeout">((resolve) =>
+        setTimeout(() => resolve("timeout"), DEADLINE_MS),
+    );
+
+    const work = async () => {
         switch (state.currentStep) {
             case PipelineStep.IDLE: {
                 const hoursSinceUpdate = (Date.now() - new Date(state.updatedAt).getTime()) / (1000 * 60 * 60);
@@ -67,6 +72,14 @@ export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
                 }
                 break;
             }
+        }
+    };
+
+    try {
+        const result = await Promise.race([work(), deadline]);
+        if (result === "timeout") {
+            console.warn("Approaching timeout — releasing lock without advancing step.");
+            await setPipelineState(state.currentStep);
         }
     } catch (error) {
         console.error(`Step "${state.currentStep}" failed:`, error);
