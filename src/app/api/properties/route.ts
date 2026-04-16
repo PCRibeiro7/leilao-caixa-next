@@ -4,8 +4,14 @@ import { createClient } from "@/utils/supabase/server";
 import moment from "moment";
 import { NextRequest, NextResponse } from "next/server";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function applyFilters(query: any, filters: PropertyFilters) {
+interface FilterableQuery {
+    gte(column: string, value: number): this;
+    lte(column: string, value: number): this;
+    in(column: string, values: readonly string[]): this;
+    or(filters: string): this;
+}
+
+function applyFilters<Q extends FilterableQuery>(query: Q, filters: PropertyFilters): Q {
     if (filters.minPrice > 0) {
         query = query.gte("price", filters.minPrice);
     }
