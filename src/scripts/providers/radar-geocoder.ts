@@ -1,5 +1,5 @@
 import { Property } from "@/types/Property";
-import { getFullState } from "@/scripts/parsers/address";
+import { formatAddress, getFullState } from "@/scripts/parsers/address";
 import axios, { AxiosError } from "axios";
 import { randomUserAgent } from "@/scripts/providers/geocoder-common";
 
@@ -8,10 +8,12 @@ export async function fetchRadarGeocode(
     attemptCount: number,
 ): Promise<{ lat: number; lng: number } | null> {
     try {
+        const address = formatAddress(property, attemptCount);
+        
         const response = await axios.get(`https://api.radar.io/v1/geocode/forward`, {
             params: {
                 country: "BR",
-                query: `${property.street}, ${property.city}, ${getFullState(property.state)}`,
+                query: `${address.street}, ${address.city}, ${getFullState(address.state)}`,
             },
             headers: {
                 "User-Agent": randomUserAgent,
