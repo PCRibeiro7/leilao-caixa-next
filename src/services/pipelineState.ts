@@ -12,7 +12,7 @@ export interface PipelineState {
     updatedAt: string;
 }
 
-const LOCK_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const LOCK_TTL_MS = 4 * 60 * 1000; // 4 minutes
 
 export async function getPipelineState(): Promise<PipelineState> {
     const supabase = createAdminClient();
