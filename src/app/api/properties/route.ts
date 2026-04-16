@@ -66,13 +66,17 @@ export async function POST(request: NextRequest) {
         return NextResponse.json([]);
     }
 
-    const allProperties: GeocodedProperty[] = [];
-
+    const promises = [];
     for (let i = 0; i < totalCount; i += 1000) {
         const pageQuery = applyFilters(supabase.from("properties").select("caixaId, latitude, longitude"), filters);
-        const { data } = await pageQuery.range(i, i + 999);
-        if (!data) break;
-        allProperties.push(...data);
+        promises.push(pageQuery.range(i, i + 999));
+    }
+
+    const allProperties: GeocodedProperty[] = [];
+    const results = await Promise.all(promises);
+    for (const result of results) {
+        if (!result.data) continue;
+        allProperties.push(...result.data);
     }
 
     return NextResponse.json(allProperties);
