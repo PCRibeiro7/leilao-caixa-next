@@ -1,6 +1,4 @@
-import { downloadTmpFile, uploadTmpFile } from "./tmpStorage";
-
-const PIPELINE_STATE_FILENAME = "pipeline-state.json";
+import { createAdminClient } from "@/utils/supabase/admin";
 
 export enum PipelineStep {
     IDLE = "idle",
@@ -14,22 +12,59 @@ export interface PipelineState {
     updatedAt: string;
 }
 
+const LOCK_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 export async function getPipelineState(): Promise<PipelineState> {
-    const content = await downloadTmpFile(PIPELINE_STATE_FILENAME);
-    if (!content) {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.from("pipeline_state").select("*").eq("id", 1).single();
+
+    if (error || !data) {
         return { currentStep: PipelineStep.IDLE, updatedAt: new Date(0).toISOString() };
     }
-    try {
-        return JSON.parse(content);
-    } catch {
-        return { currentStep: PipelineStep.IDLE, updatedAt: new Date(0).toISOString() };
-    }
+
+    return {
+        currentStep: data.current_step as PipelineStep,
+        updatedAt: data.updated_at,
+    };
 }
 
-export async function setPipelineState(step: PipelineStep): Promise<void> {
-    const state: PipelineState = {
-        currentStep: step,
-        updatedAt: new Date().toISOString(),
+/**
+ * Atomically acquire the pipeline lock using a Postgres function.
+ * Returns the current state if the lock was acquired, or null if already locked.
+ */
+export async function acquirePipelineLock(): Promise<PipelineState | null> {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc("acquire_pipeline_lock", {
+        lock_duration_ms: LOCK_TTL_MS,
+    });
+
+    if (error) {
+        console.error("Failed to acquire pipeline lock:", error);
+        return null;
+    }
+
+    if (!data || data.length === 0) {
+        return null; // Lock held by another invocation
+    }
+
+    const row = data[0];
+    return {
+        currentStep: row.current_step as PipelineStep,
+        updatedAt: row.updated_at,
     };
-    await uploadTmpFile(PIPELINE_STATE_FILENAME, JSON.stringify(state));
+}
+
+/**
+ * Release the lock and set the next step atomically.
+ */
+export async function setPipelineState(step: PipelineStep): Promise<void> {
+    const supabase = createAdminClient();
+    const { error } = await supabase.rpc("release_pipeline_lock", {
+        new_step: step,
+        update_time: new Date().toISOString(),
+    });
+
+    if (error) {
+        throw new Error(`Failed to set pipeline state: ${error.message}`);
+    }
 }

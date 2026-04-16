@@ -1,7 +1,11 @@
 import fetchRawCsv from "@/scripts/steps/fetch-raw-csv";
 import parseCsvToProperties from "@/scripts/steps/parse-csv-to-properties";
 import geocodeProperties from "@/scripts/steps/geocode-properties";
-import { getPipelineState, setPipelineState, PipelineStep } from "@/services/pipelineState";
+import {
+    acquirePipelineLock,
+    setPipelineState,
+    PipelineStep,
+} from "@/services/pipelineState";
 import { HandlerEvent, schedule } from "@netlify/functions";
 
 const GEOCODE_BATCH_SIZE = 5000;
@@ -13,7 +17,12 @@ export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
     const eventBody = JSON.parse(event.body || "{}");
     console.log(`Next function run at ${eventBody?.next_run}.`);
 
-    const state = await getPipelineState();
+    // Atomically acquire the lock — if another invocation is already running, bail out.
+    const state = await acquirePipelineLock();
+    if (!state) {
+        console.log("Pipeline is locked by another invocation. Skipping.");
+        return { statusCode: 200 };
+    }
     console.log(`Current pipeline step: ${state.currentStep}`);
 
     try {
@@ -25,6 +34,7 @@ export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
                         `Pipeline completed ${hoursSinceUpdate.toFixed(1)}h ago. ` +
                             `Waiting for ${COOLDOWN_HOURS}h cooldown.`,
                     );
+                    await setPipelineState(PipelineStep.IDLE);
                     break;
                 }
                 await setPipelineState(PipelineStep.FETCH);
@@ -49,6 +59,7 @@ export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
             case PipelineStep.GEOCODE: {
                 const { remaining } = await geocodeProperties(GEOCODE_BATCH_SIZE);
                 if (remaining > 0) {
+                    await setPipelineState(PipelineStep.GEOCODE);
                     console.log(`Geocoded batch. ${remaining} properties remaining.`);
                 } else {
                     await setPipelineState(PipelineStep.IDLE);
@@ -59,7 +70,8 @@ export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
         }
     } catch (error) {
         console.error(`Step "${state.currentStep}" failed:`, error);
-        // State is NOT advanced — the same step will be retried on the next invocation.
+        // Release the lock without advancing — the same step will be retried.
+        await setPipelineState(state.currentStep);
     }
 
     return { statusCode: 200 };

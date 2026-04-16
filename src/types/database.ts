@@ -119,12 +119,50 @@ export type Database = {
         }
         Relationships: []
       }
+      pipeline_state: {
+        Row: {
+          id: number
+          current_step: string
+          updated_at: string
+          locked_until: string | null
+        }
+        Insert: {
+          id?: number
+          current_step?: string
+          updated_at?: string
+          locked_until?: string | null
+        }
+        Update: {
+          id?: number
+          current_step?: string
+          updated_at?: string
+          locked_until?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      acquire_pipeline_lock: {
+        Args: {
+          lock_duration_ms?: number
+        }
+        Returns: {
+          id: number
+          current_step: string
+          updated_at: string
+          locked_until: string | null
+        }[]
+      }
+      release_pipeline_lock: {
+        Args: {
+          new_step: string
+          update_time?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
