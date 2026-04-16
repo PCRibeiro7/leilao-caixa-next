@@ -18,7 +18,7 @@ export default async function geocodeProperties(maxProperties?: number): Promise
     const properties = (await readJsonlFileAsJsonArray<Property>(PROPERTIES_FILENAME)) || [];
     console.log(`Total Properties: ${properties.length}`);
 
-    const geocodedProperties = await fetchAllProperties();
+    const geocodedProperties = await fetchAllProperties(["caixaId"]);
     console.log(`Existing Geocoded Properties: ${geocodedProperties.length}`);
 
     const geocodedPropertiesToRemove = geocodedProperties.filter((geocodedProperty) => {
@@ -33,7 +33,7 @@ export default async function geocodeProperties(maxProperties?: number): Promise
 
     const newProperties = properties.filter((property) => {
         return !geocodedProperties.some(
-            (existingProperty: GeocodedProperty) => existingProperty.caixaId === property.caixaId,
+            (existingProperty) => existingProperty.caixaId === property.caixaId,
         );
     });
     console.log(`New properties found: ${newProperties.length}`);

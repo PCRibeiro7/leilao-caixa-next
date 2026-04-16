@@ -1,3 +1,4 @@
+import { Database } from "@/types/database";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 // Admin client using the service role key — bypasses RLS.
@@ -10,5 +11,5 @@ export function createAdminClient() {
         throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars");
     }
 
-    return createSupabaseClient(url, serviceRoleKey);
+    return createSupabaseClient<Database>(url, serviceRoleKey);
 }

@@ -1,27 +1,29 @@
+import { Tables } from "@/types/database";
 import { GeocodedProperty, Property } from "@/types/Property";
 import { createAdminClient } from "@/utils/supabase/admin";
 
 const supabase = createAdminClient();
 const PROPERTIES_TABLE_NAME = "properties";
 
-export async function fetchAllProperties() {
+export async function fetchAllProperties<Fields extends keyof Tables<"properties">>(fields?: Fields[]): Promise<Pick<Tables<"properties">, Fields>[]> {
     const { count: propertiesCount } = await supabase
         .from(PROPERTIES_TABLE_NAME)
         .select("caixaId", { count: "exact", head: true });
 
     if (!propertiesCount) return [];
 
-    const allProperties: GeocodedProperty[] = [];
+    const allProperties: Pick<Tables<"properties">, Fields>[] = [];
 
     for (let i = 0; i < propertiesCount; i += 1000) {
-        const { data: propertiesPage } = await supabase
-            .from(PROPERTIES_TABLE_NAME)
-            .select()
-            .range(i, i + 999);
+        const selectFields = fields?.join(", ");
+        const query = selectFields
+            ? supabase.from(PROPERTIES_TABLE_NAME).select(selectFields)
+            : supabase.from(PROPERTIES_TABLE_NAME).select();
+        const { data: propertiesPage } = await query.range(i, i + 999);
 
         if (!propertiesPage) return allProperties;
 
-        allProperties.push(...propertiesPage);
+        allProperties.push(...(propertiesPage as Pick<Tables<"properties">, Fields>[]));
     }
     return allProperties;
 }
@@ -50,7 +52,7 @@ export async function updateProperty(property: Property | GeocodedProperty) {
 }
 
 export async function deleteAllProperties() {
-    const { error } = await supabase.from(PROPERTIES_TABLE_NAME).delete().neq("caixaId", 0);
+    const { error } = await supabase.from(PROPERTIES_TABLE_NAME).delete().neq("caixaId", "0");
 
     if (error) throw error;
 }

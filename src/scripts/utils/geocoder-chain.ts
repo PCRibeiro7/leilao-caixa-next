@@ -44,7 +44,7 @@ export async function resolveGeocode(
     property: Property,
     boundingBox?: Coordinates,
 ): Promise<{ lat: number; lng: number; precision: GeocodePrecision; provider: GeocodeProvider } | undefined> {
-    for (const step of GEOCODER_CHAIN) {
+    for (const [index, step] of GEOCODER_CHAIN.entries()) {
         if (exhaustedProviders.has(step.provider)) continue;
 
         for (let attempt = 0; attempt < step.maxAttempts; attempt++) {
@@ -62,7 +62,10 @@ export async function resolveGeocode(
                 console.log(
                     `Result out of bounds for city: ${property.city} (lat: ${result.lat}, lng: ${result.lng}). Trying next attempt/provider.`,
                 );
-                continue;
+                // Only skip to next attempt if it's not the last attempt of the last provider, otherwise we want to return this result even if it's out of bounds
+                if (index !== GEOCODER_CHAIN.length - 1 && attempt !== step.maxAttempts - 1) {
+                    continue;
+                }
             }
 
             return {
