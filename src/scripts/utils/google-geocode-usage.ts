@@ -48,32 +48,39 @@ export async function syncGoogleGeocodeUsage(): Promise<void> {
     const ptOffsetMs = ptRef.getTime() - utcRef.getTime();
     const startOfMonth = new Date(Date.UTC(ptRef.getFullYear(), ptRef.getMonth(), 1) - ptOffsetMs);
 
-    const [timeSeries] = await client.listTimeSeries({
-        name: `projects/${projectId}`,
-        filter:
-            'metric.type="serviceruntime.googleapis.com/api/request_count" ' +
-            'AND resource.labels.service="geocoding-backend.googleapis.com"',
-        interval: {
-            startTime: { seconds: Math.floor(startOfMonth.getTime() / 1000) },
-            endTime: { seconds: Math.floor(now.getTime() / 1000) },
-        },
-        aggregation: {
-            alignmentPeriod: { seconds: Math.floor((now.getTime() - startOfMonth.getTime()) / 1000) },
-            perSeriesAligner: "ALIGN_SUM",
-            crossSeriesReducer: "REDUCE_SUM",
-        },
-    });
+    try {
+        const [timeSeries] = await client.listTimeSeries({
+            name: `projects/${projectId}`,
+            filter:
+                'metric.type="serviceruntime.googleapis.com/api/request_count" ' +
+                'AND resource.labels.service="geocoding-backend.googleapis.com"',
+            interval: {
+                startTime: { seconds: Math.floor(startOfMonth.getTime() / 1000) },
+                endTime: { seconds: Math.floor(now.getTime() / 1000) },
+            },
+            aggregation: {
+                alignmentPeriod: { seconds: Math.floor((now.getTime() - startOfMonth.getTime()) / 1000) },
+                perSeriesAligner: "ALIGN_SUM",
+                crossSeriesReducer: "REDUCE_SUM",
+            },
+        });
 
-    let total = 0;
-    for (const series of timeSeries) {
-        for (const point of series.points || []) {
-            total += Number(point.value?.int64Value ?? point.value?.doubleValue ?? 0);
+        let total = 0;
+        for (const series of timeSeries) {
+            for (const point of series.points || []) {
+                total += Number(point.value?.int64Value ?? point.value?.doubleValue ?? 0);
+            }
         }
-    }
 
-    syncedMonthlyCount = total;
-    runRequestCount = 0;
-    console.log(`Google Geocoding usage synced: ${total} requests this month (limit: ${MONTHLY_LIMIT})`);
+        syncedMonthlyCount = total;
+        runRequestCount = 0;
+        console.log(`Google Geocoding usage synced: ${total} requests this month (limit: ${MONTHLY_LIMIT})`);
+    } finally {
+        // The gRPC channel keeps the Node event loop active until its idle
+        // timeout expires. On Lambda this can delay container freeze by tens
+        // of seconds, so close it explicitly as soon as we're done.
+        await client.close();
+    }
 }
 
 export function getGoogleGeocodeUsage(): { count: number; limit: number; remaining: number } {
