@@ -19,7 +19,9 @@ export async function fetchAllProperties<Fields extends keyof Tables<"properties
         const query = selectFields
             ? supabase.from(PROPERTIES_TABLE_NAME).select(selectFields)
             : supabase.from(PROPERTIES_TABLE_NAME).select();
-        const { data: propertiesPage } = await query.range(i, i + 999);
+        // An explicit order is required for range pagination to be deterministic;
+        // without it, rows can be duplicated or skipped across pages.
+        const { data: propertiesPage } = await query.order("caixaId").range(i, i + 999);
 
         if (!propertiesPage) return allProperties;
 
@@ -40,7 +42,9 @@ export async function deleteProperties(caixaIds: string[]) {
 }
 
 export async function addProperty(property: GeocodedProperty) {
-    const { error } = await supabase.from(PROPERTIES_TABLE_NAME).insert([property]);
+    const { error } = await supabase
+        .from(PROPERTIES_TABLE_NAME)
+        .upsert([property], { onConflict: "caixaId", ignoreDuplicates: true });
 
     if (error) throw error;
 }
