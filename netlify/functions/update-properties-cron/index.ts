@@ -26,9 +26,10 @@ export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
     }
     console.log(`Current pipeline step: ${state.currentStep}`);
 
-    const deadline = new Promise<"timeout">((resolve) =>
-        setTimeout(() => resolve("timeout"), DEADLINE_MS),
-    );
+    let deadlineTimer: NodeJS.Timeout | undefined;
+    const deadline = new Promise<"timeout">((resolve) => {
+        deadlineTimer = setTimeout(() => resolve("timeout"), DEADLINE_MS);
+    });
 
     const work = async () => {
         switch (state.currentStep) {
@@ -85,6 +86,10 @@ export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
         console.error(`Step "${state.currentStep}" failed:`, error);
         // Release the lock without advancing — the same step will be retried.
         await setPipelineState(state.currentStep);
+    } finally {
+        // Cancel the deadline timer so the Lambda runtime can freeze the
+        // container immediately instead of waiting for the timer to fire.
+        clearTimeout(deadlineTimer);
     }
 
     return { statusCode: 200 };
