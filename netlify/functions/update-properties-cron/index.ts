@@ -8,7 +8,7 @@ import {
 } from "@/services/pipelineState";
 import { HandlerEvent, schedule } from "@netlify/functions";
 
-const GEOCODE_BATCH_SIZE = 5000;
+const GEOCODE_BATCH_SIZE = 10;
 const COOLDOWN_HOURS = 24;
 const DEADLINE_MS = 25_000; // Return early before the 30s Netlify timeout
 
