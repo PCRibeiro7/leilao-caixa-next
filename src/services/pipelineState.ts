@@ -12,7 +12,10 @@ export interface PipelineState {
     updatedAt: string;
 }
 
-const LOCK_TTL_MS = 4 * 60 * 1000; // 4 minutes
+// Slightly longer than the function's internal 14-minute deadline so a
+// still-running invocation never loses its lock, but short enough that a
+// crashed invocation's lock expires before the next 15-minute cron tick.
+const LOCK_TTL_MS = 15 * 60 * 1000;
 
 export async function getPipelineState(): Promise<PipelineState> {
     const supabase = createAdminClient();

@@ -8,13 +8,17 @@ import {
 } from "@/services/pipelineState";
 import { HandlerEvent, schedule } from "@netlify/functions";
 
-const GEOCODE_BATCH_SIZE = 100;
+const GEOCODE_BATCH_SIZE = 5000; // Number of properties to geocode per batch. Adjust based on performance testing and API rate limits.
 const COOLDOWN_HOURS = 24;
-const DEADLINE_MS = 25_000; // Return early before the 30s Netlify timeout
+// Background functions have a 15-minute (900s) timeout. Leave a margin so we
+// can release the lock cleanly before Netlify kills the invocation.
+const DEADLINE_MS = 14 * 60 * 1000; // 14 minutes
 
-// Runs every 5 minutes; each invocation executes one pipeline step
-// to stay within the 30-second Netlify function timeout.
-export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
+// Runs every 15 minutes as a Netlify scheduled background function.
+// Background functions (filename suffix `-background`) have a 15-minute
+// timeout, allowing each invocation to process many pipeline steps before
+// gracefully releasing the lock.
+export const handler = schedule("*/15 * * * *", async (event: HandlerEvent) => {
     const eventBody = JSON.parse(event.body || "{}");
     console.log(`Next function run at ${eventBody?.next_run}.`);
 
@@ -27,12 +31,18 @@ export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
     console.log(`Current pipeline step: ${state.currentStep}`);
 
     let deadlineTimer: NodeJS.Timeout | undefined;
+    let timedOut = false;
     const deadline = new Promise<"timeout">((resolve) => {
-        deadlineTimer = setTimeout(() => resolve("timeout"), DEADLINE_MS);
+        deadlineTimer = setTimeout(() => {
+            timedOut = true;
+            resolve("timeout");
+        }, DEADLINE_MS);
     });
 
-    const work = async () => {
-        switch (state.currentStep) {
+    // Returns the next step to execute, or null if the pipeline should stop
+    // (e.g. cooldown not elapsed). Also performs the work for the current step.
+    const runStep = async (current: PipelineStep): Promise<PipelineStep | null> => {
+        switch (current) {
             case PipelineStep.IDLE: {
                 const hoursSinceUpdate = (Date.now() - new Date(state.updatedAt).getTime()) / (1000 * 60 * 60);
                 if (hoursSinceUpdate < COOLDOWN_HOURS) {
@@ -40,56 +50,70 @@ export const handler = schedule("*/5 * * * *", async (event: HandlerEvent) => {
                         `Pipeline completed ${hoursSinceUpdate.toFixed(1)}h ago. ` +
                             `Waiting for ${COOLDOWN_HOURS}h cooldown.`,
                     );
-                    await setPipelineState(PipelineStep.IDLE);
-                    break;
+                    return null;
                 }
-                await setPipelineState(PipelineStep.FETCH);
                 console.log("Idle done. Next: fetch");
-                break;
+                return PipelineStep.FETCH;
             }
 
             case PipelineStep.FETCH: {
                 await fetchRawCsv();
-                await setPipelineState(PipelineStep.PARSE);
                 console.log("Fetch done. Next: parse");
-                break;
+                return PipelineStep.PARSE;
             }
 
             case PipelineStep.PARSE: {
                 await parseCsvToProperties();
-                await setPipelineState(PipelineStep.GEOCODE);
                 console.log("Parse done. Next: geocode");
-                break;
+                return PipelineStep.GEOCODE;
             }
 
             case PipelineStep.GEOCODE: {
                 const { remaining } = await geocodeProperties(GEOCODE_BATCH_SIZE);
                 if (remaining > 0) {
-                    await setPipelineState(PipelineStep.GEOCODE);
                     console.log(`Geocoded batch. ${remaining} properties remaining.`);
-                } else {
-                    await setPipelineState(PipelineStep.IDLE);
-                    console.log("Pipeline completed!");
+                    return PipelineStep.GEOCODE;
                 }
-                break;
+                console.log("Pipeline completed!");
+                return PipelineStep.IDLE;
             }
         }
     };
 
+    // Loop through pipeline steps until we either hit the deadline, the
+    // pipeline returns to IDLE, or cooldown blocks further work.
+    const work = async (): Promise<PipelineStep> => {
+        let current = state.currentStep;
+        while (!timedOut) {
+            const next = await runStep(current);
+            if (next === null) {
+                // Cooldown — stay on IDLE without bumping updated_at.
+                return current;
+            }
+            current = next;
+            // Stop after completing a full cycle back to IDLE so we don't
+            // immediately re-enter the cooldown branch.
+            if (current === PipelineStep.IDLE) return current;
+        }
+        return current;
+    };
+
+    let finalStep: PipelineStep = state.currentStep;
     try {
         const result = await Promise.race([work(), deadline]);
         if (result === "timeout") {
-            console.warn("Approaching timeout — releasing lock without advancing step.");
-            await setPipelineState(state.currentStep);
+            console.warn("Approaching timeout — releasing lock at current step.");
+            finalStep = state.currentStep;
+        } else {
+            finalStep = result;
         }
     } catch (error) {
         console.error(`Step "${state.currentStep}" failed:`, error);
         // Release the lock without advancing — the same step will be retried.
-        await setPipelineState(state.currentStep);
+        finalStep = state.currentStep;
     } finally {
-        // Cancel the deadline timer so the Lambda runtime can freeze the
-        // container immediately instead of waiting for the timer to fire.
         clearTimeout(deadlineTimer);
+        await setPipelineState(finalStep);
     }
 
     return { statusCode: 200 };
