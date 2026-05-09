@@ -25,13 +25,20 @@ AS $$
 $$;
 
 -- RPC function: release the lock and update the step atomically.
+-- updated_at is only bumped when the step actually changes, so it reflects
+-- the time of the last real transition (e.g. when the pipeline last completed)
+-- rather than the time of the last invocation. This is what the IDLE-cooldown
+-- check relies on.
 CREATE OR REPLACE FUNCTION release_pipeline_lock(new_step text, update_time timestamptz DEFAULT now())
 RETURNS void
 LANGUAGE sql
 AS $$
     UPDATE pipeline_state
     SET current_step = new_step,
-        updated_at = update_time,
+        updated_at = CASE
+            WHEN current_step IS DISTINCT FROM new_step THEN update_time
+            ELSE updated_at
+        END,
         locked_until = NULL
     WHERE id = 1;
 $$;
