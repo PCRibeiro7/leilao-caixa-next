@@ -59,12 +59,22 @@ export async function acquirePipelineLock(): Promise<PipelineState | null> {
 
 /**
  * Release the lock and set the next step atomically.
+ *
+ * `bumpUpdatedAt` controls whether `updated_at` is refreshed. Pass `true`
+ * (default) when the invocation did real work — most importantly, when a
+ * pipeline cycle completes back to IDLE, so the cooldown timer restarts.
+ * Pass `false` when releasing without progress (cooldown, mid-step retry)
+ * so the cooldown keeps reflecting the time of the last real completion.
  */
-export async function setPipelineState(step: PipelineStep): Promise<void> {
+export async function setPipelineState(
+    step: PipelineStep,
+    { bumpUpdatedAt = true }: { bumpUpdatedAt?: boolean } = {},
+): Promise<void> {
     const supabase = createAdminClient();
     const { error } = await supabase.rpc("release_pipeline_lock", {
         new_step: step,
         update_time: new Date().toISOString(),
+        bump_updated_at: bumpUpdatedAt,
     });
 
     if (error) {

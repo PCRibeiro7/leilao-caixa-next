@@ -160,6 +160,7 @@ export type Database = {
         Args: {
           new_step: string
           update_time?: string
+          bump_updated_at?: boolean
         }
         Returns: undefined
       }

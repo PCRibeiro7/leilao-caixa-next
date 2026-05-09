@@ -41,6 +41,7 @@ export const handler = schedule("*/15 * * * *", async (event: HandlerEvent) => {
 
     // Returns the next step to execute, or null if the pipeline should stop
     // (e.g. cooldown not elapsed). Also performs the work for the current step.
+    let cooldownActive = false;
     const runStep = async (current: PipelineStep): Promise<PipelineStep | null> => {
         switch (current) {
             case PipelineStep.IDLE: {
@@ -50,6 +51,7 @@ export const handler = schedule("*/15 * * * *", async (event: HandlerEvent) => {
                         `Pipeline completed ${hoursSinceUpdate.toFixed(1)}h ago. ` +
                             `Waiting for ${COOLDOWN_HOURS}h cooldown.`,
                     );
+                    cooldownActive = true;
                     return null;
                 }
                 console.log("Idle done. Next: fetch");
@@ -99,21 +101,28 @@ export const handler = schedule("*/15 * * * *", async (event: HandlerEvent) => {
     };
 
     let finalStep: PipelineStep = state.currentStep;
+    let didProgress = true;
     try {
         const result = await Promise.race([work(), deadline]);
         if (result === "timeout") {
             console.warn("Approaching timeout — releasing lock at current step.");
             finalStep = state.currentStep;
+            didProgress = false;
         } else {
             finalStep = result;
+            // Cooldown branch returned without doing any work; don't bump
+            // updated_at so the cooldown keeps measuring from the last real
+            // completion.
+            if (cooldownActive) didProgress = false;
         }
     } catch (error) {
         console.error(`Step "${state.currentStep}" failed:`, error);
         // Release the lock without advancing — the same step will be retried.
         finalStep = state.currentStep;
+        didProgress = false;
     } finally {
         clearTimeout(deadlineTimer);
-        await setPipelineState(finalStep);
+        await setPipelineState(finalStep, { bumpUpdatedAt: didProgress });
     }
 
     return { statusCode: 200 };
