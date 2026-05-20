@@ -4,7 +4,7 @@ import os from "os";
 import path from "path";
 import "dotenv/config";
 
-const MONTHLY_LIMIT = 10_000;
+export const MONTHLY_LIMIT = 10_000;
 
 // Tracks requests made *during this run* (since Google Monitoring has a ~3-5 min delay)
 let runRequestCount = 0;
@@ -28,14 +28,13 @@ function ensureCredentialsFile(): void {
 }
 
 /**
- * Queries Google Cloud Monitoring for the total Geocoding API request count
- * in the current calendar month. Call once at the start of a geocoding batch.
+ * Fetches the total Geocoding API request count for the current calendar month.
+ * Throws an error if GOOGLE_CLOUD_PROJECT_ID is not set.
  */
-export async function syncGoogleGeocodeUsage(): Promise<void> {
+export async function fetchMonthlyGeocodeRequestCount(): Promise<number> {
     const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
     if (!projectId) {
-        console.warn("GOOGLE_CLOUD_PROJECT_ID not set — cannot sync usage from Google Cloud Monitoring.");
-        return;
+        throw new Error("GOOGLE_CLOUD_PROJECT_ID not set — cannot sync usage from Google Cloud Monitoring.");
     }
 
     ensureCredentialsFile();
@@ -72,15 +71,25 @@ export async function syncGoogleGeocodeUsage(): Promise<void> {
             }
         }
 
-        syncedMonthlyCount = total;
-        runRequestCount = 0;
-        console.log(`Google Geocoding usage synced: ${total} requests this month (limit: ${MONTHLY_LIMIT})`);
+        return total;
     } finally {
         // The gRPC channel keeps the Node event loop active until its idle
         // timeout expires. On Lambda this can delay container freeze by tens
         // of seconds, so close it explicitly as soon as we're done.
         await client.close();
     }
+}
+
+/**
+ * Syncs the monthly request count from Google Cloud Monitoring and resets the run count.
+ * Should be called at the start of each run to ensure accurate tracking of usage within the monthly quota.
+ */
+export async function syncGoogleGeocodeUsage(): Promise<void> {
+    const total = await fetchMonthlyGeocodeRequestCount();
+
+    syncedMonthlyCount = total;
+    runRequestCount = 0;
+    console.log(`Google Geocoding usage synced: ${total} requests this month (limit: ${MONTHLY_LIMIT})`);
 }
 
 export function getGoogleGeocodeUsage(): { count: number; limit: number; remaining: number } {
