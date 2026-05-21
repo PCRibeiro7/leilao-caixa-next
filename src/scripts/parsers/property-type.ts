@@ -22,6 +22,8 @@ export const mapPropertyTypeToEnum = (propertyType: string): PropertyType => {
             return PropertyType.Comercial;
         case "Outros":
             return PropertyType.Others;
+        case "Imóvel rural":
+            return PropertyType.Rural;
         default:
             return PropertyType.Unknown;
     }

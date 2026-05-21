@@ -65,6 +65,14 @@ export const mapGeocodePrecisionToColor: Record<GeocodePrecision, string> = {
     city: "#a50026",
 };
 
+const COMMERCIAL_PROPERTY_TYPES = [
+    PropertyType.Store,
+    PropertyType.Warehouse,
+    PropertyType.Building,
+    PropertyType.Office,
+    PropertyType.Comercial,
+];
+
 export default function Filter(props: FilterProps) {
     const { filterOptions, onFiltersChange, propertyCount, loading, buttonClassName } = props;
 
@@ -81,9 +89,7 @@ export default function Filter(props: FilterProps) {
             state: filterOptions.states,
             city: filterOptions.cities.map((c) => c.city),
             neighborhood: filterOptions.neighborhoods.map((n) => n.neighborhood),
-            geocodePrecision: (ToArray(GeocodePrecision) as GeocodePrecision[]).filter(
-                (i) => i !== GeocodePrecision.city,
-            ),
+            geocodePrecision: (ToArray(GeocodePrecision) as GeocodePrecision[]),
         }),
         [filterOptions],
     );
@@ -91,6 +97,21 @@ export default function Filter(props: FilterProps) {
     const [filters, setFilters] = useState<Filters>(initialFilters);
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
     const [hasInitialized, setHasInitialized] = useState(false);
+
+    const propertyTypeGroups = useMemo(() => {
+        const commercialPropertyTypes = new Set<string>(COMMERCIAL_PROPERTY_TYPES);
+
+        return [
+            {
+                label: "Residencial",
+                types: initialFilters.type.filter((type) => !commercialPropertyTypes.has(type)),
+            },
+            {
+                label: "Comercial",
+                types: initialFilters.type.filter((type) => commercialPropertyTypes.has(type)),
+            },
+        ];
+    }, [initialFilters.type]);
 
     useEffect(() => {
         setFilters(initialFilters);
@@ -193,6 +214,16 @@ export default function Filter(props: FilterProps) {
             }[filterName];
         }
         setFilters((oldFilter) => ({ ...oldFilter, [filterName]: newFilter }));
+    }
+
+    function handlePropertyTypeGroupToggle(types: string[]) {
+        const typeSet = new Set(types);
+        const hasGroupFilterEnabled = filters.type.some((type) => typeSet.has(type));
+        const newFilter = hasGroupFilterEnabled
+            ? filters.type.filter((type) => !typeSet.has(type))
+            : [...filters.type, ...types.filter((type) => !filters.type.includes(type))];
+
+        setFilters((oldFilter) => ({ ...oldFilter, type: newFilter }));
     }
 
     function buildApiFilters(f: Filters): PropertyFilters {
@@ -331,9 +362,13 @@ export default function Filter(props: FilterProps) {
                                 title="Tipo de Venda"
                             />
                             <DropdownMenuCheckboxes
-                                availableOptions={initialFilters.type.map((type) => ({
-                                    label: type,
-                                    checked: filters.type.includes(type),
+                                groups={propertyTypeGroups.map((group) => ({
+                                    label: group.label,
+                                    options: group.types.map((type) => ({
+                                        label: type,
+                                        checked: filters.type.includes(type),
+                                    })),
+                                    toggleAll: () => handlePropertyTypeGroupToggle(group.types),
                                 }))}
                                 onCheckedChange={(label, checked) => handleCheckboxFilterChange("type", label, checked)}
                                 toggleAll={() => handleCheckboxFilterToggle("type")}

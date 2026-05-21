@@ -9,6 +9,7 @@ export enum PropertyType {
     Office = "Sala",
     TwoStoryHouse = "Sobrado",
     Comercial = "Comercial",
+    Rural = "Imóvel rural",
     Unknown = "Desconhecido",
 }
 
