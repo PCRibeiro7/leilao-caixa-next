@@ -1,6 +1,9 @@
 import { fetchMonthlyGeocodeRequestCount, MONTHLY_LIMIT } from "@/scripts/utils/google-geocode-usage";
 import { NextResponse } from "next/server";
 
+// This endpoint must always reflect the latest monitoring value.
+export const dynamic = "force-dynamic";
+
 export async function GET() {
     try {
         const count = await fetchMonthlyGeocodeRequestCount();
