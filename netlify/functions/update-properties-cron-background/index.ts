@@ -9,7 +9,7 @@ import {
 import { HandlerEvent, schedule } from "@netlify/functions";
 
 const GEOCODE_BATCH_SIZE = 5000; // Number of properties to geocode per batch. Adjust based on performance testing and API rate limits.
-const COOLDOWN_HOURS = 24;
+const COOLDOWN_HOURS = 6;
 // Background functions have a 15-minute (900s) timeout. Leave a margin so we
 // can release the lock cleanly before Netlify kills the invocation.
 const DEADLINE_MS = 14 * 60 * 1000; // 14 minutes
